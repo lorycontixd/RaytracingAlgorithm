@@ -25,3 +25,4 @@ proc IsEqual(x,y: float32, epsilon:float32=1e-5): bool =
 
 proc `==`*(c1,c2: Color): bool =
     return IsEqual(c1.r, c2.r) and IsEqual(c1.g, c2.g) and IsEqual(c1.b, c2.b)
+
