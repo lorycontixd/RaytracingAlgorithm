@@ -7,4 +7,3 @@ assert hdr.valid_coordinates(1,1)
 assert hdr.valid_coordinates(-1,1) # correctly failed
 assert hdr.valid_coordinates(21,1) # correctly failed
 assert hdr.valid_coordinates(1,11) # correctly failed
-
