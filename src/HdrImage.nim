@@ -1,3 +1,4 @@
+import std/strutils
 import "color.nim"
 
 type
@@ -14,6 +15,35 @@ proc newHdrImage*(width, height: int): HdrImage=
 proc newHdrImage*(other:HdrImage): HdrImage {.inline.}=
     result = HdrImage(width:other.width, height:other.height, pixels:other.pixels)
 
+proc parse_endianess*(self: HdrImage, line:string): string= # Remove public on release
+    var flt: float32
+    try:
+        flt = parseFloat(line)
+    except ValueError:
+        raise newException(ValueError, "Invalid endianness specification") # Convert to custom exception
+    if flt > 0:
+        return ">f"
+    elif flt < 0:
+        return "<f"
+    else:
+        raise newException(ValueError, "Invalid endianness specification")
+
+proc parse_img_size*(self: HdrImage, line:string): tuple = # Remove public on release
+    let elements = line.split(" ")
+    if len(elements) != 2:
+        raise newException(ValueError, "Invalid image size specification")
+
+    var
+        width, height: int
+    try:
+        width = parseInt(elements[0])
+        height = parseInt(elements[1])
+        if width < 0 or height < 0:
+            raise newException(ValueError, "")
+    except ValueError:
+        raise newException(ValueError, "Invalid width/height") # Convert to custom exception
+    return (width, height)
+    
 
 proc valid_coordinates*(self: HdrImage, x,y:int): bool=
     result = ((x>=0) and (x<self.width) and (y>=0) and (y<self.height))
