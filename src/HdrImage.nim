@@ -144,9 +144,9 @@ proc write_black*(self: var HdrImage, stream: FileStream) {.inline.}=
     else:
         stream.write("1.0")
     
-    var buffer: array[12, byte]
+    var buffer: array[16, byte]
     for i in 0..(self.width*self.height):
-        stream.writeData(addr(buffer), 12)
+        stream.writeData(addr(buffer), 16)
     stream.close()
 
 proc write_white*(self: var HdrImage, stream: FileStream) {.inline.}=
