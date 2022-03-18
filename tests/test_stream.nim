@@ -8,10 +8,6 @@ import "../src/utils.nim"
 type Endianness = hdrimage.Endianness
 
 
-
-
-
-
 # Endians tst
 var
     flt: float32 = 3.1415
