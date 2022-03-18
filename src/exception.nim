@@ -5,3 +5,5 @@ type
 
     PFMImageError* = object of ImageError
     PNGImageErro* = object of ImageError
+
+    InvalidColorError* = object of Exception
