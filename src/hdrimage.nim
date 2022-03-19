@@ -1,4 +1,4 @@
-import std/[strutils, streams, tables, strformat, endians]
+import std/[strutils, streams, tables, strformat, endians, random]
 import color, exception, utils
 
 
@@ -77,10 +77,42 @@ proc set_pixel*(self: var HdrImage, x,y:int, new_color: Color) {.inline.} =
     let offset = self.pixel_offset(x,y)
     self.pixels[offset] = new_color
 
-proc custom_pixels*(self: var HdrImage, color: Color) {.inline.}=
+proc fill_pixels*(self: var HdrImage, color: Color) {.inline.}=
     for i in 0..size(self.pixels):
         self.pixels[i] = color
 
+proc fill_black*(self: var HdrImage)=
+    self.fill_pixels(newColor("black"))
+
+proc fill_white*(self: var HdrImage)=
+    self.fill_pixels(newColor("white"))
+
+proc fill_red*(self: var HdrImage)=
+    self.fill_pixels(newColor("red"))
+
+proc fill_green*(self: var HdrImage)=
+    self.fill_pixels(newColor("green"))
+
+proc fill_blue*(self: var HdrImage)=
+    self.fill_pixels(newColor("blue"))
+
+proc fill_random*(self: var HdrImage)=
+    for i in 0..self.width-1:
+        for j in 0..self.height-1:
+            self.set_pixel(i,j, newColor(
+                rand(1.0),
+                rand(1.0),
+                rand(1.0)
+            ))
+
+proc fill_gradient*(self: var HdrImage)=
+    for i in 0..self.width-1:
+        for j in 0..self.height-1:
+            self.set_pixel(i,j, newColor(
+                float(i/ self.width),
+                float(i/ self.width),
+                float(i/ self.width)
+            ))
 
 
 proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
@@ -109,12 +141,12 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
     self.endianness = self.parse_endianess(endianline)
     
     # Fill pixel data from file bytes
-    #result = newHdrImage(img_size[0], img_size[1], endian) # Create output image
     var
         buffer_size = 12
         buffer: array[12, byte] # Create buffer variable: will hold the 12 bytes relative to the 3 floats (R,G,B)
         r,g,b: float32 # Create RGB variables to store read colors
         rbuf, gbuf, bbuf: array[4,byte] # Create single buffer 
+
     for i in 0..(self.width * self.height)-1: 
         discard stream.readData(addr(buffer), buffer_size) # Read 12 bytes data and save it in the buffer
         rbuf = seqToArray32( buffer[0..3]) # Split the 12 bytes buffer in 3 buffers of 4 bytes (1 per color)
@@ -123,19 +155,34 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
         # need to divide little and big endian
         case self.endianness:
             of Endianness.littleEndian:
-                littleEndian32(addr r, addr rbuf)
+                littleEndian32(addr r, addr rbuf) #  Convert from 4 bytes to float (littleEndian)
                 littleEndian32(addr g, addr gbuf)
                 littleEndian32(addr b, addr bbuf)
             of Endianness.bigEndian:
-                bigEndian32(addr r, addr rbuf)
+                bigEndian32(addr r, addr rbuf) #  Convert from 4 bytes to float (bigEndian)
                 bigEndian32(addr g, addr gbuf)
                 bigEndian32(addr b, addr bbuf)
         self.pixels[i] = newColor(r,g,b)
 
 
-proc write_pfm*(self: var HdrImage, stream: Stream, testing: bool = false) {.inline.}=
+proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
+    #[
+        Write PFM: Writes current HdrImage to a generic stream with PFM format.
+        If stream is of type FileStream, the image is instantly written to file.
+        If stream is of type StringStream, the image is stored in the stream as a string.
+
+        Parameters:
+            - stream: Stream to write bytes into.
+        
+        Returns:
+            - No returns, output is saved in the argument stream.
+    ]#
+
+    # Magic
     stream.write("PF\n")
+    # Image size
     stream.write(fmt"{self.width} {self.height}{'\n'}")
+    # Scale factor - Endianness
     if self.endianness == Endianness.littleEndian:
         stream.write("-1.0\n")
     else:
@@ -160,7 +207,7 @@ proc write_pfm*(self: var HdrImage, stream: Stream, testing: bool = false) {.inl
         buffer[0..3] = rbuf
         buffer[4..7] = gbuf
         buffer[8..11] = bbuf
-        stream.writeData(addr(buffer), 12)
+        stream.writeData(addr(buffer), 12)  
     doAssert stream.atEnd() == true
 
 proc write_black*(self: var HdrImage, stream: FileStream) {.inline.}=
