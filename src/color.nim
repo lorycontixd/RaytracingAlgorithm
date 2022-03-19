@@ -62,3 +62,29 @@ proc IsEqual(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
 proc `==`*(c1,c2: Color): bool {.inline.}=
     return IsEqual(c1.r, c2.r) and IsEqual(c1.g, c2.g) and IsEqual(c1.b, c2.b)
 
+proc `!=`*(c1, c2: Color): bool {.inline.}=
+    return not(c1==c2)
+
+proc black*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("black")
+
+proc white*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("white")
+
+proc red*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("red")
+
+proc green*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("green")
+
+proc blue*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("blue")
+
+proc yellow*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("yellow")
+
+proc magenta*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("magenta")
+
+proc cyan*(_: typedesc[Color]): Color {.inline.}=
+    return newColor("cyan   ")
