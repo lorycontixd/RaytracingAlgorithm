@@ -2,6 +2,8 @@ import std/[strutils, strformat, macros]
 from macros import newTree, nnkBracket, newLit
 from sequtils import mapIt
 
+#[
+    
 
 proc toString*(bytes: openarray[byte]): string =
     #[
@@ -20,6 +22,7 @@ proc byteArrayToHex32*(a: array[4,byte]): string {.inline.} {.deprecated: "use t
     for i in 0..len(a)-1:
       b[i] = toHex(a[i])
     result = fmt"{b[0]}{b[1]} {b[2]}{b[3]}"
+]#
 
 proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
     #[
