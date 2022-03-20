@@ -115,6 +115,7 @@ proc fill_gradient*(self: var HdrImage)=
             ))
 
 
+
 proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
     #[
         Read PFM: Reads PFM file defined by stream and stores it in the current HdrImage object.
@@ -140,7 +141,7 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
     let endianline = stream.readLine() # Reads third line for endianness
     self.endianness = self.parse_endianess(endianline)
     
-    # Fill pixel data from f    ile bytes
+    # Fill pixel data from file bytes
     var
         buffer_size = 12
         buffer: array[12, byte] # Create buffer variable: will hold the 12 bytes relative to the 3 floats (R,G,B)
@@ -191,25 +192,27 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
         r,g,b: float32 # Temporary variables to store each pixel colors
         rbuf, gbuf, bbuf: array[4,byte] # 4 bytes buffer to save each 
         buffer: array[12, byte] # 12 bytes buffer to
-    for pixel in self.pixels: 
-        r = pixel.r
-        g = pixel.g
-        b = pixel.b
-        # For each pixel, convert RGB values into a 4 bytes buffer each
-        case self.endianness:
-            of Endianness.littleEndian:
-                littleEndian32(addr rbuf, addr r)
-                littleEndian32(addr gbuf, addr g)
-                littleEndian32(addr bbuf, addr b)
-            of Endianness.bigEndian:
-                bigEndian32(addr rbuf, addr r)
-                bigEndian32(addr gbuf, addr g)
-                bigEndian32(addr bbuf, addr b)
-        # Concatenate the 3 buffers into one
-        buffer[0..3] = rbuf 
-        buffer[4..7] = gbuf
-        buffer[8..11] = bbuf
-        stream.writeData(addr(buffer), 12)  # Write the buffer to stream
+    for i in 0..self.width-1:
+        for j in countdown(self.height-1, 0):
+            let pixel = self.get_pixel(i, j)
+            r = pixel.r
+            g = pixel.g
+            b = pixel.b
+            # For each pixel, convert RGB values into a 4 bytes buffer each
+            case self.endianness:
+                of Endianness.littleEndian:
+                    littleEndian32(addr rbuf, addr r)
+                    littleEndian32(addr gbuf, addr g)
+                    littleEndian32(addr bbuf, addr b)
+                of Endianness.bigEndian:
+                    bigEndian32(addr rbuf, addr r)
+                    bigEndian32(addr gbuf, addr g)
+                    bigEndian32(addr bbuf, addr b)
+            # Concatenate the 3 buffers into one
+            buffer[0..3] = rbuf 
+            buffer[4..7] = gbuf
+            buffer[8..11] = bbuf
+            stream.writeData(addr(buffer), 12)  # Write the buffer to stream
     doAssert stream.atEnd() == true
 
 proc write_black*(self: var HdrImage, stream: FileStream) {.inline.}=
