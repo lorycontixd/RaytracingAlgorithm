@@ -45,8 +45,9 @@ proc charSeqToByte*(s: seq[char]): seq[byte] {.inline.}=
     #[
         Converts a sequence of char into a sequence of bytes.
     ]#
-    echo size(s)
+    #echo size(s)
     result = newSeq[byte](size(s))
+    #echo "- ",s
     for i in 0..size(s)-1:
         result[i] = cast[byte](s[i])
 
