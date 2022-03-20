@@ -140,7 +140,7 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
     let endianline = stream.readLine() # Reads third line for endianness
     self.endianness = self.parse_endianess(endianline)
     
-    # Fill pixel data from file bytes
+    # Fill pixel data from f    ile bytes
     var
         buffer_size = 12
         buffer: array[12, byte] # Create buffer variable: will hold the 12 bytes relative to the 3 floats (R,G,B)
@@ -188,13 +188,14 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
     else:
         stream.write("1.0\n")
     var
-        r,g,b: float32
-        rbuf, gbuf, bbuf: array[4,byte]
-        buffer: array[12, byte]
-    for pixel in self.pixels:
+        r,g,b: float32 # Temporary variables to store each pixel colors
+        rbuf, gbuf, bbuf: array[4,byte] # 4 bytes buffer to save each 
+        buffer: array[12, byte] # 12 bytes buffer to
+    for pixel in self.pixels: 
         r = pixel.r
         g = pixel.g
         b = pixel.b
+        # For each pixel, convert RGB values into a 4 bytes buffer each
         case self.endianness:
             of Endianness.littleEndian:
                 littleEndian32(addr rbuf, addr r)
@@ -204,10 +205,11 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
                 bigEndian32(addr rbuf, addr r)
                 bigEndian32(addr gbuf, addr g)
                 bigEndian32(addr bbuf, addr b)
-        buffer[0..3] = rbuf
+        # Concatenate the 3 buffers into one
+        buffer[0..3] = rbuf 
         buffer[4..7] = gbuf
         buffer[8..11] = bbuf
-        stream.writeData(addr(buffer), 12)  
+        stream.writeData(addr(buffer), 12)  # Write the buffer to stream
     doAssert stream.atEnd() == true
 
 proc write_black*(self: var HdrImage, stream: FileStream) {.inline.}=
