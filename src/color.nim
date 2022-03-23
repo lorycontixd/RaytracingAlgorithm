@@ -44,7 +44,10 @@ proc newColor*(color: string): Color=
         else:
             raise InvalidColorError.newException(fmt"Color {color} is not defined.")
 
-
+proc luminosity*(c:Color): float32=
+    let colormax = max(max(c.r, c.g), c.b)
+    let colormin = min(min(c.r, c.g), c.b)
+    return (colormax + colormin)/2
 
 
 proc `+`*(c1,c2: Color): Color {.inline.}=
@@ -56,7 +59,7 @@ proc `*`*(c1,c2: Color): Color {.inline.}=
 proc `*`*(c1: Color, a:float): Color {.inline.}=
     return Color(r: c1.r*a, g: c1.g*a, b: c1.b*a)
 
-proc IsEqual(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     return abs(x - y) < epsilon
 
 proc `==`*(c1,c2: Color): bool {.inline.}=
