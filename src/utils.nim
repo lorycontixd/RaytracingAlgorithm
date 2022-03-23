@@ -51,3 +51,5 @@ proc charSeqToByte*(s: seq[char]): seq[byte] {.inline.}=
     for i in 0..size(s)-1:
         result[i] = cast[byte](s[i])
 
+proc clampFloat*(x: float32): float32=
+    return x/(1+x)

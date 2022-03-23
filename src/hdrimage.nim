@@ -1,5 +1,6 @@
-import std/[strutils, streams, tables, strformat, endians, random]
+import std/[strutils, streams, tables, strformat, endians, random, math, options]
 import color, exception, utils
+import simplepng
 
 
 type
@@ -77,8 +78,33 @@ proc set_pixel*(self: var HdrImage, x,y:int, new_color: Color) {.inline.} =
     let offset = self.pixel_offset(x,y)
     self.pixels[offset] = new_color
 
+proc average_luminosity*(self: var HdrImage, delta: float = 1e-10): float32 {.inline.}=
+    var cumsum: float = 0.0
+    for pix in self.pixels:
+        cumsum += log10(delta + pix.luminosity())
+    return pow(10, cumsum/ float(size(self.pixels)))
+
+proc normalize_image*(self: var HdrImage, factor: float32, luminosity: Option[float32] = none(float32), delta: float32 = 1e-10)=
+    var l: float32
+    if not luminosity.isSome():
+        l = self.average_luminosity()
+    else:
+        l = luminosity.get
+    for i in 0..size(self.pixels)-1:
+        self.pixels[i] = self.pixels[i] * (factor/l)
+
+proc clamp_image*(self: var HdrImage)=
+    for i in 0..size(self.pixels)-1:
+        self.pixels[i].r = clampFloat(self.pixels[i].r)
+        self.pixels[i].g = clampFloat(self.pixels[i].g)
+        self.pixels[i].b = clampFloat(self.pixels[i].b)
+
+
+
+
+## ------------------ FILLERS -------------------------
 proc fill_pixels*(self: var HdrImage, color: Color) {.inline.}=
-    for i in 0..size(self.pixels):
+    for i in 0..size(self.pixels)-1:
         self.pixels[i] = color
 
 proc fill_black*(self: var HdrImage)=
@@ -148,23 +174,26 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
         r,g,b: float32 # Create RGB variables to store read colors
         rbuf, gbuf, bbuf: array[4,byte] # Create single buffer 
 
-    for i in 0..(self.width * self.height)-1: 
-        discard stream.readData(addr(buffer), buffer_size) # Read 12 bytes data and save it in the buffer
-        rbuf = seqToArray32( buffer[0..3]) # Split the 12 bytes buffer in 3 buffers of 4 bytes (1 per color)
-        gbuf = seqToArray32( buffer[4..7])
-        bbuf = seqToArray32( buffer[8..11])
-        # need to divide little and big endian
-        case self.endianness:
-            of Endianness.littleEndian:
-                littleEndian32(addr r, addr rbuf) #  Convert from 4 bytes to float (littleEndian)
-                littleEndian32(addr g, addr gbuf)
-                littleEndian32(addr b, addr bbuf)
-            of Endianness.bigEndian:
-                bigEndian32(addr r, addr rbuf) #  Convert from 4 bytes to float (bigEndian)
-                bigEndian32(addr g, addr gbuf)
-                bigEndian32(addr b, addr bbuf)
-        self.pixels[i] = newColor(r,g,b)
+    for j in countdown(self.height-1, 0):
+        for i in 0..self.width-1:
+            discard stream.readData(addr(buffer), buffer_size) # Read 12 bytes data and save it in the buffer
+            rbuf = seqToArray32( buffer[0..3]) # Split the 12 bytes buffer in 3 buffers of 4 bytes (1 per color)
+            gbuf = seqToArray32( buffer[4..7])
+            bbuf = seqToArray32( buffer[8..11])
+            # need to divide little and big endian
+            case self.endianness:
+                of Endianness.littleEndian:
+                    littleEndian32(addr r, addr rbuf) #  Convert from 4 bytes to float (littleEndian)
+                    littleEndian32(addr g, addr gbuf)
+                    littleEndian32(addr b, addr bbuf)
+                of Endianness.bigEndian:
+                    bigEndian32(addr r, addr rbuf) #  Convert from 4 bytes to float (bigEndian)
+                    bigEndian32(addr g, addr gbuf)
+                    bigEndian32(addr b, addr bbuf)
+            self.set_pixel(i,j, newColor(r,g,b))
 
+#proc write_bytes(self: var HdrImage, stream: Stream)=
+    
 
 proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
     #[
@@ -192,8 +221,8 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
         r,g,b: float32 # Temporary variables to store each pixel colors
         rbuf, gbuf, bbuf: array[4,byte] # 4 bytes buffer to save each 
         buffer: array[12, byte] # 12 bytes buffer to
-    for i in 0..self.width-1:
-        for j in countdown(self.height-1, 0):
+    for j in countdown(self.height-1, 0):
+        for i in 0..self.width-1:
             let pixel = self.get_pixel(i, j)
             r = pixel.r
             g = pixel.g
@@ -215,15 +244,15 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
             stream.writeData(addr(buffer), 12)  # Write the buffer to stream
     doAssert stream.atEnd() == true
 
-proc write_black*(self: var HdrImage, stream: FileStream) {.inline.}=
-    stream.write("PF\n")
-    stream.write(fmt"{self.width} {self.height}{'\n'}")
-    if self.endianness == Endianness.littleEndian:
-        stream.write("-1.0\n")
-    else:
-        stream.write("1.0\n")
-    
-    var buffer: array[16, byte]
-    for i in 0..(self.width*self.height):
-        stream.writeData(addr(buffer), 16)
-    stream.close()
+proc write_png*(self: var HdrImage, output_file: string, gamma:float =1.0){.inline.}= 
+    var p = initPixels(self.width, self.height)
+    var i: int = 0
+    for pixel in p.mitems:
+        pixel.setColor(
+            cast[byte]( int(255 * pow(self.pixels[i].r, 1.0/gamma))),
+            cast[byte]( int(255 * pow(self.pixels[i].g, 1.0/gamma))),
+            cast[byte]( int(255 * pow(self.pixels[i].b, 1.0/gamma))),
+            255'u8
+        )
+        i+=1
+    simplePNG(output_file, p)
