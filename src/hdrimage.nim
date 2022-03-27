@@ -142,16 +142,16 @@ proc fill_gradient*(self: var HdrImage)=
 
 
 
-proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
-    #[
-        Read PFM: Reads PFM file defined by stream and stores it in the current HdrImage object.
-        
-        Parameters:
-            - stream: Stream to read bytes from
-        
-        Returns
-            No returns, sets this object instead.
-    ]#
+proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} {. extractdocstrings .}=
+    ##
+    ##    Read PFM: Reads PFM file defined by stream and stores it in the current HdrImage object.
+    ##    
+    ##    Parameters:
+    ##        - stream: Stream t o read bytes from
+    ##    
+    ##    Returns
+    ##        No returns, sets this object instead.
+    ##
     
     # Magic
     var magic: string = stream.readLine() # Reads first line for magic code
