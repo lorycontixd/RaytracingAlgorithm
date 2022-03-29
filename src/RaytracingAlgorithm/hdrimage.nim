@@ -1,4 +1,4 @@
-import std/[strutils, streams, tables, strformat, endians, random, math, options, logging]
+import std/[strutils, streams, tables, strformat, endians, random, math, options]
 import color, exception, utils, logger
 import simplepng
 
@@ -40,12 +40,6 @@ proc newHdrImage*(width, height: int, endianness:Endianness): HdrImage {.inline.
     ## -Parameters: width, height (int, int), endianness
     ## 
     ## -Returns: HdrImage
-    result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
-    for i in 0..width*height-1:
-        result.pixels[i] = newColor(0,0,0)
-    result.endianness = endianness
-
-proc newHdrImage*(width, height: int, endianness:Endianness, logLevel: logging.Level): HdrImage {.inline.} =
     result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
     for i in 0..width*height-1:
         result.pixels[i] = newColor(0,0,0)
@@ -217,6 +211,7 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
     ##        No returns, sets this object instead.
     ##
     
+    debug("Read_pfm called from HdrImage")
     # Magic
     var magic: string = stream.readLine() # Reads first line for magic code
     if magic != "PF":
@@ -255,6 +250,7 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
                     bigEndian32(addr g, addr gbuf)
                     bigEndian32(addr b, addr bbuf)
             self.set_pixel(i,j, newColor(r,g,b))
+    debug(fmt"Image read, detected size({self.width},{self.height})")
 
 #proc write_bytes(self: var HdrImage, stream: Stream)=
     
@@ -271,7 +267,7 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
     ##    Returns:
     ##        - No returns, output is saved in the argument stream.
 
-
+    debug("Write_pfm called from HdrImage")
     # Magic
     stream.write("PF\n")
     # Image size

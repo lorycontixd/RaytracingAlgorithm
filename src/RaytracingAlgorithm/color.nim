@@ -1,6 +1,6 @@
 import std/[strutils, strformat]
 #import docstrings
-import "exception.nim"
+import exception
 
 type
     Color* = object 
