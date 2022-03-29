@@ -4,6 +4,8 @@ RaytracingAlgorithm is a Nim package which takes care of rendering photorealisti
 
 It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-Dynamic Range(PNG, JPEG; etc..).
 
+/github/languages/code-size/:user/:repo
+
 ## Requirements
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
 - [Nim](https://nim-lang.org/) (nim >= 1.6.4)
