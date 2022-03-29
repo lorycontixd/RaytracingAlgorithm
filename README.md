@@ -23,6 +23,8 @@ git@github.com:lorycontixd/RaytracingAlgorithm.git
 ```
 
 ### Downloading the latest release
+[![Github releases (by asset)](https://img.shields.io/github/downloads/lorycontixd/RaytracingAlgorithm/releases/latest/)](https://github.com/lorycontixd/RaytracingAlgorithm/releases)
+
 1. From terminal, download the latest version of the package from the GitHub repository of the package:
 ```
 wget command goes here
