@@ -7,7 +7,8 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 ## Requirements
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
 - [Nim](https://nim-lang.org/) (nim >= 1.6.4)
-- [SimplePNG](https://github.com/jrenner/nim-simplepng): installable through the Nimble package manager with ```nimble install simplepng```
+- [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```
+- [Therapist](https://maxgrenderjones.bitbucket.io/therapist/latest/therapist.html): Package for parsing command line arguments. Installable through Nimble with ```nimble install therapist```
 
 ## Installation
 

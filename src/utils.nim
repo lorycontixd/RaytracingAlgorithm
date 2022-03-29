@@ -1,4 +1,4 @@
-import std/[strutils, strformat, macros]
+import std/[os, strutils, strformat, macros]
 from macros import newTree, nnkBracket, newLit
 from sequtils import mapIt
 
@@ -53,3 +53,10 @@ proc charSeqToByte*(s: seq[char]): seq[byte] {.inline.}=
 
 proc clampFloat*(x: float32): float32=
     return x/(1+x)
+
+proc cmdArgsToString*(): string=
+    var str: string = ""
+    for param in commandLineParams():
+        str = str & param & " "
+    str = str[.. ^2]
+    return str
