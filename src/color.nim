@@ -1,4 +1,5 @@
 import std/[strutils, strformat]
+#import docstrings
 import "exception.nim"
 
 type
@@ -44,10 +45,16 @@ proc newColor*(color: string): Color=
         else:
             raise InvalidColorError.newException(fmt"Color {color} is not defined.")
 
-proc luminosity*(c:Color): float32=
+proc luminosity*(c:Color): float32 =
     let colormax = max(max(c.r, c.g), c.b)
     let colormin = min(min(c.r, c.g), c.b)
     return (colormax + colormin)/2
+## 
+## Color class method to compute luminosity
+## 
+##      -Parameters: Color
+## 
+##      -Returns: float 32 luminosity
 
 
 proc `+`*(c1,c2: Color): Color {.inline.}=
@@ -61,9 +68,21 @@ proc `*`*(c1: Color, a:float): Color {.inline.}=
 
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     return abs(x - y) < epsilon
+##
+## Color class method to verify if two floats are equal
+## 
+##      -Parameters: float32, float32
+## 
+##      -Returns: True (floats are close) or False (floats are not equal)
 
 proc `==`*(c1,c2: Color): bool {.inline.}=
     return IsEqual(c1.r, c2.r) and IsEqual(c1.g, c2.g) and IsEqual(c1.b, c2.b)
+##
+## Color class method to verify if two Colors are equal
+## 
+##      -Parameters: Color, Color
+## 
+##      -Returns: True (r,g,b respectively of the two Colors are equal) else: False
 
 proc `!=`*(c1, c2: Color): bool {.inline.}=
     return not(c1==c2)
