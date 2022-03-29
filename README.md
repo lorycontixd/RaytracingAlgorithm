@@ -21,7 +21,8 @@ git@github.com:lorycontixd/RaytracingAlgorithm.git
 ```
 
 ### Downloading the latest release
-[![GitHub release](https://img.shields.io/github/release/lorycontixd/RaytracingAlgorithm.svg)](https://GitHub.com/Naereen/StrapDown.js/releases/)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/lorycontixd/RaytracingAlgorithm?color=green&label=Repo%20size&style=plastic)
+![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
 
 1. From terminal, download the latest version of the package from the GitHub repository of the package:
 ```
