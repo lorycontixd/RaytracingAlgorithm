@@ -1,6 +1,6 @@
-import "../src/color.nim"
-import "../src/hdrimage.nim"
-import std/options
+import "../src/RaytracingAlgorithm/hdrimage.nim"
+import "../src/RaytracingAlgorithm/color.nim"
+import std/[options]
 
 let col1 = newColor(1.0,2.0,3.0)
 let col2 = newColor(9.0,5.0,7.0)
