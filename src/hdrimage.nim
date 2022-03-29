@@ -1,5 +1,5 @@
-import std/[strutils, streams, tables, strformat, endians, random, math, options]
-import color, exception, utils
+import std/[strutils, streams, tables, strformat, endians, random, math, options, logging]
+import color, exception, utils, logger
 import simplepng
 
 
@@ -9,6 +9,7 @@ type
         height*: int
         pixels*: seq[Color]
         endianness*: Endianness
+
     Endianness* = enum
         littleEndian = "<f"
         bigEndian = ">f"
@@ -17,7 +18,12 @@ converter toEndianness*(s: string): Endianness = parseEnum[Endianness](s)
 
 
 proc newHdrImage*(): HdrImage {.inline.} =
-    result = HdrImage(width:0, height:0, pixels: newSeq[Color](0), endianness:Endianness.littleEndian)
+    result = HdrImage(
+        width:0,
+        height:0,
+        pixels: newSeq[Color](0),
+        endianness: Endianness.littleEndian
+    )
 
 proc newHdrImage*(width, height: int): HdrImage {.inline.} =
     result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
@@ -26,6 +32,12 @@ proc newHdrImage*(width, height: int): HdrImage {.inline.} =
     result.endianness = Endianness.littleEndian
 
 proc newHdrImage*(width, height: int, endianness:Endianness): HdrImage {.inline.} =
+    result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
+    for i in 0..width*height-1:
+        result.pixels[i] = newColor(0,0,0)
+    result.endianness = endianness
+
+proc newHdrImage*(width, height: int, endianness:Endianness, logLevel: logging.Level): HdrImage {.inline.} =
     result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
     for i in 0..width*height-1:
         result.pixels[i] = newColor(0,0,0)
@@ -142,7 +154,7 @@ proc fill_gradient*(self: var HdrImage)=
 
 
 
-proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} {. extractdocstrings .}=
+proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.}=
     ##
     ##    Read PFM: Reads PFM file defined by stream and stores it in the current HdrImage object.
     ##    
