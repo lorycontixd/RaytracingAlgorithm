@@ -1,4 +1,4 @@
-import std/[os, logging]
+import std/[os]
 
 type
     CustomException* = ref object of Exception

@@ -34,7 +34,7 @@ proc addLogger*(file: File) =
     ## Parameters:
     ##      - file(File): stream to which the logger can write to (can be a filestream or a pipeline such as stdout/stderr)
     if size(loggers)<=0:
-    let dir = joinPath(parentDir(getCurrentDir(), "examples", "logs"))
+        let dir = joinPath(parentDir(getCurrentDir()), "examples", "logs")
         if not existsDir(dir):
             createDir(dir)
 
@@ -65,7 +65,7 @@ proc threadLog {.thread.} =
     of write:
       let newTime = getTime()
       if newTime != lastTime: # getDate + getClock are slowest -> Caching the time makes it faster. Caching format string only if seconds have changed (for multiple log calls)
-        timeStr = getLocalTime(newTime).format "yyyy-MM-dd HH:mm:ss"
+        timeStr = local(newTime).format "yyyy-MM-dd HH:mm:ss"
         lastTime = newTime
 
       let str = "[$#][$#]: $#\n" % [timeStr, msg.module, msg.text]

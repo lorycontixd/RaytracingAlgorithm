@@ -1,10 +1,8 @@
-import std/[os, strutils, strformat, macros]
+import std/[os, strutils, strformat, macros, parsecfg]
 from macros import newTree, nnkBracket, newLit
 from sequtils import mapIt
 
 #[
-    
-
 proc toString*(bytes: openarray[byte]): string =
     #[
         Converts an array of bytes to string
@@ -60,3 +58,7 @@ proc cmdArgsToString*(): string=
         str = str & param & " "
     str = str[.. ^2]
     return str
+
+proc getPackageVersion*(): string=
+    var p: Config = loadConfig("./RaytracingAlgorithm.nimble")
+    return p.getSectionValue("", "version") 
