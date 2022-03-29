@@ -1,8 +1,10 @@
 # RaytracingAlgorithm
 
 RaytracingAlgorithm is a Nim package which takes care of rendering photorealistic images starting from a 3D scene described from an input text file.
-
 It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-Dynamic Range(PNG, JPEG; etc..).
+
+![GitHub commit activity (weekly)](https://img.shields.io/github/commit-activity/w/lorycontixd/RaytracingAlgorithm)
+![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
 
 ## Requirements
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
@@ -22,7 +24,7 @@ git@github.com:lorycontixd/RaytracingAlgorithm.git
 
 ### Downloading the latest release
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/lorycontixd/RaytracingAlgorithm?color=green&label=Repo%20size&style=plastic)
-![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
+
 
 1. From terminal, download the latest version of the package from the GitHub repository of the package:
 ```
@@ -48,4 +50,5 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+![GitHub License](https://img.shields.io/github/license/lorycontixd/RaytracingAlgorithm)
+[GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
