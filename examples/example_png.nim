@@ -1,16 +1,18 @@
 import os
-import std/[os, strutils, streams, terminal]
+import std/[os, strutils, streams, terminal, parsecfg]
 import therapist
-import "../src/hdrimage.nim"
-import "../src/color.nim"
-import "../src/utils.nim"
-import "../src/exception.nim"
+import "../src/RaytracingAlgorithm/hdrimage.nim"
+import "../src/RaytracingAlgorithm/color.nim"
+import "../src/RaytracingAlgorithm/logger.nim"
+import "../src/RaytracingAlgorithm/utils.nim"
+import "../src/RaytracingAlgorithm/exception.nim"
 
 ##### Parameters
 # 1. Input PFM filename (string)
 # 2. Factor (float)
 # 3. Gamma (float)
 # 4. Output PNG filename (string)
+ 
 
 # The parser is specified as a tuple
 let spec = (
@@ -24,11 +26,10 @@ let spec = (
     gamma: newFloatArg(@["-g", "--gamma"], default=1, help="Gamma factor of the monitory for image correction."),
 
     # --version will cause 0.1.0 to be printed
-    version: newMessageArg(@["--version"], "0.1.0", help="Prints version"),
+    version: newMessageArg(@["--version"], getPackageVersion(), help="Prints version"),
     # --help will cause a help message to be printed
     help: newHelpArg(@["-h", "--help"], help="Show help message")
 )
-
 
 
 let args_string = cmdArgsToString()
