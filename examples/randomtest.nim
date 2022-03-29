@@ -1,6 +1,8 @@
-import "../src/exception.nim"
-import "../src/hdrimage.nim"
-import "../src/logger.nim"
+import "../src/RaytracingAlgorithm/hdrimage.nim"
+import "../src/RaytracingAlgorithm/color.nim"
+import "../src/RaytracingAlgorithm/logger.nim"
+import "../src/RaytracingAlgorithm/exception.nim"
+
 import std/monotimes
 import std/strformat
 import std/[times, os, math]
