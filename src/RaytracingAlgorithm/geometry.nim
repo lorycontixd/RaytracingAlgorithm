@@ -1,5 +1,5 @@
 import neo
-import std/[math, macros, typetraits]
+import std/[math, macros, typetraits, strformat]
 
 type
     Vector* = object
@@ -18,21 +18,21 @@ type
 
 macro define_empty_constructors(type1: typedesc): typed =
     let source = fmt"""
-proc new{$type1}(): {$type1} =
+proc new{$type1}*(): {$type1} =
     result = {$type1}(x: 0.0, y: 0.0, z: 0.0)
 """
     result = parseStmt(source)
 
 macro define_constructors(type1: typedesc): typed =
     let source = fmt"""
-proc new{$type1}(x,y,z: float32): {$type1} =
+proc new{$type1}*(x,y,z: float32): {$type1} =
     result = {$type1}(x: x, y: y, z: z)
 """
     result = parseStmt(source)
 
 macro define_copy_constructors(type1: typedesc): typed =
     let source = fmt"""
-proc new{$type1}(other: {$type1}): {$type1} =
+proc new{$type1}*(other: {$type1}): {$type1} =
     result = {$type1}(x: other.x, y: other.y, z: other.z)
 """
     result = parseStmt(source)
