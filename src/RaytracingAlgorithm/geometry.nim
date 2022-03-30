@@ -1,5 +1,6 @@
 import neo
-import std/[math, macros, typetraits, strformat]
+import std/[math, macros, typetraits, strformat, strutils]
+import exception
 
 type
     Vector* = object
@@ -78,57 +79,215 @@ define_product(Vector)
 define_product(Point)
 define_product(Normal)
 
-proc dot*(this, other: Vector): float32 {.inline.} = 
+proc Dot*(this, other: Vector): float32 {.inline.} = 
     result = this.x * other.x + this.y * other.y + this.z * other.z
 
 proc `*`*(this, other: Vector): float32 {.inline.} =
-    result = this.dot(other)
+    result = this.Dot(other)
 
-proc cross*(this, other: Vector): Vector {.inline.}=
+proc Cross*(this, other: Vector): Vector {.inline.}=
     result.x = this.y * other.z - this.z * other.y
     result.y = this.z * other.x - this.x * other.z
     result.z = this.x * other.y - this.y * other.x
 
 ## ------------------------------------  Other operators  ---------------------------------------
-template define_equalities(type1: typedesc) =
-    proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
-        return abs(x - y) < epsilon
+proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+    return abs(x - y) < epsilon
 
+template define_equalities(type1: typedesc) =
     proc `==`*(this, other: type1): bool=
         return IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z)
     
     proc `!=`*(this, other: type1): bool=
-        return not this == other
+        return not(IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z))
 
-template define_getitem(type1: typedesc) =
-    proc `[]`*(this: type1, index: int): float32 {.inline.}=
-        case index:
-        of 0:
-            return this.x
-        of 1:
-            return this.y
-        of 2:
-            return this.z
-        else:
-            # raise
-            return
 
-template define_setitem(type1: typedesc) =
-    proc `[]=`* (this:type1, index: int, value: float32) =
-        # setter
-        case index
-        of 0:
-            this.x = value
-        of 1:
-            this.y = value
-        of 2: 
-            this.z = value
-        else:
-            # raise
-            return
-    
-    proc set*(this:type1, index: int, value: float32) =
-        this[index] = value
+macro define_getitem(type1: untyped): untyped=
+    ## Get item for variable of type type1
+    ## Called through [] operator
+    ## 
+    ## Example:
+    ## var v: Vector = newVector(1,2,3)
+    ## --> assert v[1] == 2
+    result = nnkStmtList.newTree(
+        nnkProcDef.newTree(
+            nnkPostfix.newTree(
+                newIdentNode("*"),
+                nnkAccQuoted.newTree(
+                    newIdentNode("[]")
+                )
+            ),
+            newEmptyNode(),
+            newEmptyNode(),
+            nnkFormalParams.newTree(
+                newIdentNode("float32"),
+                nnkIdentDefs.newTree(
+                    newIdentNode("this"),
+                    newIdentNode($type1),
+                    newEmptyNode()
+                ),
+                nnkIdentDefs.newTree(
+                    newIdentNode("index"),
+                    newIdentNode("int"),
+                    newEmptyNode()
+                )
+            ),
+            nnkPragma.newTree(
+                newIdentNode("inline")
+            ),
+            newEmptyNode(),
+            nnkStmtList.newTree(
+                nnkCaseStmt.newTree(
+                    newIdentNode("index"),
+                    nnkOfBranch.newTree(
+                        newLit(0),
+                        nnkStmtList.newTree(
+                            nnkReturnStmt.newTree(
+                                nnkDotExpr.newTree(
+                                    newIdentNode("this"),
+                                    newIdentNode("x")
+                                )
+                            )
+                        )
+                    ),
+                    nnkOfBranch.newTree(
+                        newLit(1),
+                        nnkStmtList.newTree(
+                            nnkReturnStmt.newTree(
+                                nnkDotExpr.newTree(
+                                    newIdentNode("this"),
+                                    newIdentNode("y")
+                                )
+                            )
+                        )
+                    ),
+                    nnkOfBranch.newTree(
+                        newLit(2),
+                        nnkStmtList.newTree(
+                            nnkReturnStmt.newTree(
+                                nnkDotExpr.newTree(
+                                    newIdentNode("this"),
+                                    newIdentNode("z")
+                                )
+                            )
+                        )
+                    ),
+                    nnkElse.newTree(
+                        nnkStmtList.newTree(
+                            nnkRaiseStmt.newTree(
+                                nnkCall.newTree(
+                                    nnkDotExpr.newTree(
+                                    newIdentNode("ValueError"),
+                                    newIdentNode("newException")
+                                    ),
+                                    newLit("Invalid access index")
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+
+macro define_setitem(type1: untyped): untyped=
+    ## Set item for variable of type type1
+    ## Called through []= operator
+    ## 
+    ## Example:
+    ## var v: Vector = newVector(1,2,3)
+    ## --> v[1] = 3.2
+    result = nnkStmtList.newTree(
+        nnkProcDef.newTree(
+            nnkPostfix.newTree(
+                newIdentNode("*"),
+                nnkAccQuoted.newTree(
+                    newIdentNode("[]=")
+                )
+            ),
+            newEmptyNode(),
+            newEmptyNode(),
+            nnkFormalParams.newTree(
+                newIdentNode("void"),
+                nnkIdentDefs.newTree(
+                    newIdentNode("this"),
+                    nnkVarTy.newTree(
+                        newIdentNode($type1)
+                    ),
+                    newEmptyNode()
+                ),
+                nnkIdentDefs.newTree(
+                    newIdentNode("index"),
+                    newIdentNode("int"),
+                    newEmptyNode()
+                ),
+                nnkIdentDefs.newTree(
+                    newIdentNode("value"),
+                    newIdentNode("float"),
+                    newEmptyNode()
+                )
+            ),
+            nnkPragma.newTree(
+                newIdentNode("inline")
+            ),
+            newEmptyNode(),
+            nnkStmtList.newTree(
+                nnkCaseStmt.newTree(
+                    newIdentNode("index"),
+                    nnkOfBranch.newTree(
+                        newLit(0),
+                        nnkStmtList.newTree(
+                            nnkAsgn.newTree(
+                            nnkDotExpr.newTree(
+                                newIdentNode("this"),
+                                newIdentNode("x")
+                            ),
+                            newIdentNode("value")
+                            )
+                        )
+                    ),
+                    nnkOfBranch.newTree(
+                        newLit(1),
+                        nnkStmtList.newTree(
+                            nnkAsgn.newTree(
+                            nnkDotExpr.newTree(
+                                newIdentNode("this"),
+                                newIdentNode("y")
+                            ),
+                            newIdentNode("value")
+                            )
+                        )
+                    ),
+                    nnkOfBranch.newTree(
+                        newLit(2),
+                        nnkStmtList.newTree(
+                            nnkAsgn.newTree(
+                            nnkDotExpr.newTree(
+                                newIdentNode("this"),
+                                newIdentNode("z")
+                            ),
+                            newIdentNode("value")
+                            )
+                        )
+                    ),
+                    nnkElse.newTree(
+                        nnkStmtList.newTree(
+                            nnkRaiseStmt.newTree(
+                                nnkCall.newTree(
+                                    nnkDotExpr.newTree(
+                                    newIdentNode("ValueError"),
+                                    newIdentNode("newException")
+                                    ),
+                                    newLit(fmt"Invalid access index for {$type1}")
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
 
 define_equalities(Vector)
 define_equalities(Point)
@@ -142,14 +301,71 @@ define_setitem(Vector)
 define_setitem(Point)
 define_setitem(Normal)
 
-#[
-macro define_tostring(type1: typedesc): typed=
-    let source = fmt"""
-proc `$`*(this: {$type1}): string =
-    result = {$this} & "(fmt""
-"""
-        result = parseStmt(source)
-]#    
+macro tostring(type1: untyped): untyped=
+    result = nnkStmtList.newTree(
+        nnkProcDef.newTree(
+            nnkPostfix.newTree(
+                newIdentNode("*"),
+                nnkAccQuoted.newTree(
+                    newIdentNode("$")
+                )
+            ),
+            newEmptyNode(),
+            newEmptyNode(),
+            nnkFormalParams.newTree(
+                newIdentNode("string"),
+                nnkIdentDefs.newTree(
+                    newIdentNode("this"),
+                    newIdentNode($type1),
+                    newEmptyNode()
+                )
+            ),
+            newEmptyNode(),
+            newEmptyNode(),
+            nnkStmtList.newTree(
+                nnkReturnStmt.newTree(
+                    nnkInfix.newTree(
+                        newIdentNode("&"),
+                        nnkPrefix.newTree(
+                            newIdentNode("$"),
+                            newIdentNode($type1)
+                        ),
+                        nnkInfix.newTree(
+                            newIdentNode("%"),
+                            newLit("($1,$2,$3)"),
+                            nnkBracket.newTree(
+                                nnkPrefix.newTree(
+                                    newIdentNode("$"),
+                                    nnkDotExpr.newTree(
+                                    newIdentNode("this"),
+                                    newIdentNode("x")
+                                    )
+                                ),
+                                nnkPrefix.newTree(
+                                    newIdentNode("$"),
+                                    nnkDotExpr.newTree(
+                                    newIdentNode("this"),
+                                    newIdentNode("y")
+                                    )
+                                ),
+                                nnkPrefix.newTree(
+                                    newIdentNode("$"),
+                                    nnkDotExpr.newTree(
+                                    newIdentNode("this"),
+                                    newIdentNode("z")
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+tostring(Vector)      
+tostring(Point)  
+tostring(Normal)  
 ## ----------------------------------------  Norm  ----------------------------------------------
 
 template define_norm(type1: typedesc)=
@@ -161,3 +377,27 @@ template define_norm(type1: typedesc)=
 define_norm(Vector)
 define_norm(Point)
 
+
+## ----------------------------------------  Vector3 Specific  ----------------------------------------------
+proc Dot*(_:typedesc[Vector], this, other: Vector): float32 {.inline.} = 
+    result = this.x * other.x + this.y * other.y + this.z * other.z
+
+proc Cross*(_:typedesc[Vector], this, other: Vector): Vector {.inline.}=
+    result.x = this.y * other.z - this.z * other.y
+    result.y = this.z * other.x - this.x * other.z
+    result.z = this.x * other.y - this.y * other.x
+
+proc Distance*(_:typedesc[Vector], a,b: Vector): float32 {.inline.}=
+    let
+        diff_x = a.x - b.x
+        diff_y = a.y - b.y
+        diff_z = a.z - b.z
+    result = float(sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z))
+
+proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15): float32 {.inline.}=
+    raise NotImplementedError.newException("Not yet implemented: Angle")
+    var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
+    if (denominator < kEpsilonNormalSqrt):
+        return 0.0
+    var dot: float32 = clamp(Vector.Dot(a, b) / denominator, -1.0 .. 1.0    );
+    return float(arccos(dot)) * radToDeg

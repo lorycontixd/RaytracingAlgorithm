@@ -60,5 +60,5 @@ proc cmdArgsToString*(): string=
     return str
 
 proc getPackageVersion*(): string=
-    var p: Config = loadConfig("./RaytracingAlgorithm.nimble")
-    return p.getSectionValue("", "version") 
+    var p: Config = loadConfig(joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm.nimble"))
+    result = p.getSectionValue("", "version") 

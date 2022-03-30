@@ -6,8 +6,6 @@ var
 
 assert a+b == newVector(2.0, -4.0, 4.0)
 assert a-b == newVector(4.0, 16.0, 0.0)
-assert b-a == newVector(-4.0, -16.0, 0.0)
-echo a*b
 assert a*b == -59.0
 assert b*a == a*b
 assert a.norm() == 7.0
@@ -17,3 +15,9 @@ var
 
 assert a+c == newPoint(4.0, 7.0, 4.0)
 assert c-a == newPoint(-2.0, -5.0, 0.0)
+
+assert a[0] == 3.0
+assert b[2] == 2.0
+assert c[1] == 1.0
+assert $a == "Vector(3.0,6.0,2.0)"
+assert $c == "Point(1.0,1.0,2.0)"
