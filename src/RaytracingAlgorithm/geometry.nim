@@ -89,12 +89,74 @@ proc cross*(this, other: Vector): Vector {.inline.}=
     result.y = this.z * other.x - this.x * other.z
     result.z = this.x * other.y - this.y * other.x
 
+## ------------------------------------  Other operators  ---------------------------------------
+template define_equalities(type1: typedesc) =
+    proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+        return abs(x - y) < epsilon
 
+    proc `==`*(this, other: type1): bool=
+        return IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z)
+    
+    proc `!=`*(this, other: type1): bool=
+        return not this == other
+
+template define_getitem(type1: typedesc) =
+    proc `[]`*(this: type1, index: int): float32 {.inline.}=
+        case index:
+        of 0:
+            return this.x
+        of 1:
+            return this.y
+        of 2:
+            return this.z
+        else:
+            # raise
+            return
+
+template define_setitem(type1: typedesc) =
+    proc `[]=`* (this:type1, index: int, value: float32) =
+        # setter
+        case index
+        of 0:
+            this.x = value
+        of 1:
+            this.y = value
+        of 2: 
+            this.z = value
+        else:
+            # raise
+            return
+    
+    proc set*(this:type1, index: int, value: float32) =
+        this[index] = value
+
+define_equalities(Vector)
+define_equalities(Point)
+define_equalities(Normal)
+
+define_getitem(Vector)
+define_getitem(Point)
+define_getitem(Normal)
+
+define_setitem(Vector)
+define_setitem(Point)
+define_setitem(Normal)
+
+#[
+macro define_tostring(type1: typedesc): typed=
+    let source = fmt"""
+proc `$`*(this: {$type1}): string =
+    result = {$this} & "(fmt""
+"""
+        result = parseStmt(source)
+]#   
 ## ----------------------------------------  Norm  ----------------------------------------------
 
 template define_norm(type1: typedesc)=
+    proc square_norm*(a: type1): float32=
+        result = pow(a.x,2) + pow(a.y,2) + pow(a.z,2)
     proc norm*(a: type1): float32=
-        result = sqrt(pow(a.x,2) + pow(a.y,2) + pow(a.z,2))
+        result = sqrt(square_norm(a))
     
 define_norm(Vector)
 define_norm(Point)
