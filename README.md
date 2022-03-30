@@ -51,5 +51,4 @@ Please make sure to update tests as appropriate.
 
 ## License
 ![GitHub License](https://img.shields.io/github/license/lorycontixd/RaytracingAlgorithm)
-
 [GPL-3.0](https://choosealicense.com/licenses/gpl-3.0/)
