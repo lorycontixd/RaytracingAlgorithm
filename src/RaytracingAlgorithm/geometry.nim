@@ -16,6 +16,7 @@ type
 
 ## --- Constructors
 
+<<<<<<< Updated upstream
 macro define_empty_constructors(type1: typedesc): typed =
     let source = fmt"""
 proc new{$type1}*(): {$type1} =
@@ -46,6 +47,24 @@ define_constructors(Normal)
 define_copy_constructors(Point)
 define_copy_constructors(Vector)
 define_copy_constructors(Normal)
+=======
+template define_constructors*(fname: untyped, type1: typedesc) =
+    proc fname*(): type1=
+        ## Empty constructor for Vector, Point & Normal
+        result = type1(x:0, y:0, z:0)
+
+    proc fname*(x,y,z: float32): type1 =
+        ## (x,y,z) constructor for Vector, Point & Normal
+        result = type1(x:x, y:y, z:z)
+
+    proc fname*(other: type1): type1 =
+        ## Copy constructor for Vector, Point & Normal
+        result = type1(x:other.x, y:other.y, z: other.z)
+
+define_constructors(`newVector`, Vector)
+define_constructors(`newPoint`, Point)
+define_constructors(`newNormal`, Normal)
+>>>>>>> Stashed changes
 
 ## --- Sum & Subtraction
 
@@ -67,8 +86,19 @@ define_operations(`-`, Normal, Normal, Normal)
 ## --- Products
 
 template define_product(type1: typedesc, type2: typedesc, rettype: typedesc) =
+
+    ## dot product
     proc `*`*(a: type1, b: type2): float32 =
         result = a.x * b.x + a.y * b.y + a.z * b.z
+<<<<<<< Updated upstream
+=======
+    
+    ## cross product
+    proc `@`*(a: type1, b: type2): rettype =
+        result.x = a.y * b.z - a.z * b.y
+        result.y = a.z * b.x - a.x * b.z
+        result.z = a.x * b.y - a.y * b.x
+>>>>>>> Stashed changes
 
 
 
