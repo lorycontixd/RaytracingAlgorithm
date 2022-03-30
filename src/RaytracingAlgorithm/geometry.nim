@@ -149,7 +149,7 @@ proc `$`*(this: {$type1}): string =
     result = {$this} & "(fmt""
 """
         result = parseStmt(source)
-]#   
+]#    
 ## ----------------------------------------  Norm  ----------------------------------------------
 
 template define_norm(type1: typedesc)=
