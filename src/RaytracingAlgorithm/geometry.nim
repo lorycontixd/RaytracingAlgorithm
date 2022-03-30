@@ -14,7 +14,7 @@ type
     Transformation* = object
         m*, inverse*: Matrix[float32]
 
-## --- Constructors
+## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
 macro define_empty_constructors(type1: typedesc): typed =
     let source = fmt"""
@@ -47,7 +47,8 @@ define_copy_constructors(Point)
 define_copy_constructors(Vector)
 define_copy_constructors(Normal)
 
-## --- Sum & Subtraction
+
+## --------------------------------  Sum + Subtraction  ------------------------------------------
 
 template define_operations(fname: untyped, type1: typedesc, type2: typedesc, rettype: typedesc) =
     proc fname*(a: type1, b: type2): rettype =
@@ -64,15 +65,32 @@ define_operations(`-`, Point, Vector, Point)
 define_operations(`+`, Normal, Normal, Normal)
 define_operations(`-`, Normal, Normal, Normal)
 
-## --- Products
+## ---------------------------------------  Products  ------------------------------------------
 
-template define_product(type1: typedesc, type2: typedesc, rettype: typedesc) =
-    proc `*`*(a: type1, b: type2): float32 =
-        result = a.x * b.x + a.y * b.y + a.z * b.z
+template define_product(type1: typedesc) =
+    # Cross
+    proc `*`*(a: type1, b: float32): type1 =
+        result.x = a.x * b
+        result.y = a.y * b
+        result.z = a.z * b
+
+define_product(Vector)
+define_product(Point)
+define_product(Normal)
+
+proc dot*(this, other: Vector): float32 {.inline.} = 
+    result = this.x * other.x + this.y * other.y + this.z * other.z
+
+proc `*`*(this, other: Vector): float32 {.inline.} =
+    result = this.dot(other)
+
+proc cross*(this, other: Vector): Vector {.inline.}=
+    result.x = this.y * other.z - this.z * other.y
+    result.y = this.z * other.x - this.x * other.z
+    result.z = this.x * other.y - this.y * other.x
 
 
-
-## --- Norm
+## ----------------------------------------  Norm  ----------------------------------------------
 
 template define_norm(type1: typedesc)=
     proc norm*(a: type1): float32=
