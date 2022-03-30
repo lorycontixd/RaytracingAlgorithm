@@ -14,7 +14,7 @@ type
     Transformation* = object
         m*, inverse*: Matrix[float32]
 
-## --- Constructors
+## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
 macro define_empty_constructors(type1: typedesc): typed =
     let source = fmt"""
@@ -47,7 +47,8 @@ define_copy_constructors(Point)
 define_copy_constructors(Vector)
 define_copy_constructors(Normal)
 
-## --- Sum & Subtraction
+
+## --------------------------------  Sum + Subtraction  ------------------------------------------
 
 template define_operations(fname: untyped, type1: typedesc, type2: typedesc, rettype: typedesc) =
     proc fname*(a: type1, b: type2): rettype =
@@ -64,15 +65,70 @@ define_operations(`-`, Point, Vector, Point)
 define_operations(`+`, Normal, Normal, Normal)
 define_operations(`-`, Normal, Normal, Normal)
 
-## --- Products
+## ---------------------------------------  Products  ------------------------------------------
 
-template define_product(type1: typedesc, type2: typedesc, rettype: typedesc) =
+template define_product(type1: typedesc) =
+    # Cross
+    proc `*`*(a: type1, b: float32): type1 =
+        result.x = a.x * b
+        result.y = a.y * b
+        result.z = a.z * b
 
-    ## dot product
-    proc `*`*(a: type1, b: type2): float32 =
-        result = a.x * b.x + a.y * b.y + a.z * b.z
+define_product(Vector)
+define_product(Point)
+define_product(Normal)
 
+proc dot*(this, other: Vector): float32 {.inline.} = 
+    result = this.x * other.x + this.y * other.y + this.z * other.z
 
+proc `*`*(this, other: Vector): float32 {.inline.} =
+    result = this.dot(other)
+
+proc cross*(this, other: Vector): Vector {.inline.}=
+    result.x = this.y * other.z - this.z * other.y
+    result.y = this.z * other.x - this.x * other.z
+    result.z = this.x * other.y - this.y * other.x
+
+## ------------------------------------  Other operators  ---------------------------------------
+template define_equalities(type1: typedesc) =
+    proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+        return abs(x - y) < epsilon
+
+    proc `==`*(this, other: type1): bool=
+        return IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z)
+    
+    proc `!=`*(this, other: type1): bool=
+        return not this == other
+
+template define_getitem(type1: typedesc) =
+    proc `[]`*(this: type1, index: int): float32 {.inline.}=
+        case index:
+        of 0:
+            return this.x
+        of 1:
+            return this.y
+        of 2:
+            return this.z
+        else:
+            # raise
+            return
+
+template define_setitem(type1: typedesc) =
+    proc `[]=`* (this:type1, index: int, value: float32) =
+        # setter
+        case index
+        of 0:
+            this.x = value
+        of 1:
+            this.y = value
+        of 2: 
+            this.z = value
+        else:
+            # raise
+            return
+    
+    proc set*(this:type1, index: int, value: float32) =
+        this[index] = value
 
 define_equalities(Vector)
 define_equalities(Point)
@@ -97,8 +153,10 @@ proc `$`*(this: {$type1}): string =
 ## ----------------------------------------  Norm  ----------------------------------------------
 
 template define_norm(type1: typedesc)=
+    proc square_norm*(a: type1): float32=
+        result = pow(a.x,2) + pow(a.y,2) + pow(a.z,2)
     proc norm*(a: type1): float32=
-        result = sqrt(pow(a.x,2) + pow(a.y,2) + pow(a.z,2))
+        result = sqrt(square_norm(a))
     
 define_norm(Vector)
 define_norm(Point)
