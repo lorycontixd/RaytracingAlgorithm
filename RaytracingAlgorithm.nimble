@@ -11,6 +11,7 @@ srcDir        = "src"
 requires "nim >= 1.6.4"
 requires "therapist"
 requires "SimplePNG"
+requires "neo"
 
 task mytest, "Run the packages tests!":
     exec "nim cpp -r tests/test_color.nim"
