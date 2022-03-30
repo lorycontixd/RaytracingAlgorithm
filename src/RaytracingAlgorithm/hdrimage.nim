@@ -84,7 +84,7 @@ proc parse_img_size*(self: HdrImage, line:string): (int,int) = # Remove public o
     except ValueError:
         raise newException(ValueError, "Invalid width/height") # Convert to custom exception
     return (width, height)
-
+##new branch
 
 proc valid_coordinates*(self: HdrImage, x,y:int): bool=
     ##
