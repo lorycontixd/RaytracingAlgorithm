@@ -37,5 +37,9 @@ let m7 = matrix(@[
 
 var
     t: Transformation = newTransormation()
+    id = IdentityMatrix()
+    zero = ZeroMatrix()
 
-echo t*n
+echo Transformation.scale(a)
+echo id
+echo id*Transformation.scale(a).m
