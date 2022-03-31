@@ -15,6 +15,7 @@ proc inverse*(t: Transformation): Transformation=
 
 template define_dot(type1: typedesc)=  
     proc `*`*(t: Transformation, other: type1): type1=
+        if (type1 = V)
         let vec = t.m * other.v    #product matrix*vector 
         assert size(vec) == 4
         result = type1(x: vec[0], y:vec[1], z:vec[2])     #assign elements of vec to our class type
