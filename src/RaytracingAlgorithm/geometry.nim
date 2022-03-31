@@ -63,13 +63,14 @@ define_operations(`+`, Vector, Point, Point)
 define_operations(`-`, Vector, Point, Point)
 define_operations(`+`, Point, Vector, Point)
 define_operations(`-`, Point, Vector, Point)
+define_operations(`-`, Point, Point, Vector)
 define_operations(`+`, Normal, Normal, Normal)
 define_operations(`-`, Normal, Normal, Normal)
 
 ## ---------------------------------------  Products  ------------------------------------------
 
 template define_product(type1: typedesc) =
-    # Cross
+    # Scalar product
     proc `*`*(a: type1, b: float32): type1 =
         result.x = a.x * b
         result.y = a.y * b
@@ -90,7 +91,17 @@ proc Cross*(this, other: Vector): Vector {.inline.}=
     result.y = this.z * other.x - this.x * other.z
     result.z = this.x * other.y - this.y * other.x
 
-## ------------------------------------  Other operators  ---------------------------------------
+    ## ------------------------------------  Other operators  ---------------------------------------
+template define_negative(type1: typedesc) =
+    proc neg*(a: type1): type1 =
+        result.x = -a.x
+        result.y = -a.y
+        result.z = -a.z
+
+define_negative(Vector)
+define_negative(Normal)
+
+
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     return abs(x - y) < epsilon
 
