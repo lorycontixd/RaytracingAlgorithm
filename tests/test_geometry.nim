@@ -1,4 +1,8 @@
 import "../src/RaytracingAlgorithm/geometry.nim"
+import "../src/RaytracingAlgorithm/transformation.nim"
+import "../src/RaytracingAlgorithm/utils.nim"
+import std/[math]
+import neo
 
 var 
     a = newVector(3.0, 6.0, 2.0)
@@ -21,3 +25,17 @@ assert b[2] == 2.0
 assert c[1] == 1.0
 assert $a == "Vector(3.0,6.0,2.0)"
 assert $c == "Point(1.0,1.0,2.0)"
+
+var
+    n = newNormal(1,1,1)
+
+
+let m7 = matrix(@[
+    @[1.2'f32, 3.5'f32, 4.3'f32],
+    @[1.1'f32, 4.2'f32, 1.7'f32]
+  ])
+
+var
+    t: Transformation = newTransormation()
+
+echo t*n

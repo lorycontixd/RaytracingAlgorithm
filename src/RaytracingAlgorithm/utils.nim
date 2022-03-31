@@ -1,6 +1,7 @@
 import std/[os, strutils, strformat, macros, parsecfg]
 from macros import newTree, nnkBracket, newLit
 from sequtils import mapIt
+import neo
 
 #[
 proc toString*(bytes: openarray[byte]): string =
@@ -56,9 +57,24 @@ proc cmdArgsToString*(): string=
     var str: string = ""
     for param in commandLineParams():
         str = str & param & " "
-    str = str[.. ^2]
+    str = str[0 .. ^2]
     return str
 
 proc getPackageVersion*(): string=
     var p: Config = loadConfig(joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm.nimble"))
     result = p.getSectionValue("", "version") 
+
+proc getMatrixRows*(m: Matrix): int =
+    var k: int = 0
+    for i in m.rows:
+        inc k
+    return k
+
+proc getMatrixCols*(m: Matrix): int =
+    var k: int = 0
+    for i in m.columns:
+        inc k
+    return k
+
+proc getMatrixSize*(m: Matrix): (int,int)=
+    result = (getMatrixRows(m), getMatrixCols(m))

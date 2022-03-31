@@ -12,9 +12,6 @@ type
     Normal* = object
         x*, y*, z*: float32
 
-    Transformation* = object
-        m*, inverse*: Matrix[float32]
-
 ## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
 macro define_empty_constructors(type1: typedesc): typed =
@@ -386,7 +383,7 @@ template define_norm(type1: typedesc)=
         result = sqrt(square_norm(a))
     
 define_norm(Vector)
-define_norm(Point)
+define_norm(Normal)
 
 
 ## ----------------------------------------  Vector3 Specific  ----------------------------------------------
