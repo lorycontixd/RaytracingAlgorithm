@@ -112,7 +112,7 @@ proc are_matrix_close*(m1, m2 : Matrix): bool=
         for j in 0 .. 3:
             return IsEqual(m1[i][j], m2[i][j])
 
-proc is_consistent*(m : Matrix): bool =
-    let product = m * inverse(m)
+proc is_consistent*(t : Transformation): bool =
+    let product = t.m * t.inverse
     return are_matrix_close(product, IdentityMatrix())
     
