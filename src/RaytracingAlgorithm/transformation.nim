@@ -1,4 +1,4 @@
-import geometry, utils
+import geometry, utils 
 import std/[sequtils]
 
 
@@ -107,6 +107,12 @@ proc `*`*(this, other: Matrix): Matrix=
 
 
 ##-------------------- utilities --------------------
+proc are_matrix_close*(m1, m2 : Matrix): bool=
+    for i in 0 .. 3:
+        for j in 0 .. 3:
+            return IsEqual(m1[i][j], m2[i][j])
 
-#proc are_matrix_close(a,b: Matrix): bool {.inline.}=
+proc is_consistent*(m : Matrix): bool =
+    let product = m * inverse(m)
+    return are_matrix_close(product, IdentityMatrix())
     
