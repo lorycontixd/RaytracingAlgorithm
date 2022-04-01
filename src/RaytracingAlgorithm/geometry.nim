@@ -67,7 +67,7 @@ define_operations(`-`, Normal, Normal, Normal)
 ## ---------------------------------------  Products  ------------------------------------------
 
 template define_product(type1: typedesc) =
-    # Scalar product
+    # Product with scalar
     proc `*`*(a: type1, b: float32): type1 =
         result.x = a.x * b
         result.y = a.y * b
@@ -77,18 +77,51 @@ define_product(Vector)
 define_product(Point)
 define_product(Normal)
 
-proc Dot*(this, other: Vector): float32 {.inline.} = 
-    result = this.x * other.x + this.y * other.y + this.z * other.z
+template define_dot(type1: typedesc, type2: typedesc) = 
+    proc Dot*(this: type1, other: type2): float32 = 
+        result = this.x * other.x + this.y * other.y + this.z * other.z
+    
+    proc `*`*(this: type1, other: type2): float32 = 
+        result = this.Dot(other)
 
-proc `*`*(this, other: Vector): float32 {.inline.} =
-    result = this.Dot(other)
+define_dot(Vector, Vector)
+define_dot(Normal, Vector)
+define_dot(Vector, Normal)
 
-proc Cross*(this, other: Vector): Vector {.inline.}=
-    result.x = this.y * other.z - this.z * other.y
-    result.y = this.z * other.x - this.x * other.z
-    result.z = this.x * other.y - this.y * other.x
 
-    ## ------------------------------------  Other operators  ---------------------------------------
+template define_cross(type1: typedesc, type2: typedesc, rettype: typedesc) =
+    proc Cross*(this: type1, other: type2): rettype =
+        result.x = this.y * other.z - this.z * other.y
+        result.y = this.z * other.x - this.x * other.z
+        result.z = this.x * other.y - this.y * other.x
+
+define_cross(Vector, Vector, Vector)
+define_cross(Normal, Vector, Vector)
+define_cross(Vector, Normal, Vector)
+define_cross(Normal, Normal, Vector)
+
+## ----------------------------------------  Norm  ----------------------------------------------
+
+template define_norm(type1: typedesc)=
+    proc square_norm*(a: type1): float32=
+        result = pow(a.x,2) + pow(a.y,2) + pow(a.z,2)
+    proc norm*(a: type1): float32=
+        result = sqrt(square_norm(a))
+    
+define_norm(Vector)
+define_norm(Normal)
+
+## ------------------------------------  Other operators  ---------------------------------------
+
+template define_normalize(type1: typedesc)=     #returns normalized Vector or Normal 
+    proc normalize*(a: type1): type1=
+        result.x = result.x/a.norm()
+        result.y = result.y/a.norm()
+        result.z = result.z/a.norm()
+
+define_normalize(Vector)
+define_normalize(Normal)
+
 template define_negative(type1: typedesc) =
     proc neg*(a: type1): type1 =
         result.x = -a.x
@@ -98,6 +131,14 @@ template define_negative(type1: typedesc) =
 define_negative(Vector)
 define_negative(Normal)
 
+template define_convert(type1: typedesc, rettype: typedesc) =
+    proc convert*(a: type1): rettype =
+        result.x = a.x
+        result.y = a.y
+        result.z = a.z
+
+define_convert(Vector, Normal)
+define_convert(Point, Vector)
 
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     return abs(x - y) < epsilon
@@ -374,16 +415,6 @@ macro tostring(type1: untyped): untyped=
 tostring(Vector)      
 tostring(Point)  
 tostring(Normal)  
-## ----------------------------------------  Norm  ----------------------------------------------
-
-template define_norm(type1: typedesc)=
-    proc square_norm*(a: type1): float32=
-        result = pow(a.x,2) + pow(a.y,2) + pow(a.z,2)
-    proc norm*(a: type1): float32=
-        result = sqrt(square_norm(a))
-    
-define_norm(Vector)
-define_norm(Normal)
 
 
 ## ----------------------------------------  Vector3 Specific  ----------------------------------------------
