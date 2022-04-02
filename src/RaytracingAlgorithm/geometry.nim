@@ -14,33 +14,33 @@ type
 
 ## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
-macro define_empty_constructors(type1: typedesc): typed =
+macro defineEmptyConstructors(type1: typedesc): typed =
     let source = fmt"""
 proc new{$type1}*(): {$type1} =
     result = {$type1}(x: 0.0, y: 0.0, z: 0.0)
 """
     result = parseStmt(source)
 
-macro define_constructors(type1: typedesc): typed =
+macro defineConstructors(type1: typedesc): typed =
     let source = fmt"""
 proc new{$type1}*(x,y,z: float32): {$type1} =
     result = {$type1}(x: x, y: y, z: z)
 """
     result = parseStmt(source)
 
-macro define_copy_constructors(type1: typedesc): typed =
+macro defineCopyConstructors(type1: typedesc): typed =
     let source = fmt"""
 proc new{$type1}*(other: {$type1}): {$type1} =
     result = {$type1}(x: other.x, y: other.y, z: other.z)
 """
     result = parseStmt(source)
 
-define_empty_constructors(Point)
-define_empty_constructors(Vector)
-define_empty_constructors(Normal)
-define_constructors(Point)
-define_constructors(Vector)
-define_constructors(Normal)
+defineEmptyConstructors(Point)
+defineEmptyConstructors(Vector)
+defineEmptyConstructors(Normal)
+defineConstructors(Point)
+defineConstructors(Vector)
+defineConstructors(Normal)
 define_copy_constructors(Point)
 define_copy_constructors(Vector)
 define_copy_constructors(Normal)
@@ -48,21 +48,21 @@ define_copy_constructors(Normal)
 
 ## --------------------------------  Sum + Subtraction  ------------------------------------------
 
-template define_operations(fname: untyped, type1: typedesc, type2: typedesc, rettype: typedesc) =
+template defineOperations(fname: untyped, type1: typedesc, type2: typedesc, rettype: typedesc) =
     proc fname*(a: type1, b: type2): rettype =
         result.x = fname(a.x, b.x)
         result.y = fname(a.y, b.y)
         result.z = fname(a.z, b.z)
 
-define_operations(`+`, Vector, Vector, Vector)
-define_operations(`-`, Vector, Vector, Vector)
-define_operations(`+`, Vector, Point, Point)
-define_operations(`-`, Vector, Point, Point)
-define_operations(`+`, Point, Vector, Point)
-define_operations(`-`, Point, Vector, Point)
-define_operations(`-`, Point, Point, Vector)
-define_operations(`+`, Normal, Normal, Normal)
-define_operations(`-`, Normal, Normal, Normal)
+defineOperations(`+`, Vector, Vector, Vector)
+defineOperations(`-`, Vector, Vector, Vector)
+defineOperations(`+`, Vector, Point, Point)
+defineOperations(`-`, Vector, Point, Point)
+defineOperations(`+`, Point, Vector, Point)
+defineOperations(`-`, Point, Vector, Point)
+defineOperations(`-`, Point, Point, Vector)
+defineOperations(`+`, Normal, Normal, Normal)
+defineOperations(`-`, Normal, Normal, Normal)
 
 ## ---------------------------------------  Products  ------------------------------------------
 
@@ -89,70 +89,74 @@ define_dot(Normal, Vector)
 define_dot(Vector, Normal)
 
 
-template define_cross(type1: typedesc, type2: typedesc, rettype: typedesc) =
+template defineCross(type1: typedesc, type2: typedesc, rettype: typedesc) =
     proc Cross*(this: type1, other: type2): rettype =
         result.x = this.y * other.z - this.z * other.y
         result.y = this.z * other.x - this.x * other.z
         result.z = this.x * other.y - this.y * other.x
 
-define_cross(Vector, Vector, Vector)
-define_cross(Normal, Vector, Vector)
-define_cross(Vector, Normal, Vector)
-define_cross(Normal, Normal, Vector)
+defineCross(Vector, Vector, Vector)
+defineCross(Normal, Vector, Vector)
+defineCross(Vector, Normal, Vector)
+defineCross(Normal, Normal, Vector)
 
 ## ----------------------------------------  Norm  ----------------------------------------------
 
-template define_norm(type1: typedesc)=
-    proc square_norm*(a: type1): float32=
+template defineNorm(type1: typedesc)=
+    proc squareNorm*(a: type1): float32=
         result = pow(a.x,2) + pow(a.y,2) + pow(a.z,2)
     proc norm*(a: type1): float32=
         result = sqrt(square_norm(a))
     
-define_norm(Vector)
-define_norm(Normal)
+defineNorm(Vector)
+defineNorm(Normal)
 
 ## ------------------------------------  Other operators  ---------------------------------------
 
-template define_normalize(type1: typedesc)=     #returns normalized Vector or Normal 
+template defineNormalize(type1: typedesc)=     #returns normalized Vector or Normal 
     proc normalize*(a: type1): type1=
-        result.x = result.x/a.norm()
-        result.y = result.y/a.norm()
-        result.z = result.z/a.norm()
+        result.x = a.x/a.norm()
+        result.y = a.y/a.norm()
+        result.z = a.z/a.norm()
 
-define_normalize(Vector)
-define_normalize(Normal)
+defineNormalize(Vector)
+defineNormalize(Normal)
 
-template define_negative(type1: typedesc) =
+template defineNegative(type1: typedesc) =
     proc neg*(a: type1): type1 =
         result.x = -a.x
         result.y = -a.y
         result.z = -a.z
 
-define_negative(Vector)
-define_negative(Normal)
+defineNegative(Vector)
+defineNegative(Normal)
 
-template define_convert(type1: typedesc, rettype: typedesc) =
+template defineConvert(type1: typedesc, rettype: typedesc) =
     proc convert*(a: type1): rettype =
         result.x = a.x
         result.y = a.y
         result.z = a.z
 
-define_convert(Vector, Normal)
-define_convert(Point, Vector)
+defineConvert(Vector, Normal)
+defineConvert(Point, Vector)
 
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     return abs(x - y) < epsilon
 
-template define_equalities(type1: typedesc) =
+template defineEqualities(type1: typedesc) =
     proc `==`*(this, other: type1): bool=
         return IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z)
     
     proc `!=`*(this, other: type1): bool=
         return not(IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z))
 
+defineEqualities(Vector)
+defineEqualities(Point)
+defineEqualities(Normal)
 
-macro define_getitem(type1: untyped): untyped=
-    ## Get item for variable of type type1
+
+macro defineGetitem(type1: untyped): untyped=
+    ## Get item for variable of type type1 (with x,y,z components)
     ## Called through [] operator
     ## 
     ## Example:
@@ -240,8 +244,8 @@ macro define_getitem(type1: untyped): untyped=
     )
 
 
-macro define_setitem(type1: untyped): untyped=
-    ## Set item for variable of type type1
+macro defineSetitem(type1: untyped): untyped=
+    ## Set item for variable of type type1 (with x,y,z components)
     ## Called through []= operator
     ## 
     ## Example:
@@ -338,19 +342,20 @@ macro define_setitem(type1: untyped): untyped=
         )
     )
 
-define_equalities(Vector)
-define_equalities(Point)
-define_equalities(Normal)
 
-define_getitem(Vector)
-define_getitem(Point)
-define_getitem(Normal)
+defineGetitem(Vector)
+defineGetitem(Point)
+defineGetitem(Normal)
 
-define_setitem(Vector)
-define_setitem(Point)
-define_setitem(Normal)
+defineSetitem(Vector)
+defineSetitem(Point)
+defineSetitem(Normal)
 
-macro tostring(type1: untyped): untyped=
+macro toString(type1: untyped): untyped=
+    ## ToString method writes a type1 (with x,y,z components) as a string
+    ## Called with $ operator
+    ##
+    ## Example: echo $newVector(1,2,3)
     result = nnkStmtList.newTree(
         nnkProcDef.newTree(
             nnkPostfix.newTree(
@@ -412,26 +417,140 @@ macro tostring(type1: untyped): untyped=
         )
     )
 
-tostring(Vector)      
-tostring(Point)  
-tostring(Normal)  
+toString(Vector)      
+toString(Point)  
+toString(Normal)  
 
 
 ## ----------------------------------------  Vector3 Specific  ----------------------------------------------
 proc Dot*(_:typedesc[Vector], this, other: Vector): float32 {.inline.} = 
+    ## Returns the dot product (float32) between two vectors.
+    ## Static method
+    ##
+    ## Example: let dot = Vector.Dot(newVector(1,2,3), newVector(4,5,6))
     result = this.x * other.x + this.y * other.y + this.z * other.z
 
+macro defineDistance(type1: untyped)=
+    nnkStmtList.newTree(
+        nnkProcDef.newTree(
+            nnkPostfix.newTree(
+            newIdentNode("*"),
+            newIdentNode("Distance")
+            ),
+            newEmptyNode(),
+            newEmptyNode(),
+            nnkFormalParams.newTree(
+            newIdentNode("float32"),
+            nnkIdentDefs.newTree(
+                newIdentNode("_"),
+                nnkBracketExpr.newTree(
+                newIdentNode("typedesc"),
+                newIdentNode("Vector")
+                ),
+                newEmptyNode()
+            ),
+            nnkIdentDefs.newTree(
+                newIdentNode("a"),
+                newIdentNode("b"),
+                newIdentNode("Vector"),
+                newEmptyNode()
+            )
+            ),
+            nnkPragma.newTree(
+            newIdentNode("inline")
+            ),
+            newEmptyNode(),
+            nnkStmtList.newTree(
+            nnkLetSection.newTree(
+                nnkIdentDefs.newTree(
+                newIdentNode("diff_x"),
+                newEmptyNode(),
+                nnkInfix.newTree(
+                    newIdentNode("-"),
+                    nnkDotExpr.newTree(
+                    newIdentNode("a"),
+                    newIdentNode("x")
+                    ),
+                    nnkDotExpr.newTree(
+                    newIdentNode("b"),
+                    newIdentNode("x")
+                    )
+                )
+                ),
+                nnkIdentDefs.newTree(
+                newIdentNode("diff_y"),
+                newEmptyNode(),
+                nnkInfix.newTree(
+                    newIdentNode("-"),
+                    nnkDotExpr.newTree(
+                    newIdentNode("a"),
+                    newIdentNode("y")
+                    ),
+                    nnkDotExpr.newTree(
+                    newIdentNode("b"),
+                    newIdentNode("y")
+                    )
+                )
+                ),
+                nnkIdentDefs.newTree(
+                newIdentNode("diff_z"),
+                newEmptyNode(),
+                nnkInfix.newTree(
+                    newIdentNode("-"),
+                    nnkDotExpr.newTree(
+                    newIdentNode("a"),
+                    newIdentNode("z")
+                    ),
+                    nnkDotExpr.newTree(
+                    newIdentNode("b"),
+                    newIdentNode("z")
+                    )
+                )
+                )
+            ),
+            nnkAsgn.newTree(
+                newIdentNode("result"),
+                nnkCall.newTree(
+                    newIdentNode("float"),
+                    nnkCall.newTree(
+                        newIdentNode("sqrt"),
+                        nnkInfix.newTree(
+                        newIdentNode("+"),
+                        nnkInfix.newTree(
+                            newIdentNode("+"),
+                            nnkInfix.newTree(
+                            newIdentNode("*"),
+                            newIdentNode("diff_x"),
+                            newIdentNode("diff_x")
+                            ),
+                            nnkInfix.newTree(
+                            newIdentNode("*"),
+                            newIdentNode("diff_y"),
+                            newIdentNode("diff_y")
+                            )
+                        ),
+                        nnkInfix.newTree(
+                            newIdentNode("*"),
+                            newIdentNode("diff_z"),
+                            newIdentNode("diff_z")
+                        )
+                        )
+                    )
+                )
+            )
+            )
+        )
+    )
+
 proc Cross*(_:typedesc[Vector], this, other: Vector): Vector {.inline.}=
+    ## Returns the cross product (Vector) between two vectors.
+    ## Static method
+    ##
+    ## Example: let cross = Vector.Cross(newVector(1,2,3), newVector(4,5,6))
     result.x = this.y * other.z - this.z * other.y
     result.y = this.z * other.x - this.x * other.z
     result.z = this.x * other.y - this.y * other.x
-
-proc Distance*(_:typedesc[Vector], a,b: Vector): float32 {.inline.}=
-    let
-        diff_x = a.x - b.x
-        diff_y = a.y - b.y
-        diff_z = a.z - b.z
-    result = float(sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z))
+    
 
 proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15): float32 {.inline.}=
     raise NotImplementedError.newException("Not yet implemented: Angle")

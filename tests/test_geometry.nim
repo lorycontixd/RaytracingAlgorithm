@@ -43,3 +43,5 @@ var
 echo Transformation.scale(a)
 echo id
 echo id*Transformation.scale(a).m
+echo "\n"
+echo TranslationInverseMatrix(a)

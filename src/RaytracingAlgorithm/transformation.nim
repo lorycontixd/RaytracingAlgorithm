@@ -14,12 +14,19 @@ proc IdentityMatrix*(): Matrix=
         result[i] = newSeq[float32](4)
         result[i][i] = float32(1.0)
 
-proc ZeroMatrix*(): Matrix =
+proc Zeros*(): Matrix =
     result = newSeq[seq[float32]](4)
     for i in 0 .. 3:
         result[i] = newSeq[float32](4)
         for j in 0 .. 3:
             result[i][j] = float32(0.0)
+
+proc Ones*(): Matrix=
+    result = newSeq[seq[float32]](4)
+    for i in 0 .. 3:
+        result[i] = newSeq[float32](4)
+        for j in 0 .. 3:
+            result[i][j] = float32(1.0)
 
 proc ScaleMatrix(v: Vector): Matrix=
     result = newSeq[seq[float32]](4)
@@ -38,6 +45,22 @@ proc ScaleInverseMatrix(v: Vector): Matrix=
             result[i][i] = float32(1.0/v[i])
         else:
             result[i][i] = float32(1.0)
+
+proc TranslationMatrix(v: Vector): Matrix=
+    result = newSeq[seq[float32]](4)
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i<3:
+            result[i][result.len-1] = float32(v[i])
+
+proc TranslationInverseMatrix(v: Vector): Matrix=
+    result = newSeq[seq[float32]](4)
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i<3:
+            result[i][result.len-1] = float32(-v[i])
 
 
 
@@ -77,18 +100,8 @@ proc `*`*(t: Transformation, other: Normal): Normal=
 
 proc translation*(_: typedesc[Transformation], vector: Vector): Transformation=
     result = newTransormation()
-    result.m = @[
-        @[float32(1.0), float32(0.0), float32(0.0), vector.x],
-        @[float32(0.0), float32(1.0), float32(0.0), vector.y],
-        @[float32(0.0), float32(0.0), float32(1.0), vector.z],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
-    ]
-    result.inverse = @[
-        @[float32(1.0), float32(0.0), float32(0.0), -vector.x],
-        @[float32(0.0), float32(1.0), float32(0.0), -vector.y],
-        @[float32(0.0), float32(0.0), float32(1.0), -vector.z],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
-    ]
+    result.m = TranslationMatrix(vector)
+    result.inverse = TranslationInverseMatrix(vector)
 
 proc scale*(_: typedesc[Transformation], vector: Vector): Transformation=
     result = newTransormation()
@@ -99,7 +112,7 @@ proc scale*(_: typedesc[Transformation], vector: Vector): Transformation=
 
 
 proc `*`*(this, other: Matrix): Matrix=
-    result = ZeroMatrix()
+    result = Zeros()
     for i in 0 .. 3:
         for j in 0 .. 3:
             for k in 0 .. 3:
