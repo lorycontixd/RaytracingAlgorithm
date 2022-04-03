@@ -431,6 +431,7 @@ proc Dot*(_:typedesc[Vector], this, other: Vector): float32 {.inline.} =
     result = this.x * other.x + this.y * other.y + this.z * other.z
 
 macro defineDistance(type1: untyped)=
+    ## Define a distance between objects of type type1
     nnkStmtList.newTree(
         nnkProcDef.newTree(
             nnkPostfix.newTree(
@@ -440,21 +441,21 @@ macro defineDistance(type1: untyped)=
             newEmptyNode(),
             newEmptyNode(),
             nnkFormalParams.newTree(
-            newIdentNode("float32"),
-            nnkIdentDefs.newTree(
-                newIdentNode("_"),
-                nnkBracketExpr.newTree(
-                newIdentNode("typedesc"),
-                newIdentNode("Vector")
+                newIdentNode("float32"),
+                nnkIdentDefs.newTree(
+                    newIdentNode("_"),
+                    nnkBracketExpr.newTree(
+                    newIdentNode("typedesc"),
+                    newIdentNode("Vector")
+                    ),
+                    newEmptyNode()
                 ),
-                newEmptyNode()
-            ),
-            nnkIdentDefs.newTree(
-                newIdentNode("a"),
-                newIdentNode("b"),
-                newIdentNode("Vector"),
-                newEmptyNode()
-            )
+                nnkIdentDefs.newTree(
+                    newIdentNode("a"),
+                    newIdentNode("b"),
+                    newIdentNode("Vector"),
+                    newEmptyNode()
+                )
             ),
             nnkPragma.newTree(
             newIdentNode("inline")
@@ -463,49 +464,49 @@ macro defineDistance(type1: untyped)=
             nnkStmtList.newTree(
             nnkLetSection.newTree(
                 nnkIdentDefs.newTree(
-                newIdentNode("diff_x"),
-                newEmptyNode(),
-                nnkInfix.newTree(
-                    newIdentNode("-"),
-                    nnkDotExpr.newTree(
-                    newIdentNode("a"),
-                    newIdentNode("x")
-                    ),
-                    nnkDotExpr.newTree(
-                    newIdentNode("b"),
-                    newIdentNode("x")
+                    newIdentNode("diff_x"),
+                    newEmptyNode(),
+                    nnkInfix.newTree(
+                        newIdentNode("-"),
+                        nnkDotExpr.newTree(
+                        newIdentNode("a"),
+                        newIdentNode("x")
+                        ),
+                        nnkDotExpr.newTree(
+                        newIdentNode("b"),
+                        newIdentNode("x")
+                        )
                     )
-                )
                 ),
                 nnkIdentDefs.newTree(
-                newIdentNode("diff_y"),
-                newEmptyNode(),
-                nnkInfix.newTree(
-                    newIdentNode("-"),
-                    nnkDotExpr.newTree(
-                    newIdentNode("a"),
-                    newIdentNode("y")
-                    ),
-                    nnkDotExpr.newTree(
-                    newIdentNode("b"),
-                    newIdentNode("y")
+                    newIdentNode("diff_y"),
+                    newEmptyNode(),
+                    nnkInfix.newTree(
+                        newIdentNode("-"),
+                        nnkDotExpr.newTree(
+                        newIdentNode("a"),
+                        newIdentNode("y")
+                        ),
+                        nnkDotExpr.newTree(
+                        newIdentNode("b"),
+                        newIdentNode("y")
+                        )
                     )
-                )
                 ),
                 nnkIdentDefs.newTree(
-                newIdentNode("diff_z"),
-                newEmptyNode(),
-                nnkInfix.newTree(
-                    newIdentNode("-"),
-                    nnkDotExpr.newTree(
-                    newIdentNode("a"),
-                    newIdentNode("z")
-                    ),
-                    nnkDotExpr.newTree(
-                    newIdentNode("b"),
-                    newIdentNode("z")
+                    newIdentNode("diff_z"),
+                    newEmptyNode(),
+                    nnkInfix.newTree(
+                        newIdentNode("-"),
+                        nnkDotExpr.newTree(
+                        newIdentNode("a"),
+                        newIdentNode("z")
+                        ),
+                        nnkDotExpr.newTree(
+                        newIdentNode("b"),
+                        newIdentNode("z")
+                        )
                     )
-                )
                 )
             ),
             nnkAsgn.newTree(
@@ -515,25 +516,25 @@ macro defineDistance(type1: untyped)=
                     nnkCall.newTree(
                         newIdentNode("sqrt"),
                         nnkInfix.newTree(
-                        newIdentNode("+"),
-                        nnkInfix.newTree(
                             newIdentNode("+"),
                             nnkInfix.newTree(
-                            newIdentNode("*"),
-                            newIdentNode("diff_x"),
-                            newIdentNode("diff_x")
+                                newIdentNode("+"),
+                                nnkInfix.newTree(
+                                newIdentNode("*"),
+                                newIdentNode("diff_x"),
+                                newIdentNode("diff_x")
+                                ),
+                                nnkInfix.newTree(
+                                newIdentNode("*"),
+                                newIdentNode("diff_y"),
+                                newIdentNode("diff_y")
+                                )
                             ),
                             nnkInfix.newTree(
-                            newIdentNode("*"),
-                            newIdentNode("diff_y"),
-                            newIdentNode("diff_y")
+                                newIdentNode("*"),
+                                newIdentNode("diff_z"),
+                                newIdentNode("diff_z")
                             )
-                        ),
-                        nnkInfix.newTree(
-                            newIdentNode("*"),
-                            newIdentNode("diff_z"),
-                            newIdentNode("diff_z")
-                        )
                         )
                     )
                 )
@@ -553,6 +554,10 @@ proc Cross*(_:typedesc[Vector], this, other: Vector): Vector {.inline.}=
     
 
 proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15): float32 {.inline.}=
+    ## Computes the angle (float32) between two vectors.
+    ## Static method
+    ##
+    ## Example: let angle = Vector.Angle(newVector(1,2,3), newVector(4,5,6))
     raise NotImplementedError.newException("Not yet implemented: Angle")
     var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
     if (denominator < kEpsilonNormalSqrt):
