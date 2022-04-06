@@ -29,6 +29,12 @@ jobs:
           - os: macOS-latest
             version: devel
     steps:
+      - name: debug
+        run: ls .github/
+      - name: debug2
+        run: ls .github/workflows/
+      - name: debug3
+        run: git log -1
       - uses: actions/checkout@v3
         with:
           path: ${{ github.repository }}
