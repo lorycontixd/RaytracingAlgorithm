@@ -36,7 +36,7 @@ jobs:
       - name: debug
         run: echo ${{ github.repository }}
       - name: debug2
-        run: pwd/${{github.repository}}
+        run: echo "$pwd/${{github.repository}}"
       - name: debug3
         run: ls ./github/workflows/
       - name: debug4
