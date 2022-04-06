@@ -34,9 +34,9 @@ jobs:
           path: ${{ github.repository }}
           fetch-depth: 0
       - name: debug
-        run: ls
+        run: echo ${{ github.repository }}
       - name: debug2
-        run: ls ./github/
+        run: pwd
       - name: debug3
         run: ls ./github/workflows/
       - name: debug4
