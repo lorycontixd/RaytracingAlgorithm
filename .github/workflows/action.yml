@@ -1,0 +1,42 @@
+name: build
+
+on:
+  push:
+    paths-ignore:
+      - 'LICENSE'
+      - '*.md'
+    branches:
+      - master
+  pull_request:
+    paths-ignore:
+      - 'LICENSE'
+      - '*.md'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
+        version:
+          - 1.6.4
+          - stable
+          - devel
+        exclude:
+          - os: macOS-latest
+            version: devel
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./
+        with:
+          nim-version: ${{ matrix.version }}
+
+      - name: Print Nim version
+        run: nim -v
+      - name: Print Nimble version
+        run: nimble -v
+      - name: Run tests
+        run: nimble test
