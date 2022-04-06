@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          path: ../../"${{github.repository}}"
+          path: ../../${{github.repository}}
           fetch-depth: 0
       - name: debug
         run: echo ${{ github.repository }}
