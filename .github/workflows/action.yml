@@ -30,21 +30,10 @@ jobs:
             version: devel
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: ${{github.repository}}
-          fetch-depth: 0
       - name: debug
         run: echo ${{ github.repository }}
       - name: debug2
         run: echo pwd
-      - name: debug3
-        run: ls ./github/workflows/
-      - name: debug4
-        run: git log -1
-      - uses: ./
-        with:
-          nim-version: ${{ matrix.version }}
-
       - name: Print Nim version
         run: nim -v
       - name: Print Nimble version
