@@ -30,13 +30,12 @@ jobs:
             version: devel
     steps:
       - uses: actions/checkout@v3
-      - name: debug
-        run: echo ${{ github.repository }}
-      - name: debug2
-        run: echo pwd
+      - uses: jiro4989/setup-nim-action@v1
       - name: Print Nim version
         run: nim -v
       - name: Print Nimble version
         run: nimble -v
+      - name: Build package
+        run: nimble build -y
       - name: Run tests
-        run: nimble test
+        run: nimble test -y
