@@ -38,10 +38,4 @@ let m7 = matrix(@[
 var
     t: Transformation = newTransormation()
     id = IdentityMatrix()
-    zero = ZeroMatrix()
-
-echo Transformation.scale(a)
-echo id
-echo id*Transformation.scale(a).m
-echo "\n"
-echo TranslationInverseMatrix(a)
+    zero = Zeros()
