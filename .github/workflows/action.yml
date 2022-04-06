@@ -29,12 +29,12 @@ jobs:
           - os: macOS-latest
             version: devel
     steps:
-      - name: debug3
-        run: git log -1
       - uses: actions/checkout@v3
         with:
           path: ${{ github.repository }}
           fetch-depth: 0
+      - name: debug3
+        run: git log -1
       - uses: ./
         with:
           nim-version: ${{ matrix.version }}
