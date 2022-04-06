@@ -18,6 +18,7 @@ jobs:
     strategy:
       matrix:
         os:
+          - ubuntu-latest
           - windows-latest
           - macOS-latest
         version:
@@ -32,14 +33,7 @@ jobs:
         with:
           path: ${{ github.repository }}
           fetch-depth: 0
-      - name: debug
-        run: ls
-      - name: debug2
-        run: ls ./github/
-      - name: debug3
-        run: ls ./github/workflows/
-      - name: debug4
-        run: git log -1
+      
       - uses: ./
         with:
           nim-version: ${{ matrix.version }}
