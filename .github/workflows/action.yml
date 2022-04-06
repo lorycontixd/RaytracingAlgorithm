@@ -37,7 +37,8 @@ jobs:
         run: ls
       - name: debug2
         run: ls ./github/
-      - name: ls ./github/workflows/
+      - name: debug3
+        run: ls ./github/workflows/
       - name: debug4
         run: git log -1
       - uses: ./
