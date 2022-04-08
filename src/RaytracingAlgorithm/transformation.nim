@@ -62,7 +62,7 @@ proc TranslationInverseMatrix(v: Vector): Matrix=
         if i<3:
             result[i][result.len-1] = float32(-v[i])
 
-proc Rotation_xMatrix(angle_deg: float32): Matrix=
+proc RotationX_Matrix(angle_deg: float32): Matrix=
     result = newSeq[seq[float32]](4)
     let angle = degToRad(angle_deg)
     let ang = [cos(angle), sin(angle)]
@@ -76,7 +76,7 @@ proc Rotation_xMatrix(angle_deg: float32): Matrix=
             result[i][i-1] = ang[1]
             result[i][i] = ang[0]
 
-proc Rotation_xInverseMatrix(angle_deg: float32): Matrix=
+proc RotationX_InverseMatrix(angle_deg: float32): Matrix=
     result = newSeq[seq[float32]](4)
     let angle = degToRad(angle_deg)
     let ang = [cos(angle), sin(angle)]
@@ -89,6 +89,62 @@ proc Rotation_xInverseMatrix(angle_deg: float32): Matrix=
         if i==2:
             result[i][i-1] = -ang[1]
             result[i][i] = ang[0]
+
+proc RotationY_Matrix(angle_deg: float32): Matrix=
+    result = newSeq[seq[float32]](4)
+    let angle = degToRad(angle_deg)
+    let ang = [cos(angle), sin(angle)]
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i==0:
+            result[i][i] = ang[0]
+            result[i][i+2] = ang[1]
+        if i==2:
+            result[i][i-2] = -ang[1]
+            result[i][i] = ang[0]
+
+proc RotationY_InverseMatrix(angle_deg: float32): Matrix=
+    result = newSeq[seq[float32]](4)
+    let angle = degToRad(angle_deg)
+    let ang = [cos(angle), sin(angle)]
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i==0:
+            result[i][i] = ang[0]
+            result[i][i+2] = -ang[1]
+        if i==2:
+            result[i][i-2] = ang[1]
+            result[i][i] = ang[0]
+
+
+
+proc RotationZ_Matrix(angle_deg: float32): Matrix=
+    result = newSeq[seq[float32]](4)
+    let angle = degToRad(angle_deg)
+    let ang = [cos(angle), sin(angle)]
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i==0:
+            result[i][i] = ang[0]
+            result[i][i+1] = -ang[1]
+            result[i+1][i] = ang[1]
+            result[i+1][i+1] = ang[0]
+
+proc RotationZ_InverseMatrix(angle_deg: float32): Matrix=
+    result = newSeq[seq[float32]](4)
+    let angle = degToRad(angle_deg)
+    let ang = [cos(angle), sin(angle)]
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i==0:
+            result[i][i] = ang[0]
+            result[i][i+1] = ang[1]
+            result[i+1][i] = -ang[1]
+            result[i+1][i+1] = ang[0]
 
 
 
@@ -136,6 +192,20 @@ proc scale*(_: typedesc[Transformation], vector: Vector): Transformation=
     result.m = ScaleMatrix(vector)
     result.inverse = ScaleInverseMatrix(vector)
     
+proc rotationX*(_: typedesc[Transformation], angle_deg: float32): Transformation=
+    result = newTransormation()
+    result.m = RotationX_Matrix(angle_deg)
+    result.inverse = RotationX_InverseMatrix(angle_deg)
+
+proc rotationY*(_: typedesc[Transformation], angle_deg: float32): Transformation=
+    result = newTransormation()
+    result.m = RotationY_Matrix(angle_deg)
+    result.inverse = RotationY_InverseMatrix(angle_deg)
+
+proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation=
+    result = newTransormation()
+    result.m = RotationZ_Matrix(angle_deg)
+    result.inverse = RotationZ_InverseMatrix(angle_deg)
 
 
 
