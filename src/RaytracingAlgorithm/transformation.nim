@@ -1,5 +1,5 @@
 import geometry, utils 
-import std/[sequtils]
+import std/[sequtils, math]
 
 
 type
@@ -61,6 +61,20 @@ proc TranslationInverseMatrix(v: Vector): Matrix=
         result[i][i] = float32(1.0)
         if i<3:
             result[i][result.len-1] = float32(-v[i])
+
+proc Rotation_xMatrix(angle_deg: float32): Matrix=
+    result = newSeq[seq[float32]](4)
+    let angle = degToRad(angle_deg)
+    let ang = [cos(angle), sin(angle)]
+    for i in 0 ..< result.len:
+        result[i] = newSeq[float32](4)
+        result[i][i] = float32(1.0)
+        if i==1:
+            result[i][i] = ang[0]
+            result[i][i+1] = ang[1]
+        if i==2:
+            result[i][i-1] = -ang[1]
+            result[i][i] = ang[0]
 
 
 
@@ -128,4 +142,6 @@ proc are_matrix_close*(m1, m2 : Matrix): bool=
 proc is_consistent*(t : Transformation): bool =
     let product = t.m * t.inverse
     return are_matrix_close(product, IdentityMatrix())
-    
+
+
+
