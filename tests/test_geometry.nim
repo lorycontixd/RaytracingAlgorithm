@@ -36,6 +36,6 @@ let m7 = matrix(@[
   ])
 
 var
-    t: Transformation = newTransormation()
+    t: Transformation = newTransformation()
     id = IdentityMatrix()
     zero = Zeros()
