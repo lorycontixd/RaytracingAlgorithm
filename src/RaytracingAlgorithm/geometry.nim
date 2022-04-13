@@ -559,3 +559,16 @@ proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15)
         return 0.0
     var dot: float32 = clamp(Vector.Dot(a, b) / denominator, -1.0 .. 1.0    );
     return float(arccos(dot)) * radToDeg
+
+proc up*(_: typedesc[Vector]): Vector {.inline.}=
+    result = newVector(0.0, 1.0, 0.0)
+proc down*(_: typedesc[Vector]): Vector {.inline.}=
+    result = newVector(0.0, -1.0, 0.0)
+proc right*(_: typedesc[Vector]): Vector {.inline.}=
+    result = newVector(1.0, 0.0, 0.0)
+proc left*(_: typedesc[Vector]): Vector {.inline.}=
+    result = newVector(-1.0, 0.0, 0.0)
+proc forward*(_: typedesc[Vector]): Vector {.inline.}=
+    result = newVector(0.0, 0.0, 1.0)
+proc backward*(_: typedesc[Vector]): Vector {.inline.}=
+    result = newVector(0.0, 0.0, -1.0)
