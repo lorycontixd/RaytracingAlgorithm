@@ -1,5 +1,5 @@
-import std/[strformat]
-import "../src/RayTracingAlgorithm/camera.nim"
+import std/[strformat, os]
+echo getCurrentDir()
 import "../src/RayTracingAlgorithm/ray.nim"
 import "../src/RayTracingAlgorithm/geometry.nim"
 import "../src/RayTracingAlgorithm/transformation.nim"
