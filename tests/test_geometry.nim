@@ -34,7 +34,7 @@ let m7 = matrix(@[
     @[1.2'f32, 3.5'f32, 4.3'f32],
     @[1.1'f32, 4.2'f32, 1.7'f32]
   ])
-
+  
 var
     t: Transformation = newTransformation()
     id = IdentityMatrix()
