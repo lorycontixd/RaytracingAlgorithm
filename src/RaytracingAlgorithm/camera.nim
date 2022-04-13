@@ -1,7 +1,7 @@
 import geometry
 
 type
-    Camera = ref object of RootObj
+    Camera* = ref object of RootObj
         aspectRatio: float32
 
     OthogonalCamera* = ref object of Camera
