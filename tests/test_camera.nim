@@ -1,5 +1,6 @@
+#[
 import std/[strformat, os]
-echo getCurrentDir()
+import "../src/RayTracingAlgorithm/camera.nim"
 import "../src/RayTracingAlgorithm/ray.nim"
 import "../src/RayTracingAlgorithm/geometry.nim"
 import "../src/RayTracingAlgorithm/transformation.nim"
@@ -15,4 +16,4 @@ proc test_transform*()=
 proc test_orthogonal_camera*()=
     let a = 1
 
-test_transform()
+test_transform()]#
