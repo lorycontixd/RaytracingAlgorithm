@@ -1,7 +1,7 @@
 import geometry, transformation, ray
 
 type
-    Camera = ref object of RootObj
+    Camera* = ref object of RootObj
         aspectRatio*: float32
         transform*: Transformation
 
@@ -16,7 +16,7 @@ proc newOrthogonalCamera*(aspectratio: float32, transform: Transformation = newT
 proc newPerspectiveCamera*(aspectratio: float32, distance: float32=1.0, transform: Transformation = newTransformation()): PerspectiveCamera {.inline.}=
     result = PerspectiveCamera(aspectRatio:aspectratio, transform: transform, distance:distance)
 
-method fire_ray(c: Camera): void {.base.} =
+method fire_ray*(c: Camera, u,v:float32): Ray {.base.} =
     quit "to override!"
 
 method fire_ray*(self: OrthogonalCamera, u,v: float32): Ray {.inline.} =
