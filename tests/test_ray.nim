@@ -1,4 +1,4 @@
-import "../src/RayTracingAlgorithm/ray.nim"
+#[import "../src/RayTracingAlgorithm/ray.nim"
 import "../src/RayTracingAlgorithm/geometry.nim"
 import "../src/RayTracingAlgorithm/transformation.nim"
 
@@ -22,4 +22,4 @@ var transformation = TranslationMatrix(Vec(10.0, 11.0, 12.0)) * rotationX(90.0)
 var transformed = ray.transform(transformation)
     
 assert transformed.origin.is_close(Point(11.0, 8.0, 14.0))
-assert transformed.dir.is_close(Vector(6.0, -4.0, 5.0))
+assert transformed.dir.is_close(Vector(6.0, -4.0, 5.0))]#
