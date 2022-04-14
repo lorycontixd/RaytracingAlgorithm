@@ -23,6 +23,7 @@ proc byteArrayToHex32*(a: array[4,byte]): string {.inline.} {.deprecated: "use t
     result = fmt"{b[0]}{b[1]} {b[2]}{b[3]}"
 ]#
 
+
 proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
     #[
         Converts a sequence of bytes into a 32 bit array.
@@ -78,3 +79,13 @@ proc getMatrixCols*(m: Matrix): int =
 
 proc getMatrixSize*(m: Matrix): (int,int)=
     result = (getMatrixRows(m), getMatrixCols(m))
+
+
+macro apply*(f, t: typed): auto =
+  var args = newSeq[NimNode]()
+  let ty = getTypeImpl(t)
+  assert(ty.typeKind == ntyTuple)
+  for child in ty:
+    expectKind(child, nnkIdentDefs)
+    args.add(newDotExpr(t, child[0]))
+  result = newCall(f, args)
