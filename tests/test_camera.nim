@@ -1,4 +1,4 @@
-
+#[
 import std/[strformat, os]
 import "../src/RayTracingAlgorithm/camera.nim"
 import "../src/RayTracingAlgorithm/ray.nim"
@@ -58,5 +58,5 @@ proc test_ray*()=
 test_transform()
 test_orthogonal_camera()
 test_perspective_camera()
-test_ray()
+test_ray()]#
 
