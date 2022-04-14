@@ -52,7 +52,7 @@ proc test_perspective_camera*()=
 proc test_ray*()=
     var img: HdrImage = newHdrImage(200,100)
     var tracer: ImageTracer = newImageTracer(img)
-    tracer.fire_all_rays(baseColor)
+    #tracer.fire_all_rays(baseColor)
 
 
 test_transform()
