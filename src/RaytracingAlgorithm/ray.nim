@@ -7,6 +7,15 @@ type
         tmin*: float32 
         tmax*: float32 
         depth*: int 
+    
+proc newRay*(): Ray=
+    result = Ray(
+        origin: newPoint(0,0,0),
+        dir: Vector.forward,
+        tmin: 1e-10,
+        tmax: Inf,
+        depth:0
+    )
 
 proc newRay*(origin:Point, direction: Vector): Ray=
     result = Ray(

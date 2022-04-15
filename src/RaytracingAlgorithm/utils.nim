@@ -1,5 +1,4 @@
-import std/[os, strutils, strformat, macros, parsecfg]
-from macros import newTree, nnkBracket, newLit
+import std/[os, strutils, strformat, macros, parsecfg, times]
 from sequtils import mapIt
 import neo
 
@@ -89,3 +88,8 @@ macro apply*(f, t: typed): auto =
     expectKind(child, nnkIdentDefs)
     args.add(newDotExpr(t, child[0]))
   result = newCall(f, args)
+
+template timeIt*(theFunc: proc, passedArgs: varargs[untyped]): float =
+  let t = cpuTime()
+  echo theFunc(passedArgs)
+  cpuTime() - t

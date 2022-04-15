@@ -18,13 +18,13 @@ proc fire_ray*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_p
         v:float32 = (float32(row) + v_pixel) / float32(self.image.height - 1)
     return self.camera.fire_ray(u, v)
 
-template fire_all_rays*(self: var ImageTracer, f: proc(args: varargs[untyped]):Color ): void =
+template fire_all_rays*(self: var ImageTracer, f: proc, ray:Ray, args: varargs[untyped]): void =
     var
-        ray: Ray
         color: Color
+
     for row in 0 ..< self.image.height:
         for col in 0 ..< self.image.width:
             ray = self.fire_ray(col, row)
-            color = f(ray)
+            color = f(ray, args)
             self.image.set_pixel(col, row, color)
 
