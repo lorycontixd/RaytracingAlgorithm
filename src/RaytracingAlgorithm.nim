@@ -1,7 +1,8 @@
-import RaytracingAlgorithm/[hdrimage, geometry, utils]
-import std/[parsecfg, os]
+import RaytracingAlgorithm/[hdrimage, geometry, utils, logger]
+import std/[parsecfg, os, streams]
 
 when isMainModule:
-    echo getPackageVersion()
+    addLogger( open("main.log", fmWrite))
+    info("Running RaytracingAlgorithm on version ",getPackageVersion())
     
 

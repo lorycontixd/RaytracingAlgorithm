@@ -2,26 +2,7 @@ import std/[os, strutils, strformat, macros, parsecfg, times]
 from sequtils import mapIt
 import neo
 
-#[
-proc toString*(bytes: openarray[byte]): string =
-    #[
-        Converts an array of bytes to string
-
-        Parameters:
-            array of bytes to be converted
-        Returns:
-            string: 
-    ]#
-  result = newString(bytes.len)
-  copyMem(result[0].addr, bytes[0].unsafeAddr, bytes.len)
-
-proc byteArrayToHex32*(a: array[4,byte]): string {.inline.} {.deprecated: "use toString instead".}=
-    var b: array[4, string]
-    for i in 0..len(a)-1:
-      b[i] = toHex(a[i])
-    result = fmt"{b[0]}{b[1]} {b[2]}{b[3]}"
-]#
-
+let packageRootDir* = joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm/")
 
 proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
     #[
@@ -61,7 +42,8 @@ proc cmdArgsToString*(): string=
     return str
 
 proc getPackageVersion*(): string=
-    var p: Config = loadConfig(joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm.nimble"))
+    const filename = "RaytracingAlgorithm.nimble"
+    var p: Config = loadConfig(joinPath(packageRootDir, filename))
     result = p.getSectionValue("", "version") 
 
 proc getMatrixRows*(m: Matrix): int =
@@ -89,7 +71,8 @@ macro apply*(f, t: typed): auto =
     args.add(newDotExpr(t, child[0]))
   result = newCall(f, args)
 
-template timeIt*(theFunc: proc, passedArgs: varargs[untyped]): float =
+template timeIt*(theFunc: proc, passedArgs: varargs[untyped]): untyped =
   let t = cpuTime()
-  echo theFunc(passedArgs)
-  cpuTime() - t
+  let res = theFunc(passedArgs)
+  echo "Time taken: ",cpuTime() - t
+  res

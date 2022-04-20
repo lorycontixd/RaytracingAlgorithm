@@ -12,13 +12,13 @@ proc newImageTracer*(image: var HdrImage, camera: Camera = newOrthogonalCamera(2
     var tracer: ImageTracer = ImageTracer(image:image, camera:camera)
     result = tracer
 
-proc fire_ray*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pixel: float32 = 0.5): Ray=
+proc fireRay*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pixel: float32 = 0.5): Ray=
     var
         u:float32 = (float32(col) + u_pixel) / float32(self.image.width - 1)
         v:float32 = (float32(row) + v_pixel) / float32(self.image.height - 1)
     return self.camera.fire_ray(u, v)
 
-template fire_all_rays*(self: var ImageTracer, f: proc, ray:Ray, args: varargs[untyped]): void =
+template fireAllRays*(self: var ImageTracer, f: proc, ray:Ray, args: varargs[untyped]): void =
     var
         color: Color
 

@@ -37,7 +37,7 @@ proc newRay*(origin:Point, direction: Vector, tmin: float32): Ray=
     )
 
 proc newRay*(origin:Point, direction: Vector, tmin, tmax: float32, depth: int): Ray=
-assert tmin >= 0.0
+    assert tmin >= 0.0
     result = Ray(
         origin: origin, 
         dir: direction, 
