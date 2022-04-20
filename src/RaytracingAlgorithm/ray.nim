@@ -27,6 +27,7 @@ proc newRay*(origin:Point, direction: Vector): Ray=
     )
 
 proc newRay*(origin:Point, direction: Vector, tmin: float32): Ray=
+    assert tmin >= 0.0
     result = Ray(
         origin: origin, 
         dir: direction, 
@@ -36,6 +37,7 @@ proc newRay*(origin:Point, direction: Vector, tmin: float32): Ray=
     )
 
 proc newRay*(origin:Point, direction: Vector, tmin, tmax: float32, depth: int): Ray=
+assert tmin >= 0.0
     result = Ray(
         origin: origin, 
         dir: direction, 
@@ -53,7 +55,7 @@ proc newRay*(other: Ray): Ray=
         depth: other.depth
     )
 
-proc is_close*(self, other: Ray, epsilon: float32 = 1e-5): bool {.inline.} = 
+proc isClose*(self, other: Ray, epsilon: float32 = 1e-5): bool {.inline.} = 
     ### To verify that two Rays have same origin and direction 
     return self.origin == other.origin and self.dir == other.dir 
 
@@ -63,7 +65,7 @@ proc at*(self: Ray, t: float32): Point =
 proc `[]`*(self:Ray, t: float32): Point=
     return self.at(t)
 
-proc transform*(self: Ray, transformation: Transformation): Ray =
+proc Transform*(self: Ray, transformation: Transformation): Ray =
     result = Ray(
         origin : transformation * self.origin,
         dir : transformation * self.dir,
