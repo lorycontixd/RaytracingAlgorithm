@@ -1,25 +1,15 @@
 include "../src/RaytracingAlgorithm/quaternion.nim"
 
 var
-    quat1 : Quaternion = newQuaternion(1.0, 2.0, 3.0, 5.0)
-    quat2 : Quaternion = newQuaternion(4.0, 3.0, 2.0, 1.0)
-    quat_id = Quaternion.Identity()
-    v1: Vector = newVector(5.0, 4.0, 6.0)
+    q1: Quaternion = newQuaternion(1.0, 0.0, 0.0, 0.0) # 0 deg around (1,0,0)
+    q2: Quaternion = newQuaternion(1.0, 0.0, 0.0, PI/2) # 90 deg around (1,0,0)
+    q3: Quaternion = newQuaternion(1.0, 0.0, 0.0, PI) # 180 deg around (1,0,0)
 
-let
-    r1 = quat1 * quat2
-    r2 = quat1 * v1
-    r3 = quat1 * quat_id
-    r4 = quat1.Angle(quat2)
+    q4: Quaternion = newQuaternion(0.0, 1.0, 0.0, PI/2) # 90 deg around (0,1,0)
+    q5: Quaternion = newQuaternion(0.0, 1.0, 0.0, PI) # 180 deg around (0,1,0)
 
-    r0 = toEuler(quat1)
-
-echo r0
-
-echo "q1 * q2: ", r1
-echo "q1 * v1: ", r2
-echo "q1 * id: ", r3
-
-echo "Angle q1,q2: ", r4
-
-echo "Euler: ",r0
+echo RotationQuaternion(q1)
+echo RotationQuaternion(q2)
+echo RotationQuaternion(q3)
+echo RotationQuaternion(q4)
+echo RotationQuaternion(q5)

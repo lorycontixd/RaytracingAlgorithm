@@ -150,8 +150,8 @@ template defineEqualities(type1: typedesc) =
     proc `!=`*(this, other: type1): bool=
         return this.x != other.x or this.y != other.y or this.z != other.z
 
-    proc isClose*(this, other: type1): bool=
-        return IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z)
+    proc isClose*(this, other: type1, eps: float32 = 1e-5): bool=
+        return IsEqual(this.x, other.x, eps) and IsEqual(this.y, other.y, eps) and IsEqual(this.z, other.z, eps)
 
     proc isNotClose*(this, other: type1): bool=
         return not(IsEqual(this.x, other.x) or IsEqual(this.y, other.y) or IsEqual(this.z, other.z))
@@ -564,7 +564,10 @@ proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15)
     if (denominator < kEpsilonNormalSqrt):
         return 0.0
     var dot: float32 = clamp(Vector.Dot(a, b) / denominator, -1.0 .. 1.0    );
-    return float(arccos(dot)) * radToDeg
+    return float(radToDeg(arccos(dot)))
+
+proc radToDeg*(v: Vector): Vector=
+    result = newVector(radToDeg(v.x), radToDeg(v.y), radToDeg(v.z))
 
 proc up*(_: typedesc[Vector]): Vector {.inline.}=
     result = newVector(0.0, 1.0, 0.0)

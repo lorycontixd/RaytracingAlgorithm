@@ -7,6 +7,8 @@ type
     Transformation* = object
         m*, inverse*: Matrix
 
+proc newMatrix*(s: seq[seq[float32]]): Matrix=
+    return cast[Matrix](s)
 
 proc IdentityMatrix*(): Matrix=
     result = newSeq[seq[float32]](4)
