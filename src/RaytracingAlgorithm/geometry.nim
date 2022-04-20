@@ -41,9 +41,9 @@ defineEmptyConstructors(Normal)
 defineConstructors(Point)
 defineConstructors(Vector)
 defineConstructors(Normal)
-define_copy_constructors(Point)
-define_copy_constructors(Vector)
-define_copy_constructors(Normal)
+defineCopyConstructors(Point)
+defineCopyConstructors(Vector)
+defineCopyConstructors(Normal)
 
 
 ## --------------------------------  Sum + Subtraction  ------------------------------------------
@@ -66,27 +66,27 @@ defineOperations(`-`, Normal, Normal, Normal)
 
 ## ---------------------------------------  Products  ------------------------------------------
 
-template define_product(type1: typedesc) =
+template defineProduct(type1: typedesc) =
     # Product with scalar
     proc `*`*(a: type1, b: float32): type1 =
         result.x = a.x * b
         result.y = a.y * b
         result.z = a.z * b
 
-define_product(Vector)
-define_product(Point)
-define_product(Normal)
+defineProduct(Vector)
+defineProduct(Point)
+defineProduct(Normal)
 
-template define_dot(type1: typedesc, type2: typedesc) = 
+template defineDot(type1: typedesc, type2: typedesc) = 
     proc Dot*(this: type1, other: type2): float32 = 
         result = this.x * other.x + this.y * other.y + this.z * other.z
     
     proc `*`*(this: type1, other: type2): float32 = 
         result = this.Dot(other)
 
-define_dot(Vector, Vector)
-define_dot(Normal, Vector)
-define_dot(Vector, Normal)
+defineDot(Vector, Vector)
+defineDot(Normal, Vector)
+defineDot(Vector, Normal)
 
 
 template defineCross(type1: typedesc, type2: typedesc, rettype: typedesc) =
