@@ -559,7 +559,6 @@ proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15)
     ## Static method
     ##
     ## Example: let angle = Vector.Angle(newVector(1,2,3), newVector(4,5,6))
-    raise NotImplementedError.newException("Not yet implemented: Angle")
     var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
     if (denominator < kEpsilonNormalSqrt):
         return 0.0
