@@ -191,7 +191,12 @@ proc `*`*(t: Transformation, other: Normal): Normal=
         t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z + t.m[2][3]
     )
 
-#proc `*`*(t: Transformation, other: Transformation): Transformation= 
+proc `*`*(self, other: Transformation): Transformation= 
+    var
+        res_m: Matrix = self.m * other.m
+        res_inv: Matrix = self.inverse * other.inverse
+    result = newTransformation(res_m, res_inv)
+
 
 proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation=
     result = newTransformation()
@@ -218,15 +223,6 @@ proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation
     result = newTransformation()
     result.m = RotationZ_Matrix(angle_deg)
     result.inverse = RotationZ_InverseMatrix(angle_deg)
-
-
-proc `*`*(this, other: Matrix): Matrix=
-    result = Zeros()
-    for i in 0 .. 3:
-        for j in 0 .. 3:
-            for k in 0 .. 3:
-                result[i][j] += this[i][k] * other[k][j]
-
 
 
 ##-------------------- utilities --------------------

@@ -21,12 +21,12 @@ method fireRay*(c: Camera, u,v:float32): Ray {.base.} =
 
 method fireRay*(self: OrthogonalCamera, u,v: float32): Ray {.inline.} =
     var origin: Point = newPoint(-1.0, (1.0 - 2.0 * u) * self.aspectRatio, 2.0*v-1)
-    var direction: Vector = Vector.right()
+    var direction: Vector3 = Vector3.right()
     var ray: Ray = newRay(origin, direction, 1.0)
     result = ray.Transform(self.transform)
 
 method fireRay*(self: PerspectiveCamera, u,v: float32): Ray {.inline.} =
     var origin: Point = newPoint(-self.distance, 0.0, 0.0)
-    var direction: Vector = newVector(self.distance, (1.0 - 2.0 * u) * self.aspectRatio, 2.0 * v - 1)
+    var direction: Vector3 = newVector3(self.distance, (1.0 - 2.0 * u) * self.aspectRatio, 2.0 * v - 1)
     var ray: Ray = newRay(origin, direction, 1.0)
     result = ray.Transform(self.transform)

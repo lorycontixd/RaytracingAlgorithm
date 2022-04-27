@@ -14,6 +14,8 @@ type
     InputParsingError* = object of CustomException
     TestError* = object of Exception
 
+    AbstractMethodError* = object of Exception
+
 #[
 template myNewException*(exceptn: typedesc, message: string; parentException: ref Exception = nil): untyped =
     let parent = parentDir(getCurrentDir())

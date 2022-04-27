@@ -12,7 +12,7 @@ proc newQuaternion*(): Quaternion=
 proc newQuaternion*(x,y,z,w: float32): Quaternion=
     result = Quaternion(x:x, y:y, z:z, w:w)
 
-proc newQuaternion*(v: Vector, w: float32): Quaternion=
+proc newQuaternion*(v: Vector3, w: float32): Quaternion=
     result = newQuaternion(v[0], v[1], v[2], w)
 
 proc newQuaternion*(other: Quaternion): Quaternion=
@@ -67,7 +67,7 @@ proc `*`*(lhs, rhs: Quaternion): Quaternion {.inline.}=
         lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z
     ) 
 
-proc `*`*(rotation: Quaternion, v: Vector): Vector {.inline.}=
+proc `*`*(rotation: Quaternion, v: Vector3): Vector3 {.inline.}=
     var
         x: float32 = rotation.x * 2.0
         y: float32 = rotation.y * 2.0
@@ -82,7 +82,7 @@ proc `*`*(rotation: Quaternion, v: Vector): Vector {.inline.}=
         wy: float32 = rotation.w * y
         wz: float32 = rotation.w * z
         
-    result = newVector(
+    result = newVector3(
         (1.0 - (yy + zz)) * v.x + (xy - wz) * v.y + (xz + wy) * v.z,
         (xy + wz) * v.x + (1.0 - (xx + zz)) * v.y + (yz - wx) * v.z,
         (xz - wy) * v.x + (yz + wx) * v.y + (1.0 - (xx + yy)) * v.z
@@ -129,11 +129,11 @@ proc Conjugate*(q: Quaternion): Quaternion=
 proc Inverse(q: Quaternion): Quaternion {.inline.}=
     return q.Conjugate() / q.squaredNorm()
 
-proc makePositive*(euler: Vector): Vector=
+proc makePositive*(euler: Vector3): Vector3=
     let negativeFlip = radToDeg(-0.0001)
     let positiveFlip = 360 + negativeFlip
 
-    result = newVector(euler)
+    result = newVector3(euler)
     if (result.x < negativeFlip):
         result.x = result.x + 360.0f
     elif (result.x > positiveFlip):
@@ -160,7 +160,7 @@ proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
 proc isNormalized*(self: Quaternion): bool=
     return self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w == 1
 
-proc toEuler*(q: Quaternion): Vector {.inline.}=
+proc toEuler*(q: Quaternion): Vector3 {.inline.}=
     let
         sqw = q.w * q.w
         sqx = q.x * q.x
@@ -168,7 +168,7 @@ proc toEuler*(q: Quaternion): Vector {.inline.}=
         sqz = q.z * q.z
         unit = sqx + sqy + sqz + sqw # if normalised is one, otherwise is correction factor
         test = q.x * q.w - q.y * q.z
-    var v: Vector = newVector()
+    var v: Vector3 = newVector3()
 
     if (test > 0.4995 * unit): # singularity at north pole
         v.y = 2f * arctan2(q.y, q.x)
@@ -264,7 +264,7 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
         cos(angle/2.0)
     ) 
 
-proc RotationQuaternion*(axis: Vector, angle: float32): Quaternion {.inline.}=
+proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
     return RotationQuaternion( newQuaternion(axis[0], axis[1], axis[2], angle))
 
 proc xBy90*(): Quaternion =
