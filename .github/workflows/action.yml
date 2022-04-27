@@ -33,5 +33,7 @@ jobs:
         run: nimble -v
       - name: Build package
         run: nimble build -y
+      - name: debug1
+        run: echo cwd
       - name: Run tests
         run: nimble test -y
