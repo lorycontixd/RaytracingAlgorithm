@@ -2,7 +2,7 @@ import std/[os]
 
 type
     CustomException* = ref object of Exception
-
+    NotImplementedError* = object of CustomException
 
     ImageError* = object of CustomException
 
