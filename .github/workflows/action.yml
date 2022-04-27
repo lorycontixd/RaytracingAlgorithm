@@ -34,4 +34,4 @@ jobs:
       - name: Build package
         run: nimble build -y
       - name: Run tests
-        run: nimble test -y
+        run: nimble test -y --verbose

@@ -28,6 +28,7 @@ proc newVector2*(): Vector2=
     result = Vector2(u: 0.0, v: 0.0)
 
 macro defineConstructors(type1: typedesc): void =
+
     let source = fmt"""
 proc new{$type1}*(x,y,z: float32): {$type1} =
     result = {$type1}(x: x, y: y, z: z)
@@ -38,6 +39,7 @@ proc newVector2*(u,v: float32): Vector2=
     result = Vector2(u: u, v: v)
 
 macro defineCopyConstructors(type1: typedesc): void =
+
     let source = fmt"""
 proc new{$type1}*(other: {$type1}): {$type1} =
     result = {$type1}(x: other.x, y: other.y, z: other.z)
@@ -58,6 +60,7 @@ define_copy_constructors(Vector3)
 define_copy_constructors(Normal)
 
 
+
 ## --------------------------------  Sum + Subtraction  ------------------------------------------
 
 template defineOperations(fname: untyped, type1: typedesc, type2: typedesc, rettype: typedesc) =
@@ -74,32 +77,35 @@ defineOperations(`-`, Vector3, Point, Point)
 defineOperations(`+`, Point, Vector3, Point)
 defineOperations(`-`, Point, Vector3, Point)
 defineOperations(`-`, Point, Point, Vector3)
+
 defineOperations(`+`, Normal, Normal, Normal)
 defineOperations(`-`, Normal, Normal, Normal)
 
 ## ---------------------------------------  Products  ------------------------------------------
 
-template define_product(type1: typedesc) =
+
+template defineProduct(type1: typedesc) =
     # Product with scalar
     proc `*`*(a: type1, b: float32): type1 =
         result.x = a.x * b
         result.y = a.y * b
         result.z = a.z * b
 
-define_product(Vector3)
-define_product(Point)
-define_product(Normal)
+defineProduct(Vector)
+defineProduct(Point)
+defineProduct(Normal)
 
-template define_dot(type1: typedesc, type2: typedesc) = 
+
+template defineDot(type1: typedesc, type2: typedesc) = 
     proc Dot*(this: type1, other: type2): float32 = 
         result = this.x * other.x + this.y * other.y + this.z * other.z
     
     proc `*`*(this: type1, other: type2): float32 = 
         result = this.Dot(other)
 
-define_dot(Vector3, Vector3)
-define_dot(Normal, Vector3)
-define_dot(Vector3, Normal)
+defineDot(Vector3, Vector3)
+defineDot(Normal, Vector3)
+defineDot(Vector3, Normal)
 
 
 template defineCross(type1: typedesc, type2: typedesc, rettype: typedesc) =
@@ -112,6 +118,7 @@ defineCross(Vector3, Vector3, Vector3)
 defineCross(Normal, Vector3, Vector3)
 defineCross(Vector3, Normal, Vector3)
 defineCross(Normal, Normal, Vector3)
+
 
 ## ----------------------------------------  Norm  ----------------------------------------------
 

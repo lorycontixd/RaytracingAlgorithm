@@ -7,6 +7,8 @@ type
     Transformation* = object
         m*, inverse*: Matrix
 
+proc newMatrix*(s: seq[seq[float32]]): Matrix=
+    return cast[Matrix](s)
 
 proc IdentityMatrix*(): Matrix=
     result = newSeq[seq[float32]](4)
@@ -36,8 +38,9 @@ proc ScaleMatrix(v: Vector3): Matrix=
             result[i][i] = float32(v[i])
         else:
             result[i][i] = float32(1.0)
-
+            
 proc ScaleInverseMatrix(v: Vector3): Matrix=
+
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
         result[i] = newSeq[float32](4)
@@ -47,6 +50,7 @@ proc ScaleInverseMatrix(v: Vector3): Matrix=
             result[i][i] = float32(1.0)
 
 proc TranslationMatrix(v: Vector3): Matrix=
+
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
         result[i] = newSeq[float32](4)
@@ -147,12 +151,19 @@ proc RotationZ_InverseMatrix(angle_deg: float32): Matrix=
             result[i+1][i+1] = ang[0]
 
 
-
-proc newTransormation*(m: Matrix=IdentityMatrix(), inv: Matrix=IdentityMatrix()): Transformation=
+proc newTransformation*(m: Matrix=IdentityMatrix(), inv: Matrix=IdentityMatrix()): Transformation=
     result = Transformation(m:m, inverse:inv) 
 
 proc inverse*(t: Transformation): Transformation=
     result = Transformation(m:t.inverse, inverse:t.m)
+
+proc `*`*(this, other: Matrix): Matrix=
+    ## Matrix4 - Matrix4 product
+    result = Zeros()
+    for i in 0 .. 3:
+        for j in 0 .. 3:
+            for k in 0 .. 3:
+                result[i][j] += this[i][k] * other[k][j]
 
 proc `*`*(t: Transformation, other: Vector3): Vector3=
     result = newVector3(
@@ -189,24 +200,24 @@ proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation=
 
 proc scale*(_: typedesc[Transformation], vector: Vector3): Transformation=
     result = newTransormation()
+
     result.m = ScaleMatrix(vector)
     result.inverse = ScaleInverseMatrix(vector)
     
 proc rotationX*(_: typedesc[Transformation], angle_deg: float32): Transformation=
-    result = newTransormation()
+    result = newTransformation()
     result.m = RotationX_Matrix(angle_deg)
     result.inverse = RotationX_InverseMatrix(angle_deg)
 
 proc rotationY*(_: typedesc[Transformation], angle_deg: float32): Transformation=
-    result = newTransormation()
+    result = newTransformation()
     result.m = RotationY_Matrix(angle_deg)
     result.inverse = RotationY_InverseMatrix(angle_deg)
 
 proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation=
-    result = newTransormation()
+    result = newTransformation()
     result.m = RotationZ_Matrix(angle_deg)
     result.inverse = RotationZ_InverseMatrix(angle_deg)
-
 
 
 proc `*`*(this, other: Matrix): Matrix=
@@ -215,6 +226,7 @@ proc `*`*(this, other: Matrix): Matrix=
         for j in 0 .. 3:
             for k in 0 .. 3:
                 result[i][j] += this[i][k] * other[k][j]
+
 
 
 ##-------------------- utilities --------------------

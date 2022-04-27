@@ -24,6 +24,7 @@ assert a[0] == 3.0
 assert b[2] == 2.0
 assert c[1] == 1.0
 assert $a == "Vector3(3.0,6.0,2.0)"
+
 assert $c == "Point(1.0,1.0,2.0)"
 
 var
@@ -36,6 +37,7 @@ let m7 = matrix(@[
   ])
 
 var
-    t: Transformation = newTransormation()
+    t: Transformation = newTransformation()
+
     id = IdentityMatrix()
     zero = Zeros()
