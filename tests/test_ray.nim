@@ -1,25 +1,26 @@
-#[import "../src/RayTracingAlgorithm/ray.nim"
-import "../src/RayTracingAlgorithm/geometry.nim"
-import "../src/RayTracingAlgorithm/transformation.nim"
+import "../src/RaytracingAlgorithm/ray.nim"
+import "../src/RaytracingAlgorithm/geometry.nim"
+import "../src/RaytracingAlgorithm/transformation.nim"
 
 
-var ray1 = newRay(origin: Point(1.0, 2.0, 3.0), dir: Vector(5.0, 4.0, -1.0))
-var ray2 = newRay(origin: Point(1.0, 2.0, 3.0), dir: Vector(5.0, 4.0, -1.0))
-var ray3 = newRay(origin: Point(5.0, 1.0, 4.0), dir: Vector(3.0, 9.0, 4.0))
+var ray1: Ray = newRay( newPoint(1.0, 2.0, 3.0), newVector(5.0, 4.0, -1.0))
+var ray2: Ray = newRay( newPoint(1.0, 2.0, 3.0), newVector(5.0, 4.0, -1.0))
+var ray3: Ray = newRay( newPoint(5.0, 1.0, 4.0), newVector(3.0, 9.0, 4.0))
 
 assert ray1.isClose(ray2)
 assert not ray1.isClose(ray3)
 
 
-var ray = newRay(origin=Point(1.0, 2.0, 4.0), dir=Vector(4.0, 2.0, 1.0))
-assert ray.at(0.0).isClose(ray.origin)
-assert ray.at(1.0).isClose(Point(5.0, 4.0, 5.0))
-assert ray.at(2.0).isClose(Point(9.0, 6.0, 6.0))
+var myray: Ray = newRay( newPoint(1.0, 2.0, 4.0), newVector(4.0, 2.0, 1.0))
+assert myray.at(0.0).isClose( myray.origin)
+assert myray.at(1.0).isClose( newPoint(5.0, 4.0, 5.0))
+assert myray.at(2.0).isClose( newPoint(9.0, 6.0, 6.0))
 
 
-var ray4 = newRay(origin=Point(1.0, 2.0, 3.0), dir=Vector(6.0, 5.0, 4.0))
-var transformation = TranslationMatrix(Vec(10.0, 11.0, 12.0)) * rotationX(90.0)
-var transformed = ray.Transform(transformation)
-    
-assert transformed.origin.isClose(Point(11.0, 8.0, 14.0))
-assert transformed.dir.isClose(Vector(6.0, -4.0, 5.0))]#
+var ray4: Ray = newRay( newPoint(1.0, 2.0, 3.0), newVector(6.0, 5.0, 4.0))
+var transform: Transformation = Transformation.translation(newVector(10.0, 11.0, 12.0)) * Transformation.rotationX(90.0)
+var transformed: Ray = myray.Transform(transform)
+
+assert transformed.origin.isClose(newPoint(11.0, 7.0, 14.0))
+assert transformed.dir.isClose(newVector(4.0, -1.0, 2.0))
+#assert transformed.dir.isClose(newVector(6.0, -4.0, 5.0))

@@ -14,5 +14,7 @@ requires "SimplePNG"
 requires "neo"
 
 task mytest, "Run the packages tests!":
-    exec "nim cpp -r tests/test_color.nim"
-    exec "nim cpp -r tests/test_hdrimage.nim"
+    exec "nim cpp -r tests/test_camera.nim"
+
+task start, "Run a script":
+    exec "nim cpp -r -d:release test.nim"

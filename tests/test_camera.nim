@@ -1,12 +1,12 @@
 
 import std/[strformat, os]
-import "../src/RayTracingAlgorithm/camera.nim"
-import "../src/RayTracingAlgorithm/ray.nim"
-import "../src/RayTracingAlgorithm/geometry.nim"
-import "../src/RayTracingAlgorithm/transformation.nim"
-import "../src/RayTracingAlgorithm/imagetracer.nim"
-import "../src/RayTracingAlgorithm/hdrimage.nim"
-import "../src/RayTracingAlgorithm/raytypes.nim"
+import "../src/RaytracingAlgorithm/camera.nim"
+import "../src/RaytracingAlgorithm/ray.nim"
+import "../src/RaytracingAlgorithm/geometry.nim"
+import "../src/RaytracingAlgorithm/transformation.nim"
+import "../src/RaytracingAlgorithm/imagetracer.nim"
+import "../src/RaytracingAlgorithm/hdrimage.nim"
+import "../src/RaytracingAlgorithm/raytypes.nim"
 
 proc test_transform*()=
     var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector(6.0, 5.0, 4.0))
