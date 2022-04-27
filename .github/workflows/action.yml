@@ -38,4 +38,4 @@ jobs:
       - name: debug2
         run: cd tests && ls ../src/RaytracingAlgorithm/
       - name: Run tests
-        run: nimble test -y
+        run: nimble test -y --verbose
