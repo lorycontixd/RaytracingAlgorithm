@@ -194,12 +194,12 @@ proc `*`*(t: Transformation, other: Normal): Normal=
 #proc `*`*(t: Transformation, other: Transformation): Transformation= 
 
 proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation=
-    result = newTransormation()
+    result = newTransformation()
     result.m = TranslationMatrix(vector)
     result.inverse = TranslationInverseMatrix(vector)
 
 proc scale*(_: typedesc[Transformation], vector: Vector3): Transformation=
-    result = newTransormation()
+    result = newTransformation()
 
     result.m = ScaleMatrix(vector)
     result.inverse = ScaleInverseMatrix(vector)
