@@ -1,6 +1,8 @@
-import RaytracingAlgorithm/[hdrimage]
-import std/[parsecfg]
+import RaytracingAlgorithm/[hdrimage, geometry, utils, logger]
+import std/[parsecfg, os, streams]
 
 when isMainModule:
-    var p: Config = loadConfig("./RaytracingAlgorithm.nimble")
-    echo p.getSectionValue("", "version") 
+    addLogger( open("main.log", fmWrite))
+    info("Running RaytracingAlgorithm on version ",getPackageVersion())
+    
+
