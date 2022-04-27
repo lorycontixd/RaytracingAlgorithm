@@ -3,8 +3,11 @@ import std/[math, macros, typetraits, strformat, strutils]
 import exception
 
 type
-    Vector* = object
+    Vector3* = object
         x*, y*, z*: float32
+
+    Vector2* = object
+        u*, v*: float32
 
     Point* = object
         x*, y*, z*: float32
@@ -14,35 +17,44 @@ type
 
 ## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
-macro defineEmptyConstructors(type1: typedesc): typed =
+macro defineEmptyConstructors(type1: typedesc): void =
     let source = fmt"""
 proc new{$type1}*(): {$type1} =
     result = {$type1}(x: 0.0, y: 0.0, z: 0.0)
 """
     result = parseStmt(source)
 
-macro defineConstructors(type1: typedesc): typed =
+proc newVector2*(): Vector2=
+    result = Vector2(u: 0.0, v: 0.0)
+
+macro defineConstructors(type1: typedesc): void =
     let source = fmt"""
 proc new{$type1}*(x,y,z: float32): {$type1} =
     result = {$type1}(x: x, y: y, z: z)
 """
     result = parseStmt(source)
 
-macro defineCopyConstructors(type1: typedesc): typed =
+proc newVector2*(u,v: float32): Vector2=
+    result = Vector2(u: u, v: v)
+
+macro defineCopyConstructors(type1: typedesc): void =
     let source = fmt"""
 proc new{$type1}*(other: {$type1}): {$type1} =
     result = {$type1}(x: other.x, y: other.y, z: other.z)
 """
     result = parseStmt(source)
 
+proc newVector2*(other: Vector2): Vector2=
+    result = Vector2(u: other.u, v: other.v)
+
 defineEmptyConstructors(Point)
-defineEmptyConstructors(Vector)
+defineEmptyConstructors(Vector3)
 defineEmptyConstructors(Normal)
 defineConstructors(Point)
-defineConstructors(Vector)
+defineConstructors(Vector3)
 defineConstructors(Normal)
 define_copy_constructors(Point)
-define_copy_constructors(Vector)
+define_copy_constructors(Vector3)
 define_copy_constructors(Normal)
 
 
@@ -54,13 +66,14 @@ template defineOperations(fname: untyped, type1: typedesc, type2: typedesc, rett
         result.y = fname(a.y, b.y)
         result.z = fname(a.z, b.z)
 
-defineOperations(`+`, Vector, Vector, Vector)
-defineOperations(`-`, Vector, Vector, Vector)
-defineOperations(`+`, Vector, Point, Point)
-defineOperations(`-`, Vector, Point, Point)
-defineOperations(`+`, Point, Vector, Point)
-defineOperations(`-`, Point, Vector, Point)
-defineOperations(`-`, Point, Point, Vector)
+
+defineOperations(`+`, Vector3, Vector3, Vector3)
+defineOperations(`-`, Vector3, Vector3, Vector3)
+defineOperations(`+`, Vector3, Point, Point)
+defineOperations(`-`, Vector3, Point, Point)
+defineOperations(`+`, Point, Vector3, Point)
+defineOperations(`-`, Point, Vector3, Point)
+defineOperations(`-`, Point, Point, Vector3)
 defineOperations(`+`, Normal, Normal, Normal)
 defineOperations(`-`, Normal, Normal, Normal)
 
@@ -73,7 +86,7 @@ template define_product(type1: typedesc) =
         result.y = a.y * b
         result.z = a.z * b
 
-define_product(Vector)
+define_product(Vector3)
 define_product(Point)
 define_product(Normal)
 
@@ -84,9 +97,9 @@ template define_dot(type1: typedesc, type2: typedesc) =
     proc `*`*(this: type1, other: type2): float32 = 
         result = this.Dot(other)
 
-define_dot(Vector, Vector)
-define_dot(Normal, Vector)
-define_dot(Vector, Normal)
+define_dot(Vector3, Vector3)
+define_dot(Normal, Vector3)
+define_dot(Vector3, Normal)
 
 
 template defineCross(type1: typedesc, type2: typedesc, rettype: typedesc) =
@@ -95,10 +108,10 @@ template defineCross(type1: typedesc, type2: typedesc, rettype: typedesc) =
         result.y = this.z * other.x - this.x * other.z
         result.z = this.x * other.y - this.y * other.x
 
-defineCross(Vector, Vector, Vector)
-defineCross(Normal, Vector, Vector)
-defineCross(Vector, Normal, Vector)
-defineCross(Normal, Normal, Vector)
+defineCross(Vector3, Vector3, Vector3)
+defineCross(Normal, Vector3, Vector3)
+defineCross(Vector3, Normal, Vector3)
+defineCross(Normal, Normal, Vector3)
 
 ## ----------------------------------------  Norm  ----------------------------------------------
 
@@ -108,18 +121,18 @@ template defineNorm(type1: typedesc)=
     proc norm*(a: type1): float32=
         result = sqrt(square_norm(a))
     
-defineNorm(Vector)
+defineNorm(Vector3)
 defineNorm(Normal)
 
 ## ------------------------------------  Other operators  ---------------------------------------
 
-template defineNormalize(type1: typedesc)=     #returns normalized Vector or Normal 
+template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or Normal 
     proc normalize*(a: type1): type1=
         result.x = a.x/a.norm()
         result.y = a.y/a.norm()
         result.z = a.z/a.norm()
 
-defineNormalize(Vector)
+defineNormalize(Vector3)
 defineNormalize(Normal)
 
 template defineNegative(type1: typedesc) =
@@ -128,7 +141,7 @@ template defineNegative(type1: typedesc) =
         result.y = -a.y
         result.z = -a.z
 
-defineNegative(Vector)
+defineNegative(Vector3)
 defineNegative(Normal)
 
 template defineConvert(type1: typedesc, rettype: typedesc) =
@@ -137,8 +150,8 @@ template defineConvert(type1: typedesc, rettype: typedesc) =
         result.y = a.y
         result.z = a.z
 
-defineConvert(Vector, Normal)
-defineConvert(Point, Vector)
+defineConvert(Vector3, Normal)
+defineConvert(Point, Vector3)
 
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     return abs(x - y) < epsilon
@@ -150,7 +163,7 @@ template defineEqualities(type1: typedesc) =
     proc `!=`*(this, other: type1): bool=
         return not(IsEqual(this.x, other.x) and IsEqual(this.y, other.y) and IsEqual(this.z, other.z))
 
-defineEqualities(Vector)
+defineEqualities(Vector3)
 defineEqualities(Point)
 defineEqualities(Normal)
 
@@ -160,7 +173,7 @@ macro defineGetitem(type1: untyped): untyped=
     ## Called through [] operator
     ## 
     ## Example:
-    ## var v: Vector = newVector(1,2,3)
+    ## var v: Vector3 = newVector(1,2,3)
     ## --> assert v[1] == 2
     result = nnkStmtList.newTree(
         nnkProcDef.newTree(
@@ -249,7 +262,7 @@ macro defineSetitem(type1: untyped): untyped=
     ## Called through []= operator
     ## 
     ## Example:
-    ## var v: Vector = newVector(1,2,3)
+    ## var v: Vector3 = newVector(1,2,3)
     ## --> v[1] = 3.2
     result = nnkStmtList.newTree(
         nnkProcDef.newTree(
@@ -343,11 +356,11 @@ macro defineSetitem(type1: untyped): untyped=
     )
 
 
-defineGetitem(Vector)
+defineGetitem(Vector3)
 defineGetitem(Point)
 defineGetitem(Normal)
 
-defineSetitem(Vector)
+defineSetitem(Vector3)
 defineSetitem(Point)
 defineSetitem(Normal)
 
@@ -417,17 +430,17 @@ macro toString(type1: untyped): untyped=
         )
     )
 
-toString(Vector)      
+toString(Vector3)      
 toString(Point)  
 toString(Normal)  
 
 
 ## ----------------------------------------  Vector3 Specific  ----------------------------------------------
-proc Dot*(_:typedesc[Vector], this, other: Vector): float32 {.inline.} = 
+proc Dot*(_:typedesc[Vector3], this, other: Vector3): float32 {.inline.} = 
     ## Returns the dot product (float32) between two vectors.
     ## Static method
     ##
-    ## Example: let dot = Vector.Dot(newVector(1,2,3), newVector(4,5,6))
+    ## Example: let dot = Vector3.Dot(newVector(1,2,3), newVector(4,5,6))
     result = this.x * other.x + this.y * other.y + this.z * other.z
 
 macro defineDistance(type1: untyped): void =
@@ -535,27 +548,27 @@ macro defineDistance(type1: untyped): void =
         )
     )
 
-defineDistance(Vector) # Vector distance if considered
+defineDistance(Vector3) # Vector3 distance if considered
 defineDistance(Point) # Point has a distance from the origin
 
-proc Cross*(_:typedesc[Vector], this, other: Vector): Vector {.inline.}=
-    ## Returns the cross product (Vector) between two vectors.
+proc Cross*(_:typedesc[Vector3], this, other: Vector3): Vector3 {.inline.}=
+    ## Returns the cross product (Vector3) between two vectors.
     ## Static method
     ##
-    ## Example: let cross = Vector.Cross(newVector(1,2,3), newVector(4,5,6))
+    ## Example: let cross = Vector3.Cross(newVector(1,2,3), newVector(4,5,6))
     result.x = this.y * other.z - this.z * other.y
     result.y = this.z * other.x - this.x * other.z
     result.z = this.x * other.y - this.y * other.x
     
 
-proc Angle*(_:typedesc[Vector], a, b: Vector, kEpsilonNormalSqrt: float = 1e-15): float32 {.inline.}=
+proc Angle*(_:typedesc[Vector3], a, b: Vector3, kEpsilonNormalSqrt: float = 1e-15): float32 {.inline.}=
     ## Computes the angle (float32) between two vectors.
     ## Static method
     ##
-    ## Example: let angle = Vector.Angle(newVector(1,2,3), newVector(4,5,6))
+    ## Example: let angle = Vector3.Angle(newVector(1,2,3), newVector(4,5,6))
     raise NotImplementedError.newException("Not yet implemented: Angle")
     var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
     if (denominator < kEpsilonNormalSqrt):
         return 0.0
-    var dot: float32 = clamp(Vector.Dot(a, b) / denominator, -1.0 .. 1.0    );
+    var dot: float32 = clamp(Vector3.Dot(a, b) / denominator, -1.0 .. 1.0    );
     return float(arccos(dot)) * radToDeg

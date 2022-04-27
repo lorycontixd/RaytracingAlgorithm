@@ -28,7 +28,7 @@ proc Ones*(): Matrix=
         for j in 0 .. 3:
             result[i][j] = float32(1.0)
 
-proc ScaleMatrix(v: Vector): Matrix=
+proc ScaleMatrix(v: Vector3): Matrix=
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
         result[i] = newSeq[float32](4)
@@ -37,7 +37,7 @@ proc ScaleMatrix(v: Vector): Matrix=
         else:
             result[i][i] = float32(1.0)
 
-proc ScaleInverseMatrix(v: Vector): Matrix=
+proc ScaleInverseMatrix(v: Vector3): Matrix=
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
         result[i] = newSeq[float32](4)
@@ -46,7 +46,7 @@ proc ScaleInverseMatrix(v: Vector): Matrix=
         else:
             result[i][i] = float32(1.0)
 
-proc TranslationMatrix(v: Vector): Matrix=
+proc TranslationMatrix(v: Vector3): Matrix=
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
         result[i] = newSeq[float32](4)
@@ -54,7 +54,7 @@ proc TranslationMatrix(v: Vector): Matrix=
         if i<3:
             result[i][result.len-1] = float32(v[i])
 
-proc TranslationInverseMatrix(v: Vector): Matrix=
+proc TranslationInverseMatrix(v: Vector3): Matrix=
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
         result[i] = newSeq[float32](4)
@@ -154,8 +154,8 @@ proc newTransormation*(m: Matrix=IdentityMatrix(), inv: Matrix=IdentityMatrix())
 proc inverse*(t: Transformation): Transformation=
     result = Transformation(m:t.inverse, inverse:t.m)
 
-proc `*`*(t: Transformation, other: Vector): Vector=
-    result = newVector(
+proc `*`*(t: Transformation, other: Vector3): Vector3=
+    result = newVector3(
         t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z,
         t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z,
         t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z
@@ -182,12 +182,12 @@ proc `*`*(t: Transformation, other: Normal): Normal=
 
 #proc `*`*(t: Transformation, other: Transformation): Transformation= 
 
-proc translation*(_: typedesc[Transformation], vector: Vector): Transformation=
+proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation=
     result = newTransormation()
     result.m = TranslationMatrix(vector)
     result.inverse = TranslationInverseMatrix(vector)
 
-proc scale*(_: typedesc[Transformation], vector: Vector): Transformation=
+proc scale*(_: typedesc[Transformation], vector: Vector3): Transformation=
     result = newTransormation()
     result.m = ScaleMatrix(vector)
     result.inverse = ScaleInverseMatrix(vector)
