@@ -1,30 +1,60 @@
-import shape
-import std/[sequtils, sugar, macros, typetraits]
+import shape, rayhit, ray
+import std/[sequtils, sugar, macros, typetraits, strutils, options]
 
 type
     World* = object
         shapes*: seq[Shape]
 
-proc newWorld*(): World =
+func newWorld*(): World =
     return World(shapes: @[])
 
-proc newWorld*(list: seq[Shape]): World=
+func newWorld*(list: seq[Shape]): World=
     return World(shapes: list)
 
-proc Add*(self: var World, s: Shape): void=
+func GetIndex*(self: World, s_id: string): int=
+    for i, shape in self.shapes.pairs:
+        if shape.id == s_id:
+            return i
+    raise IndexError.newException("ID not found in world shapes.")
+
+func Add*(self: var World, s: Shape): void=
     self.shapes.add(s)
+
+func Remove*(self: var World, s_id: string): void=
+    # remove from seq
+    let index = self.GetIndex(s_id)
+    self.shapes.delete(index)
 
 template Add*(self: var World, shapes: varargs[Shape]): void=
     for shape in shapes:
         self.Add(shape)
 
+template Remove*(self: var World, shapes: varargs[Shape]): void=
+    for shape in shapes:
+        self.Remove(shape.id)
+
 #proc Remove*(self: var World, shape_id: string): void=
-proc Filter*(self:World, t: typedesc): seq[Shape]=
+func Filter*(self:World, t: typedesc): seq[Shape]=
     result = collect(newSeq):
         for i,s in self.shapes.pairs:
-            echo i, " - ", s.type.name
-            if s.type.name is t: s
+            if (s.id.contains(($t).toUpperAscii())): s
 
 proc Show*(self: World): void=
     for shape in self.shapes:
         echo shape.id, " --> ", shape.origin
+
+func rayIntersect*(self: World, r:Ray): Option[RayHit]=
+    var
+        closest: Option[RayHit] = none(RayHit)
+        intersection: Option[RayHit]
+
+    for shape in self.shapes:
+        intersection = shape.rayIntersect(r)
+
+        if intersection == none(RayHit):
+            continue
+        
+        if closest == none(RayHit) or intersection.get().t < closest.get().t:
+            closest = intersection
+    return closest
+            

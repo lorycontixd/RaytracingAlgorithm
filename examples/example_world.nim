@@ -14,6 +14,6 @@ var
 scene.Add(sphere0, sphere1, sphere2, plane0)
 scene.Show()
 echo ""
-let x = scene.Filter(Sphere)
-for i in x:
-    echo i.id
+scene.Remove(sphere1, sphere2)
+scene.Show()
+echo ""

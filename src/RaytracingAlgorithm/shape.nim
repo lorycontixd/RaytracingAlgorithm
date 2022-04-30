@@ -1,5 +1,5 @@
 import geometry, transformation, rayhit, exception, ray, rayhit
-import std/[segfaults, math, typetraits, options]
+import std/[math, typetraits, options, strutils]
 
 type
     Shape* = ref object of RootObj
@@ -15,11 +15,14 @@ type
 ## constructors
 
 proc newSphere*(id: string = "SPHERE_0", origin: Vector3 = newVector3(), radius: float32 = 1.0, transform: Transformation = newTransformation()): Sphere =
+    if not id.contains("SPHERE"):
+        raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     result = Sphere(id: id, origin: origin, radius: radius, transform: transform)
 
 proc newPlane*(id: string = "PLANE_0", origin: Vector3 = newVector3(), transform: Transformation = newTransformation()): Plane =
+    if not id.contains("PLANE"):
+        raise ValueError.newException("Plane id must contain PLANE keyword.")
     result = Plane(id: id, origin: origin, transform: transform)
-
 
 ## private funcs
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -40,19 +43,18 @@ proc sphereWorldToLocal(p: Point): Vector2=
 
 ## ray intersection
 
-method rayIntersect*(s: Shape, r: Ray): RayHit {.base, raises: [AbstractMethodError].}=
+method rayIntersect*(s: Shape, r: Ray): Option[RayHit] {.base, noSideEffect, raises: [AbstractMethodError].}=
     raise AbstractMethodError.newException("Shape.ray_intersection is an abstract method and cannot be called.")
 
-method rayIntersect*(s: Sphere, r: Ray): Option[RayHit] {.base.}=
+method rayIntersect*(s: Sphere, r: Ray): Option[RayHit]=
     var hit: RayHit = newRayHit()
     var
         inversed_ray: Ray = r.Transform(s.transform)
         origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
-    
-    let
+
         a = r.dir.squareNorm()
-        b = r.origin.Dot(inversed_ray.dir)
-        c = r.origin.squareNorm() - 1
+        b = origin_vec.Dot(inversed_ray.dir)
+        c = origin_vec.squareNorm() - 1
     
         delta = b * b - 4.0 * a * c
 
@@ -78,7 +80,7 @@ method rayIntersect*(s: Sphere, r: Ray): Option[RayHit] {.base.}=
     hit.ray = r
     result = some(hit)
 
-method rayIntersect*(self: Plane, r: Ray): RayHit {.raises: [AbstractMethodError].}=
+method rayIntersect*(self: Plane, r: Ray): Option[RayHit] {.raises: [AbstractMethodError].}=
     raise AbstractMethodError.newException("Method is not yet implemented.")
     
         
