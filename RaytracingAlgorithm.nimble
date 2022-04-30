@@ -16,5 +16,5 @@ requires "neo"
 task mytest, "Run the packages tests!":
     exec "nim cpp -r tests/test_camera.nim"
 
-task start, "Run a script":
-    exec "nim cpp -r -d:release test.nim"
+task main, "Run a script":
+    exec "nim cpp -r -d:release src/RaytracingAlgorithm.nim"
