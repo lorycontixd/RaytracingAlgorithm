@@ -27,7 +27,9 @@ proc newRayHit*(world_point: Point, normal: Normal, surface_point: Vector2, t: f
     )
 
 proc `==`*(self, other: RayHit): bool =
+    ### To verify that two Vector2d are the same or not 
     return self.world_point == other.world_point and self.normal == other.normal and self.surface_point == other.surface_point and self.t == other.t and self.ray == other.ray
 
 proc isClose*(self, other: RayHit): bool=
+    ### To verify that two RayHit represent the same hit or not
     return self.world_point.isClose(other.world_point) and self.normal.isClose(other.normal) and self.surface_point.isClose(other.surface_point) and self.t.IsEqual(other.t) and self.ray.isClose(other.ray)
