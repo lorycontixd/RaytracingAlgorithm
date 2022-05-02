@@ -4,6 +4,13 @@ import neo
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm/")
 
+func deleteWord*(s: var string, id: int): string =
+    let copy = s
+    var x = copy.split(" ")
+    x.delete(id)
+    let y = join(x, " ")
+    return y
+
 proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
     #[
         Converts a sequence of bytes into a 32 bit array.
@@ -42,7 +49,7 @@ proc cmdArgsToString*(): string=
     return str
 
 proc getPackageVersion*(): string=
-    var p: Config = loadConfig(joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm.nimble"))
+    var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
 
     result = p.getSectionValue("", "version") 
 
