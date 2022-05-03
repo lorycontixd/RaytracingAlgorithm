@@ -25,6 +25,7 @@ func Remove*(self: var World, s_id: string): void=
     let index = self.GetIndex(s_id)
     self.shapes.delete(index)
 
+#[
 template Add*(self: var World, shapes: varargs[Shape]): void=
     for shape in shapes:
         self.Add(shape)
@@ -32,7 +33,7 @@ template Add*(self: var World, shapes: varargs[Shape]): void=
 template Remove*(self: var World, shapes: varargs[Shape]): void=
     for shape in shapes:
         self.Remove(shape.id)
-
+]#
 #proc Remove*(self: var World, shape_id: string): void=
 func Filter*(self:World, t: typedesc): seq[Shape]=
     result = collect(newSeq):

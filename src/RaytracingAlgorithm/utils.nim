@@ -2,7 +2,7 @@ import std/[os, strutils, strformat, macros, parsecfg, times]
 from sequtils import mapIt
 import neo
 
-let packageRootDir* = joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm/")
+let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
 
 func deleteWord*(s: var string, id: int): string =
     let copy = s
