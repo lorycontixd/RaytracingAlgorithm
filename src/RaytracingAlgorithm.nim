@@ -9,9 +9,9 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
     var cam: Camera
     if camera.toLower() == "perspective":
-        cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(1.0, 0.0, 0.0)))
+        cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-5.0, 0.0, 0.0)))
     elif camera.toLower() == "orthogonal":
-        cam = newOrthogonalCamera(width, height, transform=Transformation.translation(newVector3(0.0, 0.0, 0.0)))
+        cam = newOrthogonalCamera(width, height)
     else:
         raise TestError.newException("Invalid camera passed to main.")
 
@@ -23,7 +23,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     
     for i in countup(0, sphere_count-1):
         let id = fmt"SPHERE_{i}"
-        world.Add(newSphere(id, newVector3(float32(i), float(i), 0.0)))
+        world.Add(newSphere(id, newVector3(float32(i), 0.0, 0.0)))
     
     imagetracer.fireAllRays(onoff.Get())
 

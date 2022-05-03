@@ -49,11 +49,11 @@ method rayIntersect*(s: Shape, r: Ray): Option[RayHit] {.base, noSideEffect, rai
 method rayIntersect*(s: Sphere, r: Ray): Option[RayHit]=
     var hit: RayHit = newRayHit()
     var
-        inversed_ray: Ray = r.Transform(s.transform)  #r.Transform.inverse
+        inversed_ray: Ray = r.Transform(inverse(s.transform))  #r.Transform.inverse
         origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
 
-        a = r.dir.squareNorm()  #inversed_ray.dir
-        b = origin_vec.Dot(inversed_ray.dir) #2*
+        a = inversed_ray.dir.squareNorm()  #inversed_ray.dir
+        b = 2.0 * origin_vec.Dot(inversed_ray.dir) #2*
         c = origin_vec.squareNorm() - 1
     
         delta = b * b - 4.0 * a * c
