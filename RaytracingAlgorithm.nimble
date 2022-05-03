@@ -9,7 +9,6 @@ bin           = @["RaytracingAlgorithm"]
 
 # Dependencies
 requires "nim >= 1.6.4"
-requires "therapist"
 requires "SimplePNG"
 requires "neo"
 
