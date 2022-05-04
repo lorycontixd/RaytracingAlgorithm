@@ -44,11 +44,11 @@ proc Show*(self: World): void=
     for shape in self.shapes:
         echo shape.id, " --> ", shape.origin
 
-func rayIntersect*(self: World, r:Ray): Option[RayHit]=
+proc rayIntersect*(self: World, r:Ray): Option[RayHit]=
     var
         closest: Option[RayHit] = none(RayHit)
         intersection: Option[RayHit]
-
+        
     for shape in self.shapes:
         intersection = shape.rayIntersect(r)
 

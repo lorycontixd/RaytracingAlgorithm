@@ -181,6 +181,7 @@ template defineConvert(type1: typedesc, rettype: typedesc) =
 
 defineConvert(Vector3, Normal)
 defineConvert(Point, Vector3)
+defineConvert(Vector3, Point)
 defineConvert(Normal, Vector3)
 
 # eq
@@ -194,7 +195,7 @@ template defineEqualities(type1: typedesc) =
     proc `!=`*(this, other: type1): bool=
         return this.x != other.x or this.y != other.y or this.z != other.z
 
-    proc isClose*(this, other: type1, eps: float32 = 1e-5): bool=
+    proc isClose*(this, other: type1, eps: float32 = 1e-4): bool=
         return IsEqual(this.x, other.x, eps) and IsEqual(this.y, other.y, eps) and IsEqual(this.z, other.z, eps)
 
     proc isNotClose*(this, other: type1): bool=

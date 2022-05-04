@@ -11,7 +11,7 @@ type
 proc newRay*(): Ray=
     result = Ray(
         origin: newPoint(0,0,0),
-        dir: Vector3.forward(),
+        dir: Vector3.right(),
         tmin: 1e-10,
         tmax: Inf,
         depth:0
@@ -33,6 +33,16 @@ proc newRay*(origin:Point, direction: Vector3, tmin: float32): Ray=
         dir: direction, 
         tmin: tmin, 
         tmax: Inf, 
+        depth: 0
+    )
+
+proc newRay*(origin:Point, direction: Vector3, tmin, tmax: float32): Ray=
+    assert tmin >= 0.0
+    result = Ray(
+        origin: origin, 
+        dir: direction, 
+        tmin: tmin, 
+        tmax: tmax, 
         depth: 0
     )
 
@@ -69,6 +79,7 @@ proc `isClose`*(self, other: Ray, epsilon: float32 = 1e-4): bool=
         return self.origin.isClose(other.origin, epsilon) and self.dir.isClose(other.dir, epsilon) and self.tmin.IsEqual(other.tmin, epsilon) and self.tmax.IsEqual(other.tmax, epsilon) and self.depth == other.depth
     else:
         return self.origin.isClose(other.origin, epsilon) and self.dir.isClose(other.dir, epsilon) and self.tmin.IsEqual(other.tmin, epsilon) and self.depth == other.depth
+
 proc Transform*(self: Ray, transformation: Transformation): Ray =
     result = Ray(
         origin : transformation * self.origin,

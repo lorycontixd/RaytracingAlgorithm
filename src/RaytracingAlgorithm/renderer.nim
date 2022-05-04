@@ -9,21 +9,32 @@ type
         world*: World
         backgroundColor*: Color
 
+    DebugRenderer* = ref object of Renderer
+
     OnOffRenderer* = ref object of Renderer
         color*: Color
 
 func newOnOffRenderer*(world: World, backgroundColor, color: Color): OnOffRenderer=
     return OnOffRenderer(world:world, backgroundColor:backgroundColor, color:color)
 
-method Get*(renderer: Renderer): proc {.base, raises:[AbstractMethodError].}=
+func newDebugRenderer*(world: World, backgroundColor: Color): DebugRenderer=
+    return DebugRenderer(world:world, backgroundColor: backgroundColor)
+
+method Get*(renderer: Renderer): (proc(r: Ray): Color) {.base, raises:[AbstractMethodError].}=
     raise AbstractMethodError.newException("Renderer.Get is an abstract method and cannot be called.")
+
+method Get*(renderer: DebugRenderer): (proc(r: Ray): Color) =
+    return proc(r: Ray): Color=
+        return renderer.backgroundColor
 
 method Get*(renderer: OnOffRenderer): (proc(r: Ray): Color) =
     return proc(r: Ray): Color=
-        if rayIntersect(renderer.world,r).isSome:
+        let intersection = rayIntersect(renderer.world,r)
+        if intersection.isSome:
+            echo intersection
             return renderer.color
         else:
             return renderer.backgroundColor
 
 
-    
+
