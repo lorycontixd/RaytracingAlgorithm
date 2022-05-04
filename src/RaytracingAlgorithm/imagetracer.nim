@@ -8,7 +8,7 @@ type
         camera*: Camera 
 
 
-proc newImageTracer*(image: var HdrImage, camera: Camera = newOrthogonalCamera(2.0)): ImageTracer=
+proc newImageTracer*(image: var HdrImage, camera: Camera): ImageTracer=
     var tracer: ImageTracer = ImageTracer(image:image, camera:camera)
     result = tracer
 
@@ -16,7 +16,7 @@ proc fireRay*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pi
     var
         u:float32 = (float32(col) + u_pixel) / float32(self.image.width)
         v:float32 = 1.0 - (float32(row) + v_pixel) / float32(self.image.height)
-    return self.camera.fire_ray(u, v)
+    return self.camera.fireRay(u, v)
 
 template fireAllRays*(self: var ImageTracer, f: proc): void =
     var
@@ -30,4 +30,4 @@ template fireAllRays*(self: var ImageTracer, f: proc): void =
             echo ray
             color = f(ray)
             self.image.set_pixel(col, row, color)
-            index = index + 1
+            #index = index + 1
