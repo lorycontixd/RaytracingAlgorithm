@@ -22,8 +22,13 @@ assert myray.at(2.0).isClose( newPoint(9.0, 6.0, 6.0))
 
 var ray4: Ray = newRay( newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))
 var transform: Transformation = Transformation.translation(newVector3(10.0, 11.0, 12.0)) * Transformation.rotationX(90.0)
-var transformed: Ray = myray.Transform(transform)
+var transformed: Ray = ray4.Transform(transform)
 
-assert transformed.origin.isClose(newPoint(11.0, 7.0, 14.0))
-assert transformed.dir.isClose(newVector3(4.0, -1.0, 2.0))
-#assert transformed.dir.isClose(newVector3(6.0, -4.0, 5.0))
+echo transformed
+
+assert transformed.origin.isClose(newPoint(11.0, 8.0, 14.0))
+#assert transformed.dir.isClose(newVector3(4.0, -1.0, 2.0))
+assert transformed.dir.isClose(newVector3(6.0, -4.0, 5.0))
+
+
+

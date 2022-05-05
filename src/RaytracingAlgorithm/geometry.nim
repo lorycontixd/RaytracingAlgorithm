@@ -27,6 +27,9 @@ proc new{$type1}*(): {$type1} =
 proc newVector2*(): Vector2=
     result = Vector2(u: 0.0, v: 0.0)
 
+#[proc newPoint*(x: float32, y: float32, z: float32) : Point =
+    result = Point(x:x, y:y, z:z)]#
+
 macro defineConstructors(type1: typedesc): typed =
     let source = fmt"""
 proc new{$type1}*(x,y,z: float32): {$type1} =
