@@ -2,7 +2,7 @@ import std/[os, math, macros, strformat]
 import geometry, exception, transformation
 
 type
-    Quaternion* = object
+    Quaternion* = ref object
         x*,y*,z*,w*: float32
 
 
@@ -50,8 +50,16 @@ proc Set*(self: var Quaternion, x,y,z,w: float32): void =
     self.z = z
     self.w = w
 
+proc SetVector*(self: var Quaternion, vectorComponents: Vector3): void =
+    self.x = vectorComponents[0]
+    self.y = vectorComponents[1]
+    self.z = vectorComponents[2]
+
 proc Identity*(_: typedesc[Quaternion]): Quaternion =
     result = newQuaternion(0.0, 0.0, 0.0, 1.0)
+
+proc `$`*(self: Quaternion): string = 
+    result = fmt"Quaternion({self.x},{self.y},{self.z},{self.w})"
 
 proc `+`(lhs, rhs: Quaternion): Quaternion=
     result = newQuaternion(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w)
@@ -87,6 +95,9 @@ proc `*`*(rotation: Quaternion, v: Vector3): Vector3 {.inline.}=
         (xy + wz) * v.x + (1.0 - (xx + zz)) * v.y + (yz - wx) * v.z,
         (xz - wy) * v.x + (yz + wx) * v.y + (1.0 - (xx + yy)) * v.z
     )
+
+proc `*`*(v: Vector3, rotation: Quaternion): Vector3 {.inline.}=
+    return rotation*v
 
 proc `*`*(rotation: Quaternion, scalar: float32): Quaternion=
     result = newQuaternion(rotation.x * scalar, rotation.y * scalar, rotation.z * scalar, rotation.w * scalar)
@@ -156,6 +167,13 @@ proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
         return Quaternion.Identity()
     else:
         return newQuaternion(self.x/magn, self.y/magn, self.z/magn, self.w/magn)
+
+proc NormalizeInplace*(self: var Quaternion) : void=
+    let magn = sqrt(Dot(self, self))
+    self.x = self.x/magn
+    self.y = self.y/magn
+    self.z = self.z/magn
+    self.w = self.w/magn
 
 proc isNormalized*(self: Quaternion): bool=
     return self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w == 1
@@ -233,6 +251,7 @@ proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
         @[m30, m31, m32, m33]]
     )
 
+
 proc Slerp*(a, b: Quaternion, t: float32): Quaternion {.inline.}=
     assert a.isNormalized() and b.isNormalized()
 
@@ -248,11 +267,8 @@ proc Slerp*(a, b: Quaternion, t: float32): Quaternion {.inline.}=
     q.y = wa * a.y + wb * b.y
     q.z = wa * a.z + wb * b.z
     q.w = wa * a.w + wb * b.w
-    result = q.Normalize();
-    
+    result = q.Normalize()
 
-proc y90*(): Quaternion=
-    return newQuaternion(0.0, 0.7071, 0.0, 0.7071)
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
     let angle = q[3]
@@ -267,10 +283,28 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
 proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
     return RotationQuaternion( newQuaternion(axis[0], axis[1], axis[2], angle))
 
-proc xBy90*(): Quaternion =
+proc VectorRotation*(v1, v2: Vector3): Quaternion {.inline.}=
+    result = newQuaternion()
+    var
+        a: Vector3 = v1.Cross(v2)
+    result.SetVector(a)
+    result.w = sqrt((v1.norm() * v1.norm()) * (v2.norm() * v2.norm())) + Dot(v1, v2)
+    result.NormalizeInplace()
+
+# -- Standard Quaternions
+
+proc xBy90*(_: typedesc[Quaternion]): Quaternion =
     return RotationQuaternion(newQuaternion(1.0, 0.0, 0.0, PI/2.0))
-proc xBy180*(): Quaternion =
+proc xBy180*(_: typedesc[Quaternion]): Quaternion =
     return RotationQuaternion(newQuaternion(1.0, 0.0, 0.0, PI))
+proc yBy90*(_: typedesc[Quaternion]): Quaternion =
+    return RotationQuaternion(newQuaternion(0.0, 1.0, 0.0, PI/2.0))
+proc yBy180*(_: typedesc[Quaternion]): Quaternion =
+    return RotationQuaternion(newQuaternion(0.0, 1.0, 0.0, PI))
+proc zBy90*(_: typedesc[Quaternion]): Quaternion =
+    return RotationQuaternion(newQuaternion(0.0, 0.0, 1.0, PI/2.0))
+proc zBy180*(_: typedesc[Quaternion]): Quaternion =
+    return RotationQuaternion(newQuaternion(0.0, 0.0, 1.0, PI))
 
 #[ macro for base rotations xby0, xby90, xby180, y, z, ..
 

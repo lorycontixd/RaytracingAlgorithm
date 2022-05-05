@@ -64,7 +64,8 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
         c = origin_vec.squareNorm() - 1
     
         delta = b * b - 4.0 * a * c
-    if debug:
+    #if debug:
+    #[
         echo "transform: ",s.transform
         echo "Inv: ",s.transform.Inverse()
         echo "Original Ray: ",r
@@ -73,7 +74,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
         echo fmt"a: {a}"
         echo fmt"b: {b}"
         echo fmt"c: {c}"
-
+    ]# 
     if delta <= 0.0:
         return none(RayHit)
 

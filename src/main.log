@@ -1,4 +1,4 @@
-[2022-05-05 23:35:27][RaytracingAlgorithm]: Running RaytracingAlgorithm on version 0.1.1
-[2022-05-05 23:35:27][RaytracingAlgorithm]: Instantiating perspective camera with screen size 800x600
-[2022-05-05 23:35:27][RaytracingAlgorithm]: Using renderer: OnOffRenderer
-[2022-05-05 23:35:34][hdrimage]: Write_pfm called from HdrImage
+[2022-05-05 23:49:37][RaytracingAlgorithm]: Running RaytracingAlgorithm on version 0.1.1
+[2022-05-05 23:49:37][RaytracingAlgorithm]: Instantiating orthogonal camera with screen size 1000x800
+[2022-05-05 23:49:37][RaytracingAlgorithm]: Using renderer: OnOffRenderer
+[2022-05-05 23:49:40][hdrimage]: Write_pfm called from HdrImage

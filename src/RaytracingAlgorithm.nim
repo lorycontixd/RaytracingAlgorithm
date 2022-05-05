@@ -11,7 +11,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
     var cam: Camera
     if camera.toLower() == "perspective":
-        cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 0.0)))
+        cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 0.0)) * Transformation.rotationY(40.0))
     elif camera.toLower() == "orthogonal":
         cam = newOrthogonalCamera(width, height)
     else:
@@ -51,11 +51,11 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     imagetracer.fireAllRays(onoff.Get())
 
     var strmWrite = newFileStream("output.pfm", fmWrite)
-    hdrImage.write_pfm(strmWrite)
+    imagetracer.image.write_pfm(strmWrite)
 
-    hdrImage.normalize_image(1.0)
-    hdrImage.clamp_image()
-    hdrImage.write_png("output.png", 1.0)
+    imagetracer.image.normalize_image(1.0)
+    imagetracer.image.clamp_image()
+    imagetracer.image.write_png("output.png", 1.0)
 
     
 
