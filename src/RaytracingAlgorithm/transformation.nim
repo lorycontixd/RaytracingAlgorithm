@@ -299,9 +299,8 @@ proc `*`*(t: Transformation, other: Normal): Normal=
 proc `*`*(self, other: Transformation): Transformation= 
     var
         res_m: Matrix = self.m * other.m
-        res_inv: Matrix = self.inverse * other.inverse
+        res_inv: Matrix = other.inverse * self.inverse
     result = newTransformation(res_m, res_inv)
-
 
 proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation =
     result = newTransformation()

@@ -1,7 +1,7 @@
 import geometry, transformation
 
 type
-    Ray* = object
+    Ray* = ref object
         origin*: Point
         dir*: Vector3
         tmin*: float32 
@@ -83,7 +83,7 @@ proc `isClose`*(self, other: Ray, epsilon: float32 = 1e-4): bool=
 proc Transform*(self: Ray, transformation: Transformation): Ray =
     result = Ray(
         origin : transformation * self.origin,
-        dir :  self.dir,
+        dir :  transformation * self.dir,
         tmin : self.tmin,
         tmax : self.tmax,
         depth : self.depth

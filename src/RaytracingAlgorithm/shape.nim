@@ -65,6 +65,8 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
     
         delta = b * b - 4.0 * a * c
     if debug:
+        echo "transform: ",s.transform
+        echo "Inv: ",s.transform.Inverse()
         echo "Original Ray: ",r
         echo "Inversed Ray", inversed_ray
         echo "origin_vec: ",origin_vec

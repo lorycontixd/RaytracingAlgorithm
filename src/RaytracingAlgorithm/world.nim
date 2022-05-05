@@ -2,7 +2,7 @@ import shape, rayhit, ray
 import std/[sequtils, sugar, macros, typetraits, strutils, options]
 
 type
-    World* = object
+    World* = ref object
         shapes*: seq[Shape]
 
 func newWorld*(): World =
@@ -17,10 +17,10 @@ func GetIndex*(self: World, s_id: string): int=
             return i
     raise IndexError.newException("ID not found in world shapes.")
 
-func Add*(self: var World, s: Shape): void=
+method Add*(self: var World, s: Shape): void {.base.}=
     self.shapes.add(s)
 
-func Remove*(self: var World, s_id: string): void=
+method Remove*(self: var World, s_id: string): void {.base.}=
     # remove from seq
     let index = self.GetIndex(s_id)
     self.shapes.delete(index)

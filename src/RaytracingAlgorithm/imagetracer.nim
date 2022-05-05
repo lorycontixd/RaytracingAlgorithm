@@ -27,7 +27,7 @@ template fireAllRays*(self: var ImageTracer, f: proc): void =
     for row in 0 ..< self.image.height:
         for col in 0 ..< self.image.width:
             ray = self.fireRay(col, row)
-            echo ray
+            #echo ray
             color = f(ray)
             self.image.set_pixel(col, row, color)
             #index = index + 1

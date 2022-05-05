@@ -45,6 +45,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     world.Add(newSphere("SPHERE_6", Transformation.translation( newVector3(-0.5, -0.5, -0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, -0.5, 0.5)) * scale_tranform))
 
+    #echo $$onoff.world
     #world.Add(newSphere(origin=newPoint(5.0, 0.0, 0.0), radius=100))
 
     imagetracer.fireAllRays(onoff.Get())
