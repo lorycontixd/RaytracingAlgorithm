@@ -30,6 +30,7 @@ proc Ones*(): Matrix=
         for j in 0 .. 3:
             result[i][j] = float32(1.0)
 
+#[
 proc ScaleMatrix*(v: Vector3): Matrix=
     result = newSeq[seq[float32]](4)
     for i in 0 ..< result.len:
@@ -48,6 +49,23 @@ proc ScaleInverseMatrix*(v: Vector3): Matrix=
             result[i][i] = float32(1.0/v[i])
         else:
             result[i][i] = float32(1.0)
+]#
+
+proc ScaleMatrix*(v: Vector3): Matrix=
+    result = @[
+        @[float32(v.x), float32(0.0), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(v.y), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(v.z), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
+    ]
+
+proc ScaleInverseMatrix*(v: Vector3): Matrix=
+    result = @[
+        @[float32(1/v.x), float32(0.0), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(1/v.y), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(1/v.z), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
+    ]
 
 proc TranslationMatrix*(v: Vector3): Matrix=
     result = newSeq[seq[float32]](4)
@@ -65,7 +83,7 @@ proc TranslationInverseMatrix*(v: Vector3): Matrix=
         if i<3:
             result[i][result.len-1] = float32(-v[i])
 
-proc RotationX_Matrix(angle_deg: float32): Matrix=
+#[proc RotationX_Matrix(angle_deg: float32): Matrix=
     result = newSeq[seq[float32]](4)
     let angle = degToRad(angle_deg)
     let ang = [cos(angle), sin(angle)]
@@ -92,7 +110,34 @@ proc RotationX_InverseMatrix(angle_deg: float32): Matrix=
         if i==2:
             result[i][i-1] = -ang[1]
             result[i][i] = ang[0]
+]#
 
+proc RotationX_Matrix(angle_deg: float32): Matrix=
+    let
+        sinang = sin(degToRad(angle_deg))
+        cosang = cos(degToRad(angle_deg))
+
+    result = @[
+        @[float32(1.0), float32(0.0), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(cosang), float32(-sinang), float32(0.0)],
+        @[float32(0.0), float32(sinang), float32(cosang), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    ]
+
+proc RotationX_InverseMatrix(angle_deg: float32): Matrix=
+    let
+        sinang = sin(degToRad(angle_deg))
+        cosang = cos(degToRad(angle_deg))
+
+    result = @[
+        @[float32(1.0), float32(0.0), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(cosang), float32(sinang), float32(0.0)],
+        @[float32(0.0), float32(-sinang), float32(cosang), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    ]
+
+
+#[
 proc RotationY_Matrix(angle_deg: float32): Matrix=
     result = newSeq[seq[float32]](4)
     let angle = degToRad(angle_deg)
@@ -120,9 +165,33 @@ proc RotationY_InverseMatrix(angle_deg: float32): Matrix=
         if i==2:
             result[i][i-2] = ang[1]
             result[i][i] = ang[0]
+]#
 
+proc RotationY_Matrix(angle_deg: float32): Matrix=
+    let
+        sinang = sin(degToRad(angle_deg))
+        cosang = cos(degToRad(angle_deg))
 
+    result = @[
+        @[float32(cosang), float32(0.0), float32(sinang), float32(0.0)],
+        @[float32(0.0), float32(1.0), float32(0.0), float32(0.0)],
+        @[float32(-sinang), float32(0.0), float32(cosang), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    ]
 
+proc RotationY_InverseMatrix(angle_deg: float32): Matrix=
+    let
+        sinang = sin(degToRad(angle_deg))
+        cosang = cos(degToRad(angle_deg))
+
+    result = @[
+        @[float32(cosang), float32(0.0), float32(-sinang), float32(0.0)],
+        @[float32(0.0), float32(1.0), float32(0.0), float32(0.0)],
+        @[float32(sinang), float32(0.0), float32(cosang), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    ]
+
+#[
 proc RotationZ_Matrix(angle_deg: float32): Matrix=
     result = newSeq[seq[float32]](4)
     let angle = degToRad(angle_deg)
@@ -148,7 +217,30 @@ proc RotationZ_InverseMatrix(angle_deg: float32): Matrix=
             result[i][i+1] = ang[1]
             result[i+1][i] = -ang[1]
             result[i+1][i+1] = ang[0]
+]#
 
+proc RotationZ_Matrix(angle_deg: float32): Matrix=
+    let
+        sinang = sin(degToRad(angle_deg))
+        cosang = cos(degToRad(angle_deg))
+
+    result = @[
+        @[float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
+        @[float32(sinang), float32(cosang), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    ]
+
+proc RotationZ_InverseMatrix(angle_deg: float32): Matrix=
+    let
+        sinang = sin(degToRad(angle_deg))
+        cosang = cos(degToRad(angle_deg))
+    result = @[
+        @[float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
+        @[float32(-sinang), float32(cosang), float32(0.0), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    ]
 
 proc newTransformation*(m: Matrix=IdentityMatrix(), inv: Matrix=IdentityMatrix()): Transformation=
     result = Transformation(m:m, inverse:inv) 
@@ -166,9 +258,9 @@ proc `*`*(this, other: Matrix): Matrix=
 
 proc `*`*(t: Transformation, other: Vector3): Vector3=
     result = newVector3(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z ,#+ t.m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z ,#+ t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z ,#+ t.m[2][3]
+        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z + t.m[0][3],
+        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z + t.m[1][3],
+        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z + t.m[2][3]
     )
 
 proc `*`*(t: Transformation, other: Point): Point=
@@ -197,27 +289,27 @@ proc `*`*(self, other: Transformation): Transformation=
     result = newTransformation(res_m, res_inv)
 
 
-proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation=
+proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation =
     result = newTransformation()
     result.m = TranslationMatrix(vector)
     result.inverse = TranslationInverseMatrix(vector)
 
-proc scale*(_: typedesc[Transformation], vector: Vector3): Transformation=
+proc scale*(_: typedesc[Transformation], vector: Vector3): Transformation =
     result = newTransformation()
     result.m = ScaleMatrix(vector)
     result.inverse = ScaleInverseMatrix(vector)
     
-proc rotationX*(_: typedesc[Transformation], angle_deg: float32): Transformation=
+proc rotationX*(_: typedesc[Transformation], angle_deg: float32): Transformation =
     result = newTransformation()
     result.m = RotationX_Matrix(angle_deg)
     result.inverse = RotationX_InverseMatrix(angle_deg)
 
-proc rotationY*(_: typedesc[Transformation], angle_deg: float32): Transformation=
+proc rotationY*(_: typedesc[Transformation], angle_deg: float32): Transformation =
     result = newTransformation()
     result.m = RotationY_Matrix(angle_deg)
     result.inverse = RotationY_InverseMatrix(angle_deg)
 
-proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation=
+proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation =
     result = newTransformation()
     result.m = RotationZ_Matrix(angle_deg)
     result.inverse = RotationZ_InverseMatrix(angle_deg)

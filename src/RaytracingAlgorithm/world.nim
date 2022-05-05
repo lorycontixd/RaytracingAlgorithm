@@ -48,9 +48,9 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit]=
     var
         closest: Option[RayHit] = none(RayHit)
         intersection: Option[RayHit]
-        
+
     for shape in self.shapes:
-        intersection = shape.rayIntersect(r)
+        intersection = shape.rayIntersect(r, true)
 
         if intersection == none(RayHit):
             continue

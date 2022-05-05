@@ -2,13 +2,14 @@ import "../src/RaytracingAlgorithm/shape.nim"
 import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/ray.nim"
 import "../src/RaytracingAlgorithm/rayhit.nim"
+import "../src/RaytracingAlgorithm/transformation.nim"
 import std/[options]
 
 proc testSphere*(): void=
     ## ------ test sphere 1 ---------
     var
         r1: Ray = newRay(newPoint(0.0, 0.0, 2.0), Vector3.backward())
-        unitSphere1: Sphere = newSphere()
+        unitSphere1: Sphere = newSphere("SPHERE_0", Transformation.translation(newVector3(0.0, 0.0, 0.0)))
         
     let res1 = unitSphere1.rayIntersect(r1)    
     
