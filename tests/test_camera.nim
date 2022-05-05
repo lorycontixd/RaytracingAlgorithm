@@ -9,14 +9,29 @@ import "../src/RaytracingAlgorithm/hdrimage.nim"
 
 proc test_transform*()=
     var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))
-    var transformation: Transformation = Transformation.translation(newVector3(10.0, 11.0, 12.0)) * Transformation.rotationX(90.0)
-    let transformed = ray.Transform(transformation)
+    # define single transformations
+    var translation: Transformation = Transformation.translation(newVector3(10.0, 11.0, 12.0))
+    var rotation: Transformation = Transformation.rotationX(90.0)
+    # combine transformations
+    var transform: Transformation = rotation * translation
+    # apply transformation
+    var transformed = ray.Transform(transform)
+    echo transformed
 
-    echo transformed.origin
-    echo transformed.dir
+    assert transformed.origin.isClose(newPoint(11.0, -15.0, 13.0))
+    assert transformed.dir.isClose(newVector3(16,-16,16))
 
-    assert transformed.origin == newPoint(11.0, 13.0, 15.0)
-    assert transformed.dir == newVector3(6.0, -4.0, 5.0)
+proc test_transform2*()=
+    var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))
+    # define single transformations
+    var translation: Transformation = Transformation.translation(newVector3(10.0, 11.0, 12.0))
+    var scale: Transformation = Transformation.scale(newVector3(2.0, 2.0, 2.0))
+    # combine transformations
+    var transform: Transformation = scale*translation
+
+    # apply transformation
+    var transformed = ray.Transform(transform)
+
 
 proc test_orthogonal_camera*()=
     var cam : OrthogonalCamera = newOrthogonalCamera(2.0)
@@ -41,11 +56,9 @@ proc test_orthogonal_camera*()=
 
 proc test_orthogonal_camera_transform*()=
     
-    var transformation: Transformation = Transformation.translation(newVector3(0.0, -1.0, 0.0)*2.0) * Transformation.rotationX(90.0)
+    var transformation: Transformation = Transformation.translation(Vector3.down() * 2.0) * Transformation.rotationX(90.0)
     var cam : OrthogonalCamera = newOrthogonalCamera(2.0, transformation)
     var ray = cam.fireRay(0.5, 0.5)
-
-    echo ray
 
     assert ray.at(1.0).is_close(newPoint(0.0, -2.0, 0.0))
 
@@ -79,8 +92,8 @@ proc test_perspective_camera*()=
     #tracer.fireAllRays(baseColor)]#
 
 
-test_transform()
-test_orthogonal_camera()
+#test_transform()
+#test_orthogonal_camera()
 test_orthogonal_camera_transform()
 test_perspective_camera()
 #test_ray()

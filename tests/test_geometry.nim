@@ -42,12 +42,14 @@ proc test_rotation(): void=
 
 proc test_translation(): void=
     var
-        trans: Vector3 = newVector3(2.0, 2.0, 2.0)
+        trans: Point = newPoint(2.0, 2.0, 2.0)
+        p: Point = newPoint(2.0, 0.0, 0.0)
         v: Vector3 = newVector3(2.0, 0.0, 0.0)
     #echo TranslationMatrix(trans)
     #echo Transformation.translation(trans)
     #echo Transformation.translation(trans) * v
-    assert (Transformation.translation(trans) * v).isClose( newVector3(4.0, 2.0, 2.0) )
+    assert (Transformation.translation(trans) * p).isClose( newPoint(4.0, 2.0, 2.0) )
+    assert (Transformation.translation(trans) * v).isClose( newVector3(2.0, 0.0, 0.0) )
 
 proc test_scale(): void =
     var

@@ -83,7 +83,7 @@ proc `isClose`*(self, other: Ray, epsilon: float32 = 1e-4): bool=
 proc Transform*(self: Ray, transformation: Transformation): Ray =
     result = Ray(
         origin : transformation * self.origin,
-        dir : transformation * self.dir,
+        dir :  self.dir,
         tmin : self.tmin,
         tmax : self.tmax,
         depth : self.depth

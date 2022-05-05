@@ -50,7 +50,7 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit]=
         intersection: Option[RayHit]
 
     for shape in self.shapes:
-        intersection = shape.rayIntersect(r, true)
+        intersection = shape.rayIntersect(r, false)
 
         if intersection == none(RayHit):
             continue
