@@ -64,6 +64,15 @@ proc test_perspective_camera*()=
         ray2 = cam.fireRay(1.0, 0.0)
         ray3 = cam.fireRay(0.0, 1.0)
         ray4 = cam.fireRay(1.0, 1.0)
+
+    echo "ray1"
+    echo ray1
+    echo "ray2" 
+    echo ray2
+    echo "ray3" 
+    echo ray3
+    echo "ray4" 
+    echo ray4
     
     # All rays starting from the same point
     assert ray1.origin.isClose(ray2.origin)
@@ -76,14 +85,7 @@ proc test_perspective_camera*()=
     assert ray3.at(1.0).isClose(newPoint(0.0, 2.0, 1.0))
     assert ray4.at(1.0).isClose(newPoint(0.0, -2.0, 1.0))
     
-    echo "ray1"
-    echo ray1
-    echo "ray2" 
-    echo ray2
-    echo "ray3" 
-    echo ray3
-    echo "ray4" 
-    echo ray4
+    
 
 
 #[proc test_ray*()=

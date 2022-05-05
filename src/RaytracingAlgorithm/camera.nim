@@ -32,7 +32,7 @@ method fireRay*(self: OrthogonalCamera, u,v: float32): Ray {.inline.} =
 
 method fireRay*(self: PerspectiveCamera, u,v: float32): Ray {.inline.} =
     var origin: Point = newPoint(-self.distance, 0.0, 0.0)
-    var direction: Vector3 = newVector3(self.distance, (1.0 - 2.0 * u) * self.aspectRatio, 2.0 * v - 1).normalize()
+    var direction: Vector3 = newVector3(self.distance, (1.0 - 2.0 * u) * self.aspectRatio, 2.0 * v - 1)
 
     var ray: Ray = newRay(origin, direction, 0.01, 1000000)
     result = ray.Transform(self.transform)
