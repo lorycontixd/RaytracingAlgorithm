@@ -4,6 +4,7 @@ import "../src/RaytracingAlgorithm/raytypes.nim"
 import "../src/RaytracingAlgorithm/utils.nim"
 import "../src/RaytracingAlgorithm/color.nim"
 import "../src/RaytracingAlgorithm/ray.nim"
+import "../src/RaytracingAlgorithm/geometry.nim"
 
 proc test_base_tracer*()=
     var
@@ -17,3 +18,4 @@ proc test_base_tracer*()=
             assert tracer.image.get_pixel(j, i) == newColor(0.0, 0.0, 1.0)
 
 test_base_tracer()
+

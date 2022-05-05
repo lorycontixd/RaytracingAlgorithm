@@ -6,7 +6,7 @@ import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/transformation.nim"
 import "../src/RaytracingAlgorithm/imagetracer.nim"
 import "../src/RaytracingAlgorithm/hdrimage.nim"
-import "../src/RaytracingAlgorithm/raytypes.nim"
+#import "../src/RaytracingAlgorithm/raytypes.nim"
 
 proc test_transform*()=
     var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))
@@ -29,6 +29,34 @@ proc test_orthogonal_camera*()=
     assert IsEqual(0.0, ray1.dir.Cross(ray3.dir).squareNorm())
     assert IsEqual(0.0, ray1.dir.Cross(ray4.dir).squareNorm())
 
+    echo "ray1"
+    echo ray1
+    echo "ray2" 
+    echo ray2
+    echo "ray3" 
+    echo ray3
+    echo "ray4" 
+    echo ray4
+
+    # Verify that the ray hitting the corners have the right coordinates
+    assert ray1.at(1.0).isClose(newPoint(0.0, 2.0, -1.0))
+    assert ray2.at(1.0).isClose(newPoint(0.0, -2.0, -1.0))
+    assert ray3.at(1.0).isClose(newPoint(0.0, 2.0, 1.0))
+    assert ray4.at(1.0).isClose(newPoint(0.0, -2.0, 1.0))
+
+
+proc test_orthogonal_camera_transform*()=
+    
+    var transformation: Transformation = Transformation.translation(newVector3(0.0, -1.0, 0.0)*2.0) * Transformation.rotationX(90.0)
+    var cam : OrthogonalCamera = newOrthogonalCamera(2.0, transformation)
+    var ray = cam.fireRay(0.5, 0.5)
+
+    echo ray
+
+    assert ray.at(1.0).is_close(newPoint(0.0, -2.0, 0.0))
+
+
+
 proc test_perspective_camera*()=
     var cam : PerspectiveCamera = newPerspectiveCamera(2.0)
     var
@@ -42,21 +70,32 @@ proc test_perspective_camera*()=
     assert ray1.origin.isClose(ray3.origin)
     assert ray1.origin.isClose(ray4.origin)
 
-    # 
+    # Verify that the ray hitting the corners have the right coordinates
     assert ray1.at(1.0).isClose(newPoint(0.0, 2.0, -1.0))
     assert ray2.at(1.0).isClose(newPoint(0.0, -2.0, -1.0))
     assert ray3.at(1.0).isClose(newPoint(0.0, 2.0, 1.0))
     assert ray4.at(1.0).isClose(newPoint(0.0, -2.0, 1.0))
+    
+    echo "ray1"
+    echo ray1
+    echo "ray2" 
+    echo ray2
+    echo "ray3" 
+    echo ray3
+    echo "ray4" 
+    echo ray4
 
 
-proc test_ray*()=
+#[proc test_ray*()=
     var img: HdrImage = newHdrImage(200,100)
     var tracer: ImageTracer = newImageTracer(img)
-    #tracer.fireAllRays(baseColor)
+    #tracer.fireAllRays(baseColor)]#
 
 
 test_transform()
 test_orthogonal_camera()
+test_orthogonal_camera_transform()
+echo "-----------"
 test_perspective_camera()
-test_ray()
+#test_ray()
 
