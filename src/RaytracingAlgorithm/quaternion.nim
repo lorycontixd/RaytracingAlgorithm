@@ -291,6 +291,7 @@ proc VectorRotation*(v1, v2: Vector3): Quaternion {.inline.}=
     result.w = sqrt((v1.norm() * v1.norm()) * (v2.norm() * v2.norm())) + Dot(v1, v2)
     result.NormalizeInplace()
 
+
 # -- Standard Quaternions
 
 proc xBy90*(_: typedesc[Quaternion]): Quaternion =

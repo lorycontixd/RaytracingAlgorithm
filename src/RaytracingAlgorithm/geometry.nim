@@ -155,6 +155,11 @@ template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or No
         result.y = a.y/a.norm()
         result.z = a.z/a.norm()
 
+    proc normalizeInplace*(a: var type1): void=
+        a.x = a.x/a.norm()
+        a.y = a.y/a.norm()
+        a.z = a.z/a.norm()
+
 defineNormalize(Vector3)
 defineNormalize(Normal)
 
@@ -622,15 +627,36 @@ proc Angle*(_:typedesc[Vector3], a, b: Vector3, kEpsilonNormalSqrt: float32 = 1e
     var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
     if (denominator < kEpsilonNormalSqrt):
         return 0.0
-    var dot: float32 = clamp(Dot(a, b) / denominator, -1.0 .. 1.0    );
+    var dot: float32 = Dot(a, b) / denominator.clamp(-1.0, 1.0)
     return float(radToDeg(arccos(dot)))
 
 proc Angle*(_: typedesc[Vector2], a,b: Vector2, kEpsilonNormalSqrt: float32 = 1-15): float32 {.inline.}=
     var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
     if (denominator < kEpsilonNormalSqrt):
         return 0.0
-    var dot: float32 = clamp(Dot(a, b) / denominator, -1.0 .. 1.0    );
+    var dot: float32 = Dot(a, b) / denominator.clamp(-1.0, 1.0)
     return float(radToDeg(arccos(dot)))
+
+proc Slerp*(_: typedesc[Vector3], fromV, toV: Vector3, t: float32): Vector3=
+    ## Gives the vector between fromV and toV at percentage t.
+
+    
+    # Dot product - the cosine of the angle between 2 vectors.
+    var dot: float32 = Dot(fromV, toV)
+
+    # Clamp it to be in the range of Acos()
+    dot = clamp(dot, -1.0, 1.0)
+
+    # Acos(dot) returns the angle between start and end,
+    # And multiplying that by percent returns the angle between
+    # start and the final result.
+    var 
+        theta: float32 = arccos(dot) * t
+        relativeVec: Vector3 = toV - fromV * dot
+    relativeVec.normalizeInplace()
+
+    # Orthonormal basis
+    return ((fromV*cos(theta)) + (relativeVec * sin(theta)));
 
 proc radToDeg*(vec: Vector3): Vector3=
     result = newVector3(radToDeg(vec.x), radToDeg(vec.y), radToDeg(vec.z))
