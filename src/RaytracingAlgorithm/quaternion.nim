@@ -283,7 +283,7 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
 proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
     return RotationQuaternion( newQuaternion(axis[0], axis[1], axis[2], angle))
 
-proc VectorRotation*(v1, v2: Vector3): Quaternion {.inline.}=
+proc VectorRotation*(_: typedesc[Quaternion], v1, v2: Vector3): Quaternion {.inline.}=
     result = newQuaternion()
     var
         a: Vector3 = v1.Cross(v2)

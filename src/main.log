@@ -1,4 +1,611 @@
-[2022-05-05 23:49:37][RaytracingAlgorithm]: Running RaytracingAlgorithm on version 0.1.1
-[2022-05-05 23:49:37][RaytracingAlgorithm]: Instantiating orthogonal camera with screen size 1000x800
-[2022-05-05 23:49:37][RaytracingAlgorithm]: Using renderer: OnOffRenderer
-[2022-05-05 23:49:40][hdrimage]: Write_pfm called from HdrImage
+[2022-05-06 15:51:44][RaytracingAlgorithm]: Running RaytracingAlgorithm on version 0.1.1
+[2022-05-06 15:51:44][RaytracingAlgorithm]: Starting rendering script at 2022-05-06T15:51:44+02:00
+[2022-05-06 15:51:44][RaytracingAlgorithm]: Using renderer: OnOffRenderer
+[2022-05-06 15:51:44][animation]: Starting animation
+[2022-05-06 15:51:44][animation]: Framerate: 60
+[2022-05-06 15:51:44][animation]: Duration: 5
+[2022-05-06 15:51:44][animation]: Camera Type: Perspective
+[2022-05-06 15:51:49][animation]: Created image 1/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:51:53][animation]: Created image 2/300 - Average Luminosity: 1.432737678497276e-10
+[2022-05-06 15:51:58][animation]: Created image 3/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:52:02][animation]: Created image 4/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:52:07][animation]: Created image 5/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:52:12][animation]: Created image 6/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:52:16][animation]: Created image 7/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:52:21][animation]: Created image 8/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 15:52:25][animation]: Created image 9/300 - Average Luminosity: 1.430677243341449e-10
+[2022-05-06 15:52:29][animation]: Created image 10/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:52:33][animation]: Created image 11/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:52:38][animation]: Created image 12/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:52:42][animation]: Created image 13/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:52:46][animation]: Created image 14/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:52:51][animation]: Created image 15/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:52:55][animation]: Created image 16/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:52:59][animation]: Created image 17/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 15:53:04][animation]: Created image 18/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 15:53:08][animation]: Created image 19/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:53:12][animation]: Created image 20/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 15:53:16][animation]: Created image 21/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:53:21][animation]: Created image 22/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:53:26][animation]: Created image 23/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 15:53:30][animation]: Created image 24/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 15:53:34][animation]: Created image 25/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:53:39][animation]: Created image 26/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:53:43][animation]: Created image 27/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:53:48][animation]: Created image 28/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:53:52][animation]: Created image 29/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:53:58][animation]: Created image 30/300 - Average Luminosity: 1.432119145494681e-10
+[2022-05-06 15:54:02][animation]: Created image 31/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:54:07][animation]: Created image 32/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:54:12][animation]: Created image 33/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 15:54:16][animation]: Created image 34/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 15:54:21][animation]: Created image 35/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:54:25][animation]: Created image 36/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:54:30][animation]: Created image 37/300 - Average Luminosity: 1.428756835064604e-10
+[2022-05-06 15:54:34][animation]: Created image 38/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:54:39][animation]: Created image 39/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:54:43][animation]: Created image 40/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:54:48][animation]: Created image 41/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:54:52][animation]: Created image 42/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:54:56][animation]: Created image 43/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:55:00][animation]: Created image 44/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:55:05][animation]: Created image 45/300 - Average Luminosity: 1.431020441033937e-10
+[2022-05-06 15:55:09][animation]: Created image 46/300 - Average Luminosity: 1.428962503879916e-10
+[2022-05-06 15:55:13][animation]: Created image 47/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 15:55:18][animation]: Created image 48/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:55:22][animation]: Created image 49/300 - Average Luminosity: 1.432806373546924e-10
+[2022-05-06 15:55:26][animation]: Created image 50/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:55:31][animation]: Created image 51/300 - Average Luminosity: 1.428619861298941e-10
+[2022-05-06 15:55:35][animation]: Created image 52/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:55:39][animation]: Created image 53/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 15:55:44][animation]: Created image 54/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 15:55:48][animation]: Created image 55/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:55:52][animation]: Created image 56/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:55:56][animation]: Created image 57/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:56:01][animation]: Created image 58/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:56:05][animation]: Created image 59/300 - Average Luminosity: 1.432462759520803e-10
+[2022-05-06 15:56:10][animation]: Created image 60/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:56:15][animation]: Created image 61/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:56:20][animation]: Created image 62/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 15:56:24][animation]: Created image 63/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:56:28][animation]: Created image 64/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:56:33][animation]: Created image 65/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:56:38][animation]: Created image 66/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:56:42][animation]: Created image 67/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 15:56:48][animation]: Created image 68/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 15:56:53][animation]: Created image 69/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 15:56:58][animation]: Created image 70/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:57:03][animation]: Created image 71/300 - Average Luminosity: 1.431226387405005e-10
+[2022-05-06 15:57:07][animation]: Created image 72/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:57:12][animation]: Created image 73/300 - Average Luminosity: 1.429168172695228e-10
+[2022-05-06 15:57:16][animation]: Created image 74/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:57:21][animation]: Created image 75/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:57:26][animation]: Created image 76/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:57:30][animation]: Created image 77/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:57:34][animation]: Created image 78/300 - Average Luminosity: 1.428619861298941e-10
+[2022-05-06 15:57:39][animation]: Created image 79/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:57:43][animation]: Created image 80/300 - Average Luminosity: 1.433012597473748e-10
+[2022-05-06 15:57:48][animation]: Created image 81/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:57:53][animation]: Created image 82/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:57:58][animation]: Created image 83/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:58:03][animation]: Created image 84/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 15:58:07][animation]: Created image 85/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:58:12][animation]: Created image 86/300 - Average Luminosity: 1.432462759520803e-10
+[2022-05-06 15:58:16][animation]: Created image 87/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:58:21][animation]: Created image 88/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:58:26][animation]: Created image 89/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:58:30][animation]: Created image 90/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:58:35][animation]: Created image 91/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 15:58:39][animation]: Created image 92/300 - Average Luminosity: 1.429579510325851e-10
+[2022-05-06 15:58:44][animation]: Created image 93/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 15:58:48][animation]: Created image 94/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 15:58:54][animation]: Created image 95/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:58:58][animation]: Created image 96/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:59:03][animation]: Created image 97/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:59:08][animation]: Created image 98/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 15:59:12][animation]: Created image 99/300 - Average Luminosity: 1.432737678497276e-10
+[2022-05-06 15:59:17][animation]: Created image 100/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 15:59:22][animation]: Created image 101/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 15:59:26][animation]: Created image 102/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 15:59:31][animation]: Created image 103/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 15:59:35][animation]: Created image 104/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 15:59:40][animation]: Created image 105/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 15:59:45][animation]: Created image 106/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 15:59:50][animation]: Created image 107/300 - Average Luminosity: 1.432119145494681e-10
+[2022-05-06 15:59:55][animation]: Created image 108/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:00:00][animation]: Created image 109/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:00:06][animation]: Created image 110/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:00:12][animation]: Created image 111/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:00:17][animation]: Created image 112/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:00:22][animation]: Created image 113/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:00:28][animation]: Created image 114/300 - Average Luminosity: 1.429168172695228e-10
+[2022-05-06 16:00:32][animation]: Created image 115/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:00:37][animation]: Created image 116/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:00:42][animation]: Created image 117/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:00:47][animation]: Created image 118/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:00:52][animation]: Created image 119/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:00:57][animation]: Created image 120/300 - Average Luminosity: 1.433287516450221e-10
+[2022-05-06 16:01:02][animation]: Created image 121/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:01:07][animation]: Created image 122/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:01:12][animation]: Created image 123/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:01:16][animation]: Created image 124/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:01:21][animation]: Created image 125/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:01:26][animation]: Created image 126/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:01:31][animation]: Created image 127/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:01:35][animation]: Created image 128/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:01:40][animation]: Created image 129/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:01:45][animation]: Created image 130/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:01:49][animation]: Created image 131/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:01:54][animation]: Created image 132/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:01:58][animation]: Created image 133/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:02:03][animation]: Created image 134/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:02:07][animation]: Created image 135/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:02:12][animation]: Created image 136/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:02:16][animation]: Created image 137/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:02:21][animation]: Created image 138/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:02:25][animation]: Created image 139/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:02:30][animation]: Created image 140/300 - Average Luminosity: 1.433012597473748e-10
+[2022-05-06 16:02:34][animation]: Created image 141/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:02:39][animation]: Created image 142/300 - Average Luminosity: 1.432806373546924e-10
+[2022-05-06 16:02:43][animation]: Created image 143/300 - Average Luminosity: 1.427523654840002e-10
+[2022-05-06 16:02:48][animation]: Created image 144/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:02:53][animation]: Created image 145/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:02:58][animation]: Created image 146/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:03:04][animation]: Created image 147/300 - Average Luminosity: 1.432737678497276e-10
+[2022-05-06 16:03:09][animation]: Created image 148/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:03:14][animation]: Created image 149/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:03:19][animation]: Created image 150/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:03:25][animation]: Created image 151/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:03:35][animation]: Created image 152/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:03:39][animation]: Created image 153/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:03:44][animation]: Created image 154/300 - Average Luminosity: 1.432737678497276e-10
+[2022-05-06 16:03:49][animation]: Created image 155/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:03:53][animation]: Created image 156/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:03:58][animation]: Created image 157/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:04:03][animation]: Created image 158/300 - Average Luminosity: 1.427523654840002e-10
+[2022-05-06 16:04:07][animation]: Created image 159/300 - Average Luminosity: 1.432943763646222e-10
+[2022-05-06 16:04:12][animation]: Created image 160/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:04:16][animation]: Created image 161/300 - Average Luminosity: 1.433012597473748e-10
+[2022-05-06 16:04:20][animation]: Created image 162/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:04:25][animation]: Created image 163/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:04:29][animation]: Created image 164/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:04:34][animation]: Created image 165/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:04:39][animation]: Created image 166/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:04:44][animation]: Created image 167/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:04:48][animation]: Created image 168/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:04:53][animation]: Created image 169/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:04:58][animation]: Created image 170/300 - Average Luminosity: 1.430196933105421e-10
+[2022-05-06 16:05:04][animation]: Created image 171/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:05:08][animation]: Created image 172/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:05:13][animation]: Created image 173/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:05:18][animation]: Created image 174/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:05:23][animation]: Created image 175/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:05:27][animation]: Created image 176/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:05:32][animation]: Created image 177/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:05:37][animation]: Created image 178/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:05:42][animation]: Created image 179/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:05:47][animation]: Created image 180/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:05:51][animation]: Created image 181/300 - Average Luminosity: 1.433287516450221e-10
+[2022-05-06 16:05:57][animation]: Created image 182/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:06:02][animation]: Created image 183/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:06:06][animation]: Created image 184/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:06:12][animation]: Created image 185/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:06:16][animation]: Created image 186/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:06:21][animation]: Created image 187/300 - Average Luminosity: 1.429168172695228e-10
+[2022-05-06 16:06:26][animation]: Created image 188/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:06:31][animation]: Created image 189/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:06:36][animation]: Created image 190/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:06:42][animation]: Created image 191/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:06:47][animation]: Created image 192/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:06:52][animation]: Created image 193/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:06:58][animation]: Created image 194/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:07:03][animation]: Created image 195/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:07:08][animation]: Created image 196/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:07:13][animation]: Created image 197/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:07:18][animation]: Created image 198/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:07:24][animation]: Created image 199/300 - Average Luminosity: 1.43156972387537e-10
+[2022-05-06 16:07:29][animation]: Created image 200/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:07:34][animation]: Created image 201/300 - Average Luminosity: 1.430608548291801e-10
+[2022-05-06 16:07:39][animation]: Created image 202/300 - Average Luminosity: 1.432737678497276e-10
+[2022-05-06 16:07:44][animation]: Created image 203/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:07:49][animation]: Created image 204/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:07:53][animation]: Created image 205/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:07:58][animation]: Created image 206/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:08:02][animation]: Created image 207/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:08:07][animation]: Created image 208/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:08:11][animation]: Created image 209/300 - Average Luminosity: 1.429579510325851e-10
+[2022-05-06 16:08:16][animation]: Created image 210/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:08:21][animation]: Created image 211/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:08:26][animation]: Created image 212/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:08:31][animation]: Created image 213/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:08:35][animation]: Created image 214/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:08:40][animation]: Created image 215/300 - Average Luminosity: 1.432462759520803e-10
+[2022-05-06 16:08:44][animation]: Created image 216/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:08:49][animation]: Created image 217/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:08:53][animation]: Created image 218/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:08:58][animation]: Created image 219/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:09:03][animation]: Created image 220/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:09:08][animation]: Created image 221/300 - Average Luminosity: 1.433012597473748e-10
+[2022-05-06 16:09:12][animation]: Created image 222/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:09:16][animation]: Created image 223/300 - Average Luminosity: 1.428619861298941e-10
+[2022-05-06 16:09:21][animation]: Created image 224/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:09:26][animation]: Created image 225/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:09:31][animation]: Created image 226/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:09:36][animation]: Created image 227/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:09:41][animation]: Created image 228/300 - Average Luminosity: 1.429168172695228e-10
+[2022-05-06 16:09:46][animation]: Created image 229/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:09:51][animation]: Created image 230/300 - Average Luminosity: 1.431157692355356e-10
+[2022-05-06 16:09:55][animation]: Created image 231/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:10:00][animation]: Created image 232/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:10:05][animation]: Created image 233/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:10:09][animation]: Created image 234/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:10:14][animation]: Created image 235/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:10:19][animation]: Created image 236/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:10:24][animation]: Created image 237/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:10:29][animation]: Created image 238/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:10:34][animation]: Created image 239/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:10:40][animation]: Created image 240/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:10:46][animation]: Created image 241/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:10:51][animation]: Created image 242/300 - Average Luminosity: 1.432462759520803e-10
+[2022-05-06 16:10:55][animation]: Created image 243/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:11:00][animation]: Created image 244/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:11:06][animation]: Created image 245/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:11:11][animation]: Created image 246/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:11:16][animation]: Created image 247/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:11:21][animation]: Created image 248/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:11:26][animation]: Created image 249/300 - Average Luminosity: 1.431295082454653e-10
+[2022-05-06 16:11:31][animation]: Created image 250/300 - Average Luminosity: 1.428619861298941e-10
+[2022-05-06 16:11:36][animation]: Created image 251/300 - Average Luminosity: 1.431432333776073e-10
+[2022-05-06 16:11:42][animation]: Created image 252/300 - Average Luminosity: 1.432875068596573e-10
+[2022-05-06 16:11:48][animation]: Created image 253/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:11:53][animation]: Created image 254/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:11:59][animation]: Created image 255/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:12:04][animation]: Created image 256/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:12:09][animation]: Created image 257/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:12:13][animation]: Created image 258/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:12:18][animation]: Created image 259/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:12:23][animation]: Created image 260/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:12:27][animation]: Created image 261/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:12:32][animation]: Created image 262/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:12:36][animation]: Created image 263/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:12:42][animation]: Created image 264/300 - Average Luminosity: 1.428688278792833e-10
+[2022-05-06 16:12:47][animation]: Created image 265/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:12:52][animation]: Created image 266/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:12:58][animation]: Created image 267/300 - Average Luminosity: 1.43218784054433e-10
+[2022-05-06 16:13:04][animation]: Created image 268/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:13:11][animation]: Created image 269/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:13:17][animation]: Created image 270/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:13:24][animation]: Created image 271/300 - Average Luminosity: 1.432119145494681e-10
+[2022-05-06 16:13:30][animation]: Created image 272/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:13:35][animation]: Created image 273/300 - Average Luminosity: 1.42944239778231e-10
+[2022-05-06 16:13:41][animation]: Created image 274/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:13:48][animation]: Created image 275/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:13:53][animation]: Created image 276/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:13:58][animation]: Created image 277/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:14:03][animation]: Created image 278/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:14:11][animation]: Created image 279/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:14:16][animation]: Created image 280/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:14:22][animation]: Created image 281/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:14:28][animation]: Created image 282/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:14:33][animation]: Created image 283/300 - Average Luminosity: 1.429991125512231e-10
+[2022-05-06 16:14:37][animation]: Created image 284/300 - Average Luminosity: 1.431913060345735e-10
+[2022-05-06 16:14:42][animation]: Created image 285/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:14:48][animation]: Created image 286/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:14:54][animation]: Created image 287/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:15:00][animation]: Created image 288/300 - Average Luminosity: 1.429716761647271e-10
+[2022-05-06 16:15:06][animation]: Created image 289/300 - Average Luminosity: 1.431363638726424e-10
+[2022-05-06 16:15:11][animation]: Created image 290/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:15:17][animation]: Created image 291/300 - Average Luminosity: 1.430814494662869e-10
+[2022-05-06 16:15:23][animation]: Created image 292/300 - Average Luminosity: 1.430677243341449e-10
+[2022-05-06 16:15:30][animation]: Created image 293/300 - Average Luminosity: 1.428893947608145e-10
+[2022-05-06 16:15:37][animation]: Created image 294/300 - Average Luminosity: 1.431089136083585e-10
+[2022-05-06 16:15:45][animation]: Created image 295/300 - Average Luminosity: 1.431638418925019e-10
+[2022-05-06 16:15:52][animation]: Created image 296/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:15:58][animation]: Created image 297/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:16:05][animation]: Created image 298/300 - Average Luminosity: 1.43053999202003e-10
+[2022-05-06 16:16:12][animation]: Created image 299/300 - Average Luminosity: 1.432737678497276e-10
+[2022-05-06 16:16:21][animation]: Created image 300/300 - Average Luminosity: 1.430265489377192e-10
+[2022-05-06 16:16:21][animation]: Found 300 frames to save
+[2022-05-06 16:16:21][animation]: Created temporary output folder: temp
+[2022-05-06 16:16:21][animation]: Written temporary PNG: temp/output_0.png
+[2022-05-06 16:16:21][animation]: Written temporary PNG: temp/output_1.png
+[2022-05-06 16:16:21][animation]: Written temporary PNG: temp/output_2.png
+[2022-05-06 16:16:22][animation]: Written temporary PNG: temp/output_3.png
+[2022-05-06 16:16:22][animation]: Written temporary PNG: temp/output_4.png
+[2022-05-06 16:16:22][animation]: Written temporary PNG: temp/output_5.png
+[2022-05-06 16:16:23][animation]: Written temporary PNG: temp/output_6.png
+[2022-05-06 16:16:23][animation]: Written temporary PNG: temp/output_7.png
+[2022-05-06 16:16:23][animation]: Written temporary PNG: temp/output_8.png
+[2022-05-06 16:16:24][animation]: Written temporary PNG: temp/output_9.png
+[2022-05-06 16:16:24][animation]: Written temporary PNG: temp/output_10.png
+[2022-05-06 16:16:24][animation]: Written temporary PNG: temp/output_11.png
+[2022-05-06 16:16:24][animation]: Written temporary PNG: temp/output_12.png
+[2022-05-06 16:16:25][animation]: Written temporary PNG: temp/output_13.png
+[2022-05-06 16:16:25][animation]: Written temporary PNG: temp/output_14.png
+[2022-05-06 16:16:25][animation]: Written temporary PNG: temp/output_15.png
+[2022-05-06 16:16:25][animation]: Written temporary PNG: temp/output_16.png
+[2022-05-06 16:16:25][animation]: Written temporary PNG: temp/output_17.png
+[2022-05-06 16:16:26][animation]: Written temporary PNG: temp/output_18.png
+[2022-05-06 16:16:26][animation]: Written temporary PNG: temp/output_19.png
+[2022-05-06 16:16:26][animation]: Written temporary PNG: temp/output_20.png
+[2022-05-06 16:16:26][animation]: Written temporary PNG: temp/output_21.png
+[2022-05-06 16:16:26][animation]: Written temporary PNG: temp/output_22.png
+[2022-05-06 16:16:27][animation]: Written temporary PNG: temp/output_23.png
+[2022-05-06 16:16:27][animation]: Written temporary PNG: temp/output_24.png
+[2022-05-06 16:16:27][animation]: Written temporary PNG: temp/output_25.png
+[2022-05-06 16:16:27][animation]: Written temporary PNG: temp/output_26.png
+[2022-05-06 16:16:28][animation]: Written temporary PNG: temp/output_27.png
+[2022-05-06 16:16:28][animation]: Written temporary PNG: temp/output_28.png
+[2022-05-06 16:16:28][animation]: Written temporary PNG: temp/output_29.png
+[2022-05-06 16:16:28][animation]: Written temporary PNG: temp/output_30.png
+[2022-05-06 16:16:29][animation]: Written temporary PNG: temp/output_31.png
+[2022-05-06 16:16:29][animation]: Written temporary PNG: temp/output_32.png
+[2022-05-06 16:16:29][animation]: Written temporary PNG: temp/output_33.png
+[2022-05-06 16:16:29][animation]: Written temporary PNG: temp/output_34.png
+[2022-05-06 16:16:30][animation]: Written temporary PNG: temp/output_35.png
+[2022-05-06 16:16:30][animation]: Written temporary PNG: temp/output_36.png
+[2022-05-06 16:16:30][animation]: Written temporary PNG: temp/output_37.png
+[2022-05-06 16:16:30][animation]: Written temporary PNG: temp/output_38.png
+[2022-05-06 16:16:31][animation]: Written temporary PNG: temp/output_39.png
+[2022-05-06 16:16:31][animation]: Written temporary PNG: temp/output_40.png
+[2022-05-06 16:16:32][animation]: Written temporary PNG: temp/output_41.png
+[2022-05-06 16:16:32][animation]: Written temporary PNG: temp/output_42.png
+[2022-05-06 16:16:32][animation]: Written temporary PNG: temp/output_43.png
+[2022-05-06 16:16:33][animation]: Written temporary PNG: temp/output_44.png
+[2022-05-06 16:16:33][animation]: Written temporary PNG: temp/output_45.png
+[2022-05-06 16:16:33][animation]: Written temporary PNG: temp/output_46.png
+[2022-05-06 16:16:34][animation]: Written temporary PNG: temp/output_47.png
+[2022-05-06 16:16:34][animation]: Written temporary PNG: temp/output_48.png
+[2022-05-06 16:16:34][animation]: Written temporary PNG: temp/output_49.png
+[2022-05-06 16:16:35][animation]: Written temporary PNG: temp/output_50.png
+[2022-05-06 16:16:35][animation]: Written temporary PNG: temp/output_51.png
+[2022-05-06 16:16:35][animation]: Written temporary PNG: temp/output_52.png
+[2022-05-06 16:16:35][animation]: Written temporary PNG: temp/output_53.png
+[2022-05-06 16:16:35][animation]: Written temporary PNG: temp/output_54.png
+[2022-05-06 16:16:36][animation]: Written temporary PNG: temp/output_55.png
+[2022-05-06 16:16:36][animation]: Written temporary PNG: temp/output_56.png
+[2022-05-06 16:16:36][animation]: Written temporary PNG: temp/output_57.png
+[2022-05-06 16:16:36][animation]: Written temporary PNG: temp/output_58.png
+[2022-05-06 16:16:36][animation]: Written temporary PNG: temp/output_59.png
+[2022-05-06 16:16:37][animation]: Written temporary PNG: temp/output_60.png
+[2022-05-06 16:16:37][animation]: Written temporary PNG: temp/output_61.png
+[2022-05-06 16:16:37][animation]: Written temporary PNG: temp/output_62.png
+[2022-05-06 16:16:37][animation]: Written temporary PNG: temp/output_63.png
+[2022-05-06 16:16:37][animation]: Written temporary PNG: temp/output_64.png
+[2022-05-06 16:16:38][animation]: Written temporary PNG: temp/output_65.png
+[2022-05-06 16:16:38][animation]: Written temporary PNG: temp/output_66.png
+[2022-05-06 16:16:38][animation]: Written temporary PNG: temp/output_67.png
+[2022-05-06 16:16:38][animation]: Written temporary PNG: temp/output_68.png
+[2022-05-06 16:16:38][animation]: Written temporary PNG: temp/output_69.png
+[2022-05-06 16:16:39][animation]: Written temporary PNG: temp/output_70.png
+[2022-05-06 16:16:39][animation]: Written temporary PNG: temp/output_71.png
+[2022-05-06 16:16:39][animation]: Written temporary PNG: temp/output_72.png
+[2022-05-06 16:16:39][animation]: Written temporary PNG: temp/output_73.png
+[2022-05-06 16:16:39][animation]: Written temporary PNG: temp/output_74.png
+[2022-05-06 16:16:40][animation]: Written temporary PNG: temp/output_75.png
+[2022-05-06 16:16:40][animation]: Written temporary PNG: temp/output_76.png
+[2022-05-06 16:16:40][animation]: Written temporary PNG: temp/output_77.png
+[2022-05-06 16:16:40][animation]: Written temporary PNG: temp/output_78.png
+[2022-05-06 16:16:40][animation]: Written temporary PNG: temp/output_79.png
+[2022-05-06 16:16:40][animation]: Written temporary PNG: temp/output_80.png
+[2022-05-06 16:16:41][animation]: Written temporary PNG: temp/output_81.png
+[2022-05-06 16:16:41][animation]: Written temporary PNG: temp/output_82.png
+[2022-05-06 16:16:41][animation]: Written temporary PNG: temp/output_83.png
+[2022-05-06 16:16:41][animation]: Written temporary PNG: temp/output_84.png
+[2022-05-06 16:16:41][animation]: Written temporary PNG: temp/output_85.png
+[2022-05-06 16:16:42][animation]: Written temporary PNG: temp/output_86.png
+[2022-05-06 16:16:42][animation]: Written temporary PNG: temp/output_87.png
+[2022-05-06 16:16:42][animation]: Written temporary PNG: temp/output_88.png
+[2022-05-06 16:16:42][animation]: Written temporary PNG: temp/output_89.png
+[2022-05-06 16:16:42][animation]: Written temporary PNG: temp/output_90.png
+[2022-05-06 16:16:43][animation]: Written temporary PNG: temp/output_91.png
+[2022-05-06 16:16:43][animation]: Written temporary PNG: temp/output_92.png
+[2022-05-06 16:16:44][animation]: Written temporary PNG: temp/output_93.png
+[2022-05-06 16:16:44][animation]: Written temporary PNG: temp/output_94.png
+[2022-05-06 16:16:45][animation]: Written temporary PNG: temp/output_95.png
+[2022-05-06 16:16:45][animation]: Written temporary PNG: temp/output_96.png
+[2022-05-06 16:16:45][animation]: Written temporary PNG: temp/output_97.png
+[2022-05-06 16:16:46][animation]: Written temporary PNG: temp/output_98.png
+[2022-05-06 16:16:46][animation]: Written temporary PNG: temp/output_99.png
+[2022-05-06 16:16:47][animation]: Written temporary PNG: temp/output_100.png
+[2022-05-06 16:16:47][animation]: Written temporary PNG: temp/output_101.png
+[2022-05-06 16:16:47][animation]: Written temporary PNG: temp/output_102.png
+[2022-05-06 16:16:48][animation]: Written temporary PNG: temp/output_103.png
+[2022-05-06 16:16:48][animation]: Written temporary PNG: temp/output_104.png
+[2022-05-06 16:16:48][animation]: Written temporary PNG: temp/output_105.png
+[2022-05-06 16:16:48][animation]: Written temporary PNG: temp/output_106.png
+[2022-05-06 16:16:48][animation]: Written temporary PNG: temp/output_107.png
+[2022-05-06 16:16:49][animation]: Written temporary PNG: temp/output_108.png
+[2022-05-06 16:16:49][animation]: Written temporary PNG: temp/output_109.png
+[2022-05-06 16:16:49][animation]: Written temporary PNG: temp/output_110.png
+[2022-05-06 16:16:49][animation]: Written temporary PNG: temp/output_111.png
+[2022-05-06 16:16:49][animation]: Written temporary PNG: temp/output_112.png
+[2022-05-06 16:16:49][animation]: Written temporary PNG: temp/output_113.png
+[2022-05-06 16:16:50][animation]: Written temporary PNG: temp/output_114.png
+[2022-05-06 16:16:50][animation]: Written temporary PNG: temp/output_115.png
+[2022-05-06 16:16:50][animation]: Written temporary PNG: temp/output_116.png
+[2022-05-06 16:16:50][animation]: Written temporary PNG: temp/output_117.png
+[2022-05-06 16:16:50][animation]: Written temporary PNG: temp/output_118.png
+[2022-05-06 16:16:51][animation]: Written temporary PNG: temp/output_119.png
+[2022-05-06 16:16:51][animation]: Written temporary PNG: temp/output_120.png
+[2022-05-06 16:16:51][animation]: Written temporary PNG: temp/output_121.png
+[2022-05-06 16:16:51][animation]: Written temporary PNG: temp/output_122.png
+[2022-05-06 16:16:52][animation]: Written temporary PNG: temp/output_123.png
+[2022-05-06 16:16:52][animation]: Written temporary PNG: temp/output_124.png
+[2022-05-06 16:16:52][animation]: Written temporary PNG: temp/output_125.png
+[2022-05-06 16:16:52][animation]: Written temporary PNG: temp/output_126.png
+[2022-05-06 16:16:53][animation]: Written temporary PNG: temp/output_127.png
+[2022-05-06 16:16:53][animation]: Written temporary PNG: temp/output_128.png
+[2022-05-06 16:16:53][animation]: Written temporary PNG: temp/output_129.png
+[2022-05-06 16:16:53][animation]: Written temporary PNG: temp/output_130.png
+[2022-05-06 16:16:53][animation]: Written temporary PNG: temp/output_131.png
+[2022-05-06 16:16:54][animation]: Written temporary PNG: temp/output_132.png
+[2022-05-06 16:16:54][animation]: Written temporary PNG: temp/output_133.png
+[2022-05-06 16:16:54][animation]: Written temporary PNG: temp/output_134.png
+[2022-05-06 16:16:54][animation]: Written temporary PNG: temp/output_135.png
+[2022-05-06 16:16:54][animation]: Written temporary PNG: temp/output_136.png
+[2022-05-06 16:16:55][animation]: Written temporary PNG: temp/output_137.png
+[2022-05-06 16:16:55][animation]: Written temporary PNG: temp/output_138.png
+[2022-05-06 16:16:55][animation]: Written temporary PNG: temp/output_139.png
+[2022-05-06 16:16:55][animation]: Written temporary PNG: temp/output_140.png
+[2022-05-06 16:16:56][animation]: Written temporary PNG: temp/output_141.png
+[2022-05-06 16:16:56][animation]: Written temporary PNG: temp/output_142.png
+[2022-05-06 16:16:56][animation]: Written temporary PNG: temp/output_143.png
+[2022-05-06 16:16:56][animation]: Written temporary PNG: temp/output_144.png
+[2022-05-06 16:16:57][animation]: Written temporary PNG: temp/output_145.png
+[2022-05-06 16:16:57][animation]: Written temporary PNG: temp/output_146.png
+[2022-05-06 16:16:57][animation]: Written temporary PNG: temp/output_147.png
+[2022-05-06 16:16:57][animation]: Written temporary PNG: temp/output_148.png
+[2022-05-06 16:16:57][animation]: Written temporary PNG: temp/output_149.png
+[2022-05-06 16:16:58][animation]: Written temporary PNG: temp/output_150.png
+[2022-05-06 16:16:58][animation]: Written temporary PNG: temp/output_151.png
+[2022-05-06 16:16:58][animation]: Written temporary PNG: temp/output_152.png
+[2022-05-06 16:16:59][animation]: Written temporary PNG: temp/output_153.png
+[2022-05-06 16:16:59][animation]: Written temporary PNG: temp/output_154.png
+[2022-05-06 16:16:59][animation]: Written temporary PNG: temp/output_155.png
+[2022-05-06 16:16:59][animation]: Written temporary PNG: temp/output_156.png
+[2022-05-06 16:17:00][animation]: Written temporary PNG: temp/output_157.png
+[2022-05-06 16:17:00][animation]: Written temporary PNG: temp/output_158.png
+[2022-05-06 16:17:00][animation]: Written temporary PNG: temp/output_159.png
+[2022-05-06 16:17:01][animation]: Written temporary PNG: temp/output_160.png
+[2022-05-06 16:17:01][animation]: Written temporary PNG: temp/output_161.png
+[2022-05-06 16:17:01][animation]: Written temporary PNG: temp/output_162.png
+[2022-05-06 16:17:01][animation]: Written temporary PNG: temp/output_163.png
+[2022-05-06 16:17:02][animation]: Written temporary PNG: temp/output_164.png
+[2022-05-06 16:17:02][animation]: Written temporary PNG: temp/output_165.png
+[2022-05-06 16:17:02][animation]: Written temporary PNG: temp/output_166.png
+[2022-05-06 16:17:03][animation]: Written temporary PNG: temp/output_167.png
+[2022-05-06 16:17:03][animation]: Written temporary PNG: temp/output_168.png
+[2022-05-06 16:17:03][animation]: Written temporary PNG: temp/output_169.png
+[2022-05-06 16:17:03][animation]: Written temporary PNG: temp/output_170.png
+[2022-05-06 16:17:03][animation]: Written temporary PNG: temp/output_171.png
+[2022-05-06 16:17:03][animation]: Written temporary PNG: temp/output_172.png
+[2022-05-06 16:17:04][animation]: Written temporary PNG: temp/output_173.png
+[2022-05-06 16:17:04][animation]: Written temporary PNG: temp/output_174.png
+[2022-05-06 16:17:04][animation]: Written temporary PNG: temp/output_175.png
+[2022-05-06 16:17:04][animation]: Written temporary PNG: temp/output_176.png
+[2022-05-06 16:17:04][animation]: Written temporary PNG: temp/output_177.png
+[2022-05-06 16:17:04][animation]: Written temporary PNG: temp/output_178.png
+[2022-05-06 16:17:05][animation]: Written temporary PNG: temp/output_179.png
+[2022-05-06 16:17:05][animation]: Written temporary PNG: temp/output_180.png
+[2022-05-06 16:17:05][animation]: Written temporary PNG: temp/output_181.png
+[2022-05-06 16:17:05][animation]: Written temporary PNG: temp/output_182.png
+[2022-05-06 16:17:05][animation]: Written temporary PNG: temp/output_183.png
+[2022-05-06 16:17:05][animation]: Written temporary PNG: temp/output_184.png
+[2022-05-06 16:17:06][animation]: Written temporary PNG: temp/output_185.png
+[2022-05-06 16:17:06][animation]: Written temporary PNG: temp/output_186.png
+[2022-05-06 16:17:06][animation]: Written temporary PNG: temp/output_187.png
+[2022-05-06 16:17:06][animation]: Written temporary PNG: temp/output_188.png
+[2022-05-06 16:17:06][animation]: Written temporary PNG: temp/output_189.png
+[2022-05-06 16:17:07][animation]: Written temporary PNG: temp/output_190.png
+[2022-05-06 16:17:07][animation]: Written temporary PNG: temp/output_191.png
+[2022-05-06 16:17:07][animation]: Written temporary PNG: temp/output_192.png
+[2022-05-06 16:17:07][animation]: Written temporary PNG: temp/output_193.png
+[2022-05-06 16:17:07][animation]: Written temporary PNG: temp/output_194.png
+[2022-05-06 16:17:08][animation]: Written temporary PNG: temp/output_195.png
+[2022-05-06 16:17:08][animation]: Written temporary PNG: temp/output_196.png
+[2022-05-06 16:17:08][animation]: Written temporary PNG: temp/output_197.png
+[2022-05-06 16:17:08][animation]: Written temporary PNG: temp/output_198.png
+[2022-05-06 16:17:08][animation]: Written temporary PNG: temp/output_199.png
+[2022-05-06 16:17:09][animation]: Written temporary PNG: temp/output_200.png
+[2022-05-06 16:17:09][animation]: Written temporary PNG: temp/output_201.png
+[2022-05-06 16:17:09][animation]: Written temporary PNG: temp/output_202.png
+[2022-05-06 16:17:09][animation]: Written temporary PNG: temp/output_203.png
+[2022-05-06 16:17:09][animation]: Written temporary PNG: temp/output_204.png
+[2022-05-06 16:17:09][animation]: Written temporary PNG: temp/output_205.png
+[2022-05-06 16:17:10][animation]: Written temporary PNG: temp/output_206.png
+[2022-05-06 16:17:10][animation]: Written temporary PNG: temp/output_207.png
+[2022-05-06 16:17:10][animation]: Written temporary PNG: temp/output_208.png
+[2022-05-06 16:17:10][animation]: Written temporary PNG: temp/output_209.png
+[2022-05-06 16:17:10][animation]: Written temporary PNG: temp/output_210.png
+[2022-05-06 16:17:10][animation]: Written temporary PNG: temp/output_211.png
+[2022-05-06 16:17:11][animation]: Written temporary PNG: temp/output_212.png
+[2022-05-06 16:17:11][animation]: Written temporary PNG: temp/output_213.png
+[2022-05-06 16:17:11][animation]: Written temporary PNG: temp/output_214.png
+[2022-05-06 16:17:11][animation]: Written temporary PNG: temp/output_215.png
+[2022-05-06 16:17:12][animation]: Written temporary PNG: temp/output_216.png
+[2022-05-06 16:17:12][animation]: Written temporary PNG: temp/output_217.png
+[2022-05-06 16:17:12][animation]: Written temporary PNG: temp/output_218.png
+[2022-05-06 16:17:13][animation]: Written temporary PNG: temp/output_219.png
+[2022-05-06 16:17:13][animation]: Written temporary PNG: temp/output_220.png
+[2022-05-06 16:17:13][animation]: Written temporary PNG: temp/output_221.png
+[2022-05-06 16:17:13][animation]: Written temporary PNG: temp/output_222.png
+[2022-05-06 16:17:14][animation]: Written temporary PNG: temp/output_223.png
+[2022-05-06 16:17:14][animation]: Written temporary PNG: temp/output_224.png
+[2022-05-06 16:17:14][animation]: Written temporary PNG: temp/output_225.png
+[2022-05-06 16:17:14][animation]: Written temporary PNG: temp/output_226.png
+[2022-05-06 16:17:15][animation]: Written temporary PNG: temp/output_227.png
+[2022-05-06 16:17:15][animation]: Written temporary PNG: temp/output_228.png
+[2022-05-06 16:17:15][animation]: Written temporary PNG: temp/output_229.png
+[2022-05-06 16:17:16][animation]: Written temporary PNG: temp/output_230.png
+[2022-05-06 16:17:16][animation]: Written temporary PNG: temp/output_231.png
+[2022-05-06 16:17:16][animation]: Written temporary PNG: temp/output_232.png
+[2022-05-06 16:17:16][animation]: Written temporary PNG: temp/output_233.png
+[2022-05-06 16:17:16][animation]: Written temporary PNG: temp/output_234.png
+[2022-05-06 16:17:16][animation]: Written temporary PNG: temp/output_235.png
+[2022-05-06 16:17:17][animation]: Written temporary PNG: temp/output_236.png
+[2022-05-06 16:17:17][animation]: Written temporary PNG: temp/output_237.png
+[2022-05-06 16:17:17][animation]: Written temporary PNG: temp/output_238.png
+[2022-05-06 16:17:17][animation]: Written temporary PNG: temp/output_239.png
+[2022-05-06 16:17:17][animation]: Written temporary PNG: temp/output_240.png
+[2022-05-06 16:17:18][animation]: Written temporary PNG: temp/output_241.png
+[2022-05-06 16:17:18][animation]: Written temporary PNG: temp/output_242.png
+[2022-05-06 16:17:18][animation]: Written temporary PNG: temp/output_243.png
+[2022-05-06 16:17:18][animation]: Written temporary PNG: temp/output_244.png
+[2022-05-06 16:17:18][animation]: Written temporary PNG: temp/output_245.png
+[2022-05-06 16:17:18][animation]: Written temporary PNG: temp/output_246.png
+[2022-05-06 16:17:19][animation]: Written temporary PNG: temp/output_247.png
+[2022-05-06 16:17:19][animation]: Written temporary PNG: temp/output_248.png
+[2022-05-06 16:17:19][animation]: Written temporary PNG: temp/output_249.png
+[2022-05-06 16:17:19][animation]: Written temporary PNG: temp/output_250.png
+[2022-05-06 16:17:19][animation]: Written temporary PNG: temp/output_251.png
+[2022-05-06 16:17:19][animation]: Written temporary PNG: temp/output_252.png
+[2022-05-06 16:17:20][animation]: Written temporary PNG: temp/output_253.png
+[2022-05-06 16:17:20][animation]: Written temporary PNG: temp/output_254.png
+[2022-05-06 16:17:20][animation]: Written temporary PNG: temp/output_255.png
+[2022-05-06 16:17:20][animation]: Written temporary PNG: temp/output_256.png
+[2022-05-06 16:17:20][animation]: Written temporary PNG: temp/output_257.png
+[2022-05-06 16:17:21][animation]: Written temporary PNG: temp/output_258.png
+[2022-05-06 16:17:21][animation]: Written temporary PNG: temp/output_259.png
+[2022-05-06 16:17:21][animation]: Written temporary PNG: temp/output_260.png
+[2022-05-06 16:17:21][animation]: Written temporary PNG: temp/output_261.png
+[2022-05-06 16:17:21][animation]: Written temporary PNG: temp/output_262.png
+[2022-05-06 16:17:22][animation]: Written temporary PNG: temp/output_263.png
+[2022-05-06 16:17:22][animation]: Written temporary PNG: temp/output_264.png
+[2022-05-06 16:17:22][animation]: Written temporary PNG: temp/output_265.png
+[2022-05-06 16:17:22][animation]: Written temporary PNG: temp/output_266.png
+[2022-05-06 16:17:22][animation]: Written temporary PNG: temp/output_267.png
+[2022-05-06 16:17:23][animation]: Written temporary PNG: temp/output_268.png
+[2022-05-06 16:17:23][animation]: Written temporary PNG: temp/output_269.png
+[2022-05-06 16:17:23][animation]: Written temporary PNG: temp/output_270.png
+[2022-05-06 16:17:23][animation]: Written temporary PNG: temp/output_271.png
+[2022-05-06 16:17:23][animation]: Written temporary PNG: temp/output_272.png
+[2022-05-06 16:17:24][animation]: Written temporary PNG: temp/output_273.png
+[2022-05-06 16:17:24][animation]: Written temporary PNG: temp/output_274.png
+[2022-05-06 16:17:24][animation]: Written temporary PNG: temp/output_275.png
+[2022-05-06 16:17:24][animation]: Written temporary PNG: temp/output_276.png
+[2022-05-06 16:17:24][animation]: Written temporary PNG: temp/output_277.png
+[2022-05-06 16:17:25][animation]: Written temporary PNG: temp/output_278.png
+[2022-05-06 16:17:25][animation]: Written temporary PNG: temp/output_279.png
+[2022-05-06 16:17:25][animation]: Written temporary PNG: temp/output_280.png
+[2022-05-06 16:17:25][animation]: Written temporary PNG: temp/output_281.png
+[2022-05-06 16:17:26][animation]: Written temporary PNG: temp/output_282.png
+[2022-05-06 16:17:26][animation]: Written temporary PNG: temp/output_283.png
+[2022-05-06 16:17:27][animation]: Written temporary PNG: temp/output_284.png
+[2022-05-06 16:17:27][animation]: Written temporary PNG: temp/output_285.png
+[2022-05-06 16:17:28][animation]: Written temporary PNG: temp/output_286.png
+[2022-05-06 16:17:28][animation]: Written temporary PNG: temp/output_287.png
+[2022-05-06 16:17:28][animation]: Written temporary PNG: temp/output_288.png
+[2022-05-06 16:17:29][animation]: Written temporary PNG: temp/output_289.png
+[2022-05-06 16:17:29][animation]: Written temporary PNG: temp/output_290.png
+[2022-05-06 16:17:29][animation]: Written temporary PNG: temp/output_291.png
+[2022-05-06 16:17:29][animation]: Written temporary PNG: temp/output_292.png
+[2022-05-06 16:17:30][animation]: Written temporary PNG: temp/output_293.png
+[2022-05-06 16:17:30][animation]: Written temporary PNG: temp/output_294.png
+[2022-05-06 16:17:31][animation]: Written temporary PNG: temp/output_295.png
+[2022-05-06 16:17:31][animation]: Written temporary PNG: temp/output_296.png
+[2022-05-06 16:17:31][animation]: Written temporary PNG: temp/output_297.png
+[2022-05-06 16:17:31][animation]: Written temporary PNG: temp/output_298.png
+[2022-05-06 16:17:32][animation]: Written temporary PNG: temp/output_299.png
+[2022-05-06 16:17:33][animation]: FFmpeg command called, return status: 1
+[2022-05-06 16:17:33][animation]: Temporary folder deleted, return status: 0
