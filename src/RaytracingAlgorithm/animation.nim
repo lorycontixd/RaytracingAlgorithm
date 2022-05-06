@@ -35,19 +35,19 @@ proc Play*(self: var Animation): void=
             t = float32(i / (self.nframes-1))
             q = rotation * t
         var
-            cam = newPerspectiveCamera(self.width, self.height, transform=Transformation.translation(self.start_pos) * Transformation.rotationX(360.0 * t))
+            cam = newPerspectiveCamera(self.width, self.height, transform=Transformation.translation(self.start_pos) * Transformation.rotationX(90.0*t))
             hdrImage: HdrImage = newHdrImage(self.width, self.height)
             imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
             onoff: OnOffRenderer = newOnOffRenderer(self.world, Color.black(), Color.white())
         
         imagetracer.fireAllRays(onoff.Get())
         let lum = imagetracer.image.average_luminosity()
-        debug(fmt"Created image {i+1}/{self.nframes} - Average Luminosity: {lum}")
+        debug(fmt"Created frame {i+1}/{self.nframes} --> Average Luminosity: {lum}")
         self.frames.add(imagetracer)
 
 
 
-proc Save*(self: var Animation): void=
+proc Save*(self: var Animation, deleteFrames: bool = true): void=
     info("Found ",len(self.frames)," frames to save")
     var dirName: string = "temp"
     createDir(dirName)
@@ -62,10 +62,10 @@ proc Save*(self: var Animation): void=
         img.write_png(savePath, 1.0)
         debug("Written temporary PNG: ",savePath)
         i = i + 1
-    var cmd: string = fmt"ffmpeg - framerate {self.framerate} -pattern_type glob -i 'temp/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
+    var cmd: string = fmt"ffmpeg -f image2 -framerate {self.framerate} -pattern_type glob -i 'temp/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
     let res = execShellCmd(cmd)
     debug("FFmpeg command called, return status: ",res)
-    if res = 0:
+    if res == 0 and deleteFrames:
         let res2 = execShellCmd("rm -rf temp/")
         debug("Temporary folder deleted, return status: ",res2)
 

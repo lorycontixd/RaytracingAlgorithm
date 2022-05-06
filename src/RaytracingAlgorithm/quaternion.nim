@@ -252,8 +252,8 @@ proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
     )
 
 
-proc Slerp*(a, b: Quaternion, t: float32): Quaternion {.inline.}=
-    assert a.isNormalized() and b.isNormalized()
+proc Slerp*(a, b: Quaternion, t: float32): Quaternion {.inline.} =
+    assert a.isNormalized() and b.isNormalized() 
 
     var q: Quaternion = newQuaternion()
     
@@ -277,7 +277,7 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
         q.x * s,
         q.y * s,
         q.z * s,
-        cos(angle/2.0)
+        cos(angle/2.0)  
     ) 
 
 proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
