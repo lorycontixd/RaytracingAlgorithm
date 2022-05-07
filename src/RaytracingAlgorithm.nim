@@ -80,7 +80,16 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
 proc pfm2png(yippee: int, myFlts: seq[float], verb=false) = discard
     # to implement
 
+proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, average_luminosity: float32, input_filename: FileStream, output_filename:string){.inline.} =
+    var image : HdrImage
+    image = read_pfm(input_filename)
+    echo("File", input_filename, "has been read from disk")
 
+    image.normalize_image(factor: factor, luminosity: luminosity)
+    image.clamp_image()
+
+    image.write_png(output_file: output_filename)
+    echo("File", output_filename, "has been written to disk")
 
 
 
