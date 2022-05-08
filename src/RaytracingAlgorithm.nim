@@ -83,7 +83,7 @@ proc pfm2png(yippee: int, myFlts: seq[float], verb=false) = discard
 proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, average_luminosity: float32, input_filename: FileStream, output_filename:string){.inline.} =
     var image : HdrImage
     image = read_pfm(input_filename)
-    echo("File", input_filename, "has been read from disk")
+    echo("File" ,input_filename, "has been read from disk")
 
     image.normalize_image(factor: factor, luminosity: luminosity)
     image.clamp_image()
@@ -109,7 +109,13 @@ when isMainModule:
             "pfm_output": "Save a PFM image",
             "png_output": "Save a PNG"
         }],
-        [pfm2png],[animate] # pfm2png options to add
+        [pfm2png, help = {
+            "factor" : "Multiplicative factor",
+            "gamma" : "Exponent for gamma-correction",
+            "input_filename" : "PFM file name in input  ",
+            "output_filename" : "PNG file name in output"
+        }],
+        [animate] 
     )
 
     
