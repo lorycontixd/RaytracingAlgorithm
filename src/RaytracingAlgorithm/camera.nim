@@ -1,4 +1,4 @@
-import geometry, transformation, ray
+import geometry, transformation, ray, exception
 
 type
     CameraType* = enum

@@ -3,20 +3,6 @@ import std/[os, strformat, options, streams, marshal]
 
 type
     Animation* = ref object
-    ## --------  Class for playing animations --------
-    ## An animation is a collection of images (frames) played sequentially.
-    ## The animation is 'duration_sec' long and has a total number of frames dictated by 'duration_sec'x'framerate'.
-    ## The scene is gi
-    ## 
-    ## Parameters:
-    ## - start_pos (Vector3): The starting position of the scene's camera
-    ## - end_pos (Vector3): The ending position of the scene's camera
-    ## - width (int): The width of the frames in pixels
-    ## - height (int): The height of the frames in pixels
-    ## - camType (camera.CameraType): The type of camera that views the scene -> Perspective or orthogonal
-    ## - world (world.World): Reference to the world scene containing all shapes
-    ## - duration_sec (int): Duration of the animation in seconds
-    ## - framerate (int): Number of frames per second
         start_pos*: Vector3
         end_pos*: Vector3
         width*: int
@@ -30,6 +16,20 @@ type
         # internal
         frames*: seq[ImageTracer]
         hasPlayed: bool
+        ## --------  Class for playing animations --------
+        ## An animation is a collection of images (frames) played sequentially.
+        ## The animation is 'duration_sec' long and has a total number of frames dictated by 'duration_sec'x'framerate'.
+        ## The scene is gi
+        ## 
+        ## Parameters:
+        ## - start_pos (Vector3): The starting position of the scene's camera
+        ## - end_pos (Vector3): The ending position of the scene's camera
+        ## - width (int): The width of the frames in pixels
+        ## - height (int): The height of the frames in pixels
+        ## - camType (camera.CameraType): The type of camera that views the scene -> Perspective or orthogonal
+        ## - world (world.World): Reference to the world scene containing all shapes
+        ## - duration_sec (int): Duration of the animation in seconds
+        ## - framerate (int): Number of frames per second
     
 # ----------- Constructors -----------
 
@@ -51,6 +51,7 @@ proc Play*(self: var Animation): void=
     info("Framerate: ",self.framerate)
     info("Duration: ",self.duration_sec)
     info("Camera Type: ",self.camType)
+    info("Estimated frames to be produces: ", self.GetNFrames())
     var rotation: Quaternion = Quaternion.VectorRotation(self.start_pos, self.end_pos)
 
     for i in countup(0, self.nframes-1):
@@ -58,7 +59,7 @@ proc Play*(self: var Animation): void=
             t = float32(i / (self.nframes-1))
             q = rotation * t
         var
-            cam = newPerspectiveCamera(self.width, self.height, transform=Transformation.translation(self.start_pos) * Transformation.rotationX(90.0*t))
+            cam = newPerspectiveCamera(self.width, self.height, transform=Transformation.translation(self.start_pos) * Transformation.rotationZ(180.0*t))
             hdrImage: HdrImage = newHdrImage(self.width, self.height)
             imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
             onoff: OnOffRenderer = newOnOffRenderer(self.world, Color.black(), Color.white())
@@ -69,10 +70,13 @@ proc Play*(self: var Animation): void=
         self.frames.add(imagetracer)
 
 
-proc Save*(self: var Animation, deleteFrames: bool = true): void=
+proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
     info("Found ",len(self.frames)," frames to save")
     var dirName: string = "temp"
-    createDir(dirName)
+    if dirExists(dirName):
+        let resultCode = execShellCmd("rm -f temp/*")
+    else:
+        createDir(dirName)
     debug("Created temporary output folder: ",dirName)
 
     var i: int = 0
@@ -88,7 +92,7 @@ proc Save*(self: var Animation, deleteFrames: bool = true): void=
     let res = execShellCmd(cmd)
     debug("FFmpeg command called, return status: ",res)
     if res == 0:
-        if deleteFrames:
+        if not dontDeleteFrames:
             let res2 = execShellCmd("rm -rf temp/")
             debug("Temporary folder deleted, return status: ",res2)
     else:

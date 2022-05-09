@@ -54,7 +54,7 @@ method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.ba
     ## This is an abstract method, do not call it directly.
     raise AbstractMethodError.newException("Shape.ray_intersection is an abstract method and cannot be called.")
 
-method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
+method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.gcsafe, noSideEffect.} =
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32
@@ -66,17 +66,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
         c = origin_vec.squareNorm() - 1
     
         delta = b * b - 4.0 * a * c
-    #if debug:
-    #[
-        echo "transform: ",s.transform
-        echo "Inv: ",s.transform.Inverse()
-        echo "Original Ray: ",r
-        echo "Inversed Ray", inversed_ray
-        echo "origin_vec: ",origin_vec
-        echo fmt"a: {a}"
-        echo fmt"b: {b}"
-        echo fmt"c: {c}"
-    ]# 
+
     if delta <= 0.0:
         return none(RayHit)
 
@@ -84,10 +74,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
         sqrt_delta = sqrt(delta)
         tmin = (- b - sqrt_delta) / (2.0 * a)
         tmax = (- b + sqrt_delta) / (2.0 * a)
-    
-    if debug:
-        echo "sqrt_delta: ",sqrt_delta
-        echo "tvals: ",tmin, " -- ",tmax
+
     
     if (tmin > inversed_ray.tmin and tmin < inversed_ray.tmax):
         firsthit_t = tmin

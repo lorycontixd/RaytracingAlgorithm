@@ -28,6 +28,11 @@ proc size*[T](x: T): int =
     for _ in x:
         inc result
 
+proc getFileCount(dirPath: string): int =
+    result = 0
+    for kind, path in walkDir(dirPath):
+        inc result
+
 proc charSeqToByte*(s: seq[char]): seq[byte] {.inline.}= 
     #[
         Converts a sequence of char into a sequence of bytes.

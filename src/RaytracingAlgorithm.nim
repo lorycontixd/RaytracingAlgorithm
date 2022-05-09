@@ -49,7 +49,8 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
 
 
-proc animate(width: int = 800, height: int = 600, camera: string = "perspective", deleteFrames: bool = true): void=
+proc animate(width: int = 800, height: int = 600, camera: string = "perspective", dontDeleteFrames: bool = false): void=
+    logLevel = Level.debug
     debug("Starting rendering script at ",now())
     var
         world: World = newWorld()
@@ -71,26 +72,30 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
         CameraType.Perspective,
         width, height,
         world,
-        1,
-        60
+        12,
+        5
     )
     animator.Play()
-    animator.Save(deleteFrames)
+    animator.Save(dontDeleteFrames)
 
 
-
-#proc pfm2png(yippee: int, myFlts: seq[float], verb=false) = discard
-    # to implement
-
-proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, average_luminosity: float32, input_filename: FileStream, output_filename:string){.inline.} =
-    var image : HdrImage
-    image = read_pfm(input_filename)
+ 
+proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string, output_filename:string){.inline.} =
+    if not input_filename.endsWith(".pfm"):
+        raise InvalidFormatError.newException(fmt"Invalid input file for conversion: {input_filename}. Must be PFM file.")
+    if not output_filename.endsWith(".png"):
+        raise InvalidFormatError.newException(fmt"Invalid output file for conversion: {output_filename}. Must be PNG file.")
+    var image : HdrImage = newHdrImage()
+    var fileStream: FileStream = newFileStream(input_filename, fmRead)
+    image.read_pfm(fileStream)
     debug("File" ,input_filename, "has been read from disk")
+    info("Created HdrImage from inputfile ", input_filename, " for pfm2png conversion")
 
-    image.normalize_image(factor: factor, luminosity: luminosity)
+    let luminosity = image.average_luminosity()
+    image.normalize_image(factor, some(luminosity))
     image.clamp_image()
 
-    image.write_png(output_file: output_filename)
+    image.write_png(output_filename)
     debug("File", output_filename, "has been written to disk")
 
 

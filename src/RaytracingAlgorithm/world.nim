@@ -11,11 +11,11 @@ func newWorld*(): World =
 func newWorld*(list: seq[Shape]): World=
     return World(shapes: list)
 
-func GetIndex*(self: World, s_id: string): int {.raises: [ShapeIDNotFoundError].}=
+func GetIndex*(self: World, s_id: string): int {.raises: [ShapeIDNotFoundError, ValueError].}=
     for i, shape in self.shapes.pairs:
         if shape.id == s_id:
             return i
-    raise ShapeIDNotFoundError.newException("ID not found in world shapes.")
+    raise newShapeIDError(s_id)#ShapeIDNotFoundError.newException("ID not found in world shapes.")
 
 method Add*(self: var World, s: Shape): void {.base.}=
     ## Add a shape to the world scene.

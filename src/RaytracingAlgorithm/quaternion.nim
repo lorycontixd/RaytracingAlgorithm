@@ -18,6 +18,9 @@ proc newQuaternion*(v: Vector3, w: float32): Quaternion=
 proc newQuaternion*(other: Quaternion): Quaternion=
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)
 
+proc Identity*(_: typedesc[Quaternion]): Quaternion =
+    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
+
 # ----------------- Operators -------------------
 
 proc `[]`*(self: Quaternion, index: int): float32=
@@ -302,8 +305,21 @@ proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
     )
 
 
-proc Slerp*(a, b: Quaternion, t: float32): Quaternion {.inline.} =
+proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
+    ## Spherical linear interpolation between two quaternions.
+    ## Interpolates a quaternion in between two quaternions based on the free parameter t.
+    ## If t=0, returns the first quaternion. If t=1, returns the second quaternion.
+    ## This function clamps the value of t between 0 and 1.
+    ##
+    ## Parameters
+    ##      a (Quaternion): Starting quaternion
+    ##      b (Quaternion): Ending quaternion
+    ##      t (float32): Interpolation value
+    ##
+    ## Returns
+    ##      Interpolated quaternion between a and b at value t
     assert a.isNormalized() and b.isNormalized() 
+    t = t.clamp(0.0, 1.0)
 
     var q: Quaternion = newQuaternion()
     
@@ -321,6 +337,7 @@ proc Slerp*(a, b: Quaternion, t: float32): Quaternion {.inline.} =
 
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
+    ##
     let angle = q[3]
     let s = sin(angle/2.0)
     result = newQuaternion(
@@ -340,8 +357,8 @@ proc VectorRotation*(_: typedesc[Quaternion], v1, v2: Vector3): Quaternion {.inl
     ## Computes the necessary quaternion to rotate a vector to another.
     ## 
     ## Parameters:
-    ## v1 (Vector3): Starting vector
-    ## v2 (Vector3): End vector
+    ##      v1 (Vector3): Starting vector
+    ##      v2 (Vector3): End vector
     ##
     ## Returns
     ##      The quaternion responsible for the rotation from v1 to v2
@@ -355,8 +372,6 @@ proc VectorRotation*(_: typedesc[Quaternion], v1, v2: Vector3): Quaternion {.inl
 
 
 ###### ----------- Standard Quaternions --------------
-proc Identity*(_: typedesc[Quaternion]): Quaternion =
-    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
 
 proc xBy90*(_: typedesc[Quaternion]): Quaternion =
     return RotationQuaternion(newQuaternion(1.0, 0.0, 0.0, PI/2.0))
@@ -370,6 +385,7 @@ proc zBy90*(_: typedesc[Quaternion]): Quaternion =
     return RotationQuaternion(newQuaternion(0.0, 0.0, 1.0, PI/2.0))
 proc zBy180*(_: typedesc[Quaternion]): Quaternion =
     return RotationQuaternion(newQuaternion(0.0, 0.0, 1.0, PI))
+
 
 #[ macro for base rotations xby0, xby90, xby180, y, z, ..
 
