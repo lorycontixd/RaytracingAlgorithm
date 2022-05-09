@@ -42,7 +42,7 @@ proc test_rotation(): void=
 
 proc test_translation(): void=
     var
-        trans: Point = newPoint(2.0, 2.0, 2.0)
+        trans: Vector3 = newVector3(2.0, 2.0, 2.0)
         p: Point = newPoint(2.0, 0.0, 0.0)
         v: Vector3 = newVector3(2.0, 0.0, 0.0)
     #echo TranslationMatrix(trans)
@@ -72,10 +72,37 @@ proc test_transformation_composition(): void=
         ]
     assert (TranslationMatrix(translation) * ScaleMatrix(scale)).are_matrix_close(res)
 
+proc test_transformation_matrix_inverse(): void=
+    var
+        quar: float32 = 1/4
+        m1: Matrix = IdentityMatrix()
+        m2: Matrix = cast[Matrix](@[
+            @[float32(1.0), float32(1.0), float32(1.0), float32(-1.0)],
+            @[float32(1.0), float32(1.0), float32(-1.0), float32(1.0)],
+            @[float32(1.0), float32(-1.0), float32(1.0), float32(1.0)],
+            @[float32(-1.0), float32(1.0), float32(1.0), float32(1.0)],
+        ])
+        invm2: Matrix =  cast[Matrix](@[
+            @[quar, quar, quar, -quar],
+            @[quar, quar, -quar, quar],
+            @[quar, -quar, quar, quar],
+            @[-quar, quar, quar, quar]
+        ])
+
+    assert m1.inverse().are_matrix_close(m1)
+    #assert m2.are_matrix_close(invm2)  ### not wokring??? prints same matrix
+
+proc test_vector3_slerp(): void=
+    var
+        start1: Vector3 = Vector3.up()
+        end1: Vector3 = Vector3.right()
+
+    echo Vector3.Slerp(start1, end1, 0.5)
 
 
-
+test_transformation_matrix_inverse()
 test_rotation()
 test_translation()
 test_scale()
 test_transformation_composition()
+test_vector3_slerp()

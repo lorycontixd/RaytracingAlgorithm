@@ -13,6 +13,8 @@ type
     PerspectiveCamera* = ref object of Camera
         distance*: float32
 
+# -------------------------------- Constructors -------------------------------------
+
 proc newOrthogonalCamera*(width, height: int, transform: Transformation = newTransformation()): OrthogonalCamera {.inline.}=
     result = OrthogonalCamera(aspectRatio:float(width/height), transform: transform, camType: CameraType.Orthogonal)
 
@@ -25,8 +27,10 @@ proc newOrthogonalCamera*(aspectratio: float32, transform: Transformation = newT
 proc newPerspectiveCamera*(aspectratio: float32, distance: float32=1.0, transform: Transformation = newTransformation()): PerspectiveCamera {.inline.}=
     result = PerspectiveCamera(aspectRatio:aspectratio, transform: transform, distance:distance)
 
-method fireRay*(c: Camera, u,v:float32): Ray {.base.} =
-    quit "to override!"
+# -------------------------------- Methods -------------------------------------
+
+method fireRay*(c: Camera, u,v:float32): Ray {.base, inline, raises:[AbstractMethodError].} =
+    raise AbstractMethodError.newException("Camera.fireRay is an abstract method and cannot be called.")
 
 method fireRay*(self: OrthogonalCamera, u,v: float32): Ray {.inline.} =
     var origin: Point = newPoint(-1.0, (1.0 - 2.0 * u) * self.aspectRatio, 2.0*v-1)

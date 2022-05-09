@@ -3,6 +3,20 @@ import std/[os, strformat, options, streams, marshal]
 
 type
     Animation* = ref object
+    ## --------  Class for playing animations --------
+    ## An animation is a collection of images (frames) played sequentially.
+    ## The animation is 'duration_sec' long and has a total number of frames dictated by 'duration_sec'x'framerate'.
+    ## The scene is gi
+    ## 
+    ## Parameters:
+    ## - start_pos (Vector3): The starting position of the scene's camera
+    ## - end_pos (Vector3): The ending position of the scene's camera
+    ## - width (int): The width of the frames in pixels
+    ## - height (int): The height of the frames in pixels
+    ## - camType (camera.CameraType): The type of camera that views the scene -> Perspective or orthogonal
+    ## - world (world.World): Reference to the world scene containing all shapes
+    ## - duration_sec (int): Duration of the animation in seconds
+    ## - framerate (int): Number of frames per second
         start_pos*: Vector3
         end_pos*: Vector3
         width*: int
@@ -11,20 +25,29 @@ type
         world*: World
         duration_sec*: int
         framerate*: int
-        nframes*: int
+        nframes: int
         
         # internal
         frames*: seq[ImageTracer]
         hasPlayed: bool
     
+# ----------- Constructors -----------
 
 proc newAnimation*(startpos, end_pos: Vector3, camType: CameraType, width,height: int, world: var World, duration_sec: int = 10, framerate: int = 60): Animation=
     result = Animation(start_pos: startpos, end_pos: end_pos, camType: camType, width: width, height: height, world: world, duration_sec: duration_sec, framerate: framerate, nframes: duration_sec*framerate,  hasPlayed: false)
 
+# ----------- Getters & Setters -----------
 
+func GetNFrames(self: Animation): int=
+    assert self.nframes == self.duration_sec * self.framerate
+    return self.nframes
+
+# ----------- Methods -----------
 
 proc Play*(self: var Animation): void=
-    info("Starting animation")
+    ## Plays an animation and stores the frames in memory.
+
+    info("Starting animation ")
     info("Framerate: ",self.framerate)
     info("Duration: ",self.duration_sec)
     info("Camera Type: ",self.camType)
@@ -46,7 +69,6 @@ proc Play*(self: var Animation): void=
         self.frames.add(imagetracer)
 
 
-
 proc Save*(self: var Animation, deleteFrames: bool = true): void=
     info("Found ",len(self.frames)," frames to save")
     var dirName: string = "temp"
@@ -65,9 +87,12 @@ proc Save*(self: var Animation, deleteFrames: bool = true): void=
     var cmd: string = fmt"ffmpeg -f image2 -framerate {self.framerate} -pattern_type glob -i 'temp/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
     let res = execShellCmd(cmd)
     debug("FFmpeg command called, return status: ",res)
-    if res == 0 and deleteFrames:
-        let res2 = execShellCmd("rm -rf temp/")
-        debug("Temporary folder deleted, return status: ",res2)
+    if res == 0:
+        if deleteFrames:
+            let res2 = execShellCmd("rm -rf temp/")
+            debug("Temporary folder deleted, return status: ",res2)
+    else:
+        error("FFmpeg image command failed with return code ", res)
 
 
 

@@ -5,7 +5,7 @@ type
     Quaternion* = ref object
         x*,y*,z*,w*: float32
 
-
+# --------------- Constructors -----------------
 proc newQuaternion*(): Quaternion=
     result = Quaternion(x:0, y:0, z:0, w:0)
 
@@ -18,7 +18,16 @@ proc newQuaternion*(v: Vector3, w: float32): Quaternion=
 proc newQuaternion*(other: Quaternion): Quaternion=
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)
 
+# ----------------- Operators -------------------
+
 proc `[]`*(self: Quaternion, index: int): float32=
+    ## Quaternion Getter operator. Returns the i-th component of a quaternion.
+    ##
+    ## Parameters
+    ##      index (int): Index of the component
+    ##
+    ## Returns
+    ##      i-th component of the quaternion where i=index
     case index:
         of 0:
             return self.x
@@ -32,6 +41,11 @@ proc `[]`*(self: Quaternion, index: int): float32=
             raise ValueError.newException("Invalid index for quaternion.")
 
 proc `[]=`*(self: var Quaternion, index: int, value: float32): void=
+    ## Quaternion Setter operator. Sets the i-th component of a quaternion.
+    ##
+    ## Parameters
+    ##      index (int): Index of the component to be set
+    ##      value (float32): New value for the quaternion component
     case index:
         of 0:
             self.x = value
@@ -44,7 +58,98 @@ proc `[]=`*(self: var Quaternion, index: int, value: float32): void=
         else:
             raise ValueError.newException("Invalid index for quaternion.")
 
+proc `$`*(self: Quaternion): string = 
+    ## String representation of a quaternion.
+    ## A quaternion with components x,y,z,w is stringified as 'Quaternion(x,y,z,w)'
+    ##
+    ## Returns
+    ##      String representation of the quaternion
+    result = fmt"Quaternion({self.x},{self.y},{self.z},{self.w})"
+
+proc `+`(lhs, rhs: Quaternion): Quaternion=
+    ##
+    result = newQuaternion(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w)
+
+proc `-`(lhs, rhs: Quaternion): Quaternion=
+    ##
+    result = newQuaternion(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w)
+
+proc `*`*(lhs, rhs: Quaternion): Quaternion {.inline.}=
+    ##
+    result = newQuaternion(
+        lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
+        lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
+        lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
+        lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z
+    ) 
+
+proc `*`*(rotation: Quaternion, v: Vector3): Vector3 {.inline.}=
+    ## Multiplication '*' operator between a quaternion and a Vector3.
+    ## Applying a quaternion to a vector results in a rotation of the vector to a new vector, described by the quaternion.
+    ## The implementation of the product is already the solution of the multiplication q' = q v q*, where vector v is multiplied by the quaternion and its conjugate.
+    ## The multiplication q v changes the length of the vector, therefore a multiplication for the conjugate q* is required to cancel out the change in length.
+    ##
+    ## Parameters
+    ##      rotation (Quaternion): Quaternion responsible for the rotation
+    ##      v (Vector3): The vector to be multiplied
+    ##
+    ## Returns
+    ##      The rotated Vector3
+    var
+        x: float32 = rotation.x * 2.0
+        y: float32 = rotation.y * 2.0
+        z: float32 = rotation.z * 2.0
+        xx: float32 = rotation.x * x # 2x^2
+        yy: float32 = rotation.y * y # 2y^2
+        zz: float32 = rotation.z * z # 2z^2
+        xy: float32 = rotation.x * y # 2xy
+        xz: float32 = rotation.x * z # 2xz
+        yz: float32 = rotation.y * z # 2yz
+        wx: float32 = rotation.w * x # 2wz
+        wy: float32 = rotation.w * y # 2wy
+        wz: float32 = rotation.w * z # 2wz
+        
+    result = newVector3(
+        (1.0 - (yy + zz)) * v.x + (xy - wz) * v.y + (xz + wy) * v.z,
+        (xy + wz) * v.x + (1.0 - (xx + zz)) * v.y + (yz - wx) * v.z,
+        (xz - wy) * v.x + (yz + wx) * v.y + (1.0 - (xx + yy)) * v.z
+    )
+
+proc `*`*(v: Vector3, rotation: Quaternion): Vector3 {.inline.}=
+    ## v * q --> Mirror of q * v
+    ## See q * v documentation
+    return rotation*v
+
+proc `*`*(rotation: Quaternion, scalar: float32): Quaternion=
+    ##
+    result = newQuaternion(rotation.x * scalar, rotation.y * scalar, rotation.z * scalar, rotation.w * scalar)
+
+proc `/`*(q: Quaternion, scalar: float32): Quaternion=
+    ##
+    return newQuaternion(q.x/scalar, q.y/scalar, q.z/scalar, q.w/scalar)
+
+proc `==`*(lhs, rhs: Quaternion): bool =
+    ##
+    return lhs.x == rhs.x and lhs.y == rhs.y and lhs.z == rhs.z and lhs.w == rhs.w
+
+proc `!=`(lhs, rhs: Quaternion): bool=
+    ##
+    return not(lhs==rhs)
+
+proc isClose*(lhs, rhs: Quaternion, epsilon: float32 = 1e-6): bool=
+    ##
+    return IsEqual(lhs.x, rhs.x, epsilon) and IsEqual(lhs.y, rhs.y, epsilon) and IsEqual(lhs.z, rhs.z, epsilon) and IsEqual(lhs.w, rhs.w, epsilon)
+
+proc isNotClose*(lhs, rhs: Quaternion): bool=
+    ##
+    return not isClose(lhs, rhs)
+
+# ------------------------------------- Setters and Getters -------------------------------------
 proc Set*(self: var Quaternion, x,y,z,w: float32): void =
+    ## Sets quaternion values
+    ##
+    ## Parameters
+    ## x,y,z,w (float32)
     self.x = x
     self.y = y
     self.z = z
@@ -55,67 +160,7 @@ proc SetVector*(self: var Quaternion, vectorComponents: Vector3): void =
     self.y = vectorComponents[1]
     self.z = vectorComponents[2]
 
-proc Identity*(_: typedesc[Quaternion]): Quaternion =
-    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
-
-proc `$`*(self: Quaternion): string = 
-    result = fmt"Quaternion({self.x},{self.y},{self.z},{self.w})"
-
-proc `+`(lhs, rhs: Quaternion): Quaternion=
-    result = newQuaternion(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w)
-
-proc `-`(lhs, rhs: Quaternion): Quaternion=
-    result = newQuaternion(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w)
-
-proc `*`*(lhs, rhs: Quaternion): Quaternion {.inline.}=
-    result = newQuaternion(
-        lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
-        lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
-        lhs.w * rhs.z + lhs.z * rhs.w + lhs.x * rhs.y - lhs.y * rhs.x,
-        lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z
-    ) 
-
-proc `*`*(rotation: Quaternion, v: Vector3): Vector3 {.inline.}=
-    var
-        x: float32 = rotation.x * 2.0
-        y: float32 = rotation.y * 2.0
-        z: float32 = rotation.z * 2.0
-        xx: float32 = rotation.x * x
-        yy: float32 = rotation.y * y
-        zz: float32 = rotation.z * z
-        xy: float32 = rotation.x * y
-        xz: float32 = rotation.x * z
-        yz: float32 = rotation.y * z
-        wx: float32 = rotation.w * x
-        wy: float32 = rotation.w * y
-        wz: float32 = rotation.w * z
-        
-    result = newVector3(
-        (1.0 - (yy + zz)) * v.x + (xy - wz) * v.y + (xz + wy) * v.z,
-        (xy + wz) * v.x + (1.0 - (xx + zz)) * v.y + (yz - wx) * v.z,
-        (xz - wy) * v.x + (yz + wx) * v.y + (1.0 - (xx + yy)) * v.z
-    )
-
-proc `*`*(v: Vector3, rotation: Quaternion): Vector3 {.inline.}=
-    return rotation*v
-
-proc `*`*(rotation: Quaternion, scalar: float32): Quaternion=
-    result = newQuaternion(rotation.x * scalar, rotation.y * scalar, rotation.z * scalar, rotation.w * scalar)
-
-proc `/`*(q: Quaternion, scalar: float32): Quaternion=
-    return newQuaternion(q.x/scalar, q.y/scalar, q.z/scalar, q.w/scalar)
-
-proc `==`*(lhs, rhs: Quaternion): bool =
-    return lhs.x == rhs.x and lhs.y == rhs.y and lhs.z == rhs.z and lhs.w == rhs.w
-
-proc `!=`(lhs, rhs: Quaternion): bool=
-    return not(lhs==rhs)
-
-proc isClose*(lhs, rhs: Quaternion, epsilon: float32 = 1e-6): bool=
-    return IsEqual(lhs.x, rhs.x, epsilon) and IsEqual(lhs.y, rhs.y, epsilon) and IsEqual(lhs.z, rhs.z, epsilon) and IsEqual(lhs.w, rhs.w, epsilon)
-
-proc isNotClose*(lhs, rhs: Quaternion): bool=
-    return not isClose(lhs, rhs)
+# ------------------------------------------- Methods ------------------------------------------
 
 proc Dot(a,b: Quaternion): float32=
     result = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
@@ -205,6 +250,14 @@ proc toEuler*(q: Quaternion): Vector3 {.inline.}=
     return makePositive(radToDeg(v))
 
 proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
+    ## Load a quaternion from a set of Euler Angles
+    ## 
+    ## Parameters
+    ##      phi (float32): phi angle of Euler
+    ##      theta (float32): theta angle of Euler
+    ##      psi (float32): psi angle of Euler
+    ## Returns
+    ##      Quaternion conversion of the Euler angles.
     let
         qw = cos(phi/2) * cos(theta/2) * cos(psi/2) + sin(phi/2) * sin(theta/2) * sin(psi/2)
         qx = sin(phi/2) * cos(theta/2) * cos(psi/2) - cos(phi/2) * sin(theta/2) * sin(psi/2)
@@ -213,6 +266,8 @@ proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
     return newQuaternion(qx, qy, qz, qw)
 
 proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
+    ## Translates a quaternion rotation to a rotation matrix rotation.
+    ## 
     var
         q0: float32 = q[0]
         q1: float32 = q[1]
@@ -238,11 +293,6 @@ proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
         m31: float32 = 0.0
         m32: float32 = 0.0
         m33: float32 = 1.0
-
-    ## [m00, m01, m02, 0.0]
-    ## [m10, m11, m12, 0.0]
-    ## [m20, m21, m22, 0.0]
-    ## [0.0, 0.0, 0.0, 1.0]
 
     result = newMatrix(@[
         @[m00, m01, m02, m03],
@@ -283,7 +333,18 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
 proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
     return RotationQuaternion( newQuaternion(axis[0], axis[1], axis[2], angle))
 
+
+
+# ------------------------------ Static Methods -----------------------------------
 proc VectorRotation*(_: typedesc[Quaternion], v1, v2: Vector3): Quaternion {.inline.}=
+    ## Computes the necessary quaternion to rotate a vector to another.
+    ## 
+    ## Parameters:
+    ## v1 (Vector3): Starting vector
+    ## v2 (Vector3): End vector
+    ##
+    ## Returns
+    ##      The quaternion responsible for the rotation from v1 to v2
     result = newQuaternion()
     var
         a: Vector3 = v1.Cross(v2)
@@ -292,7 +353,10 @@ proc VectorRotation*(_: typedesc[Quaternion], v1, v2: Vector3): Quaternion {.inl
     result.NormalizeInplace()
 
 
-# -- Standard Quaternions
+
+###### ----------- Standard Quaternions --------------
+proc Identity*(_: typedesc[Quaternion]): Quaternion =
+    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
 
 proc xBy90*(_: typedesc[Quaternion]): Quaternion =
     return RotationQuaternion(newQuaternion(1.0, 0.0, 0.0, PI/2.0))

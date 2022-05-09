@@ -12,7 +12,7 @@ type
     
     Plane* = ref object of Shape
 
-## constructors
+# -------------------------------- Constructors -------------------------------------
 
 proc newSphere*(id: string = "SPHERE_0", origin: Point = newPoint(), radius: float32 = 1.0): Sphere =
     if not id.contains("SPHERE"):
@@ -30,7 +30,7 @@ proc newPlane*(id: string = "PLANE_0", origin: Point = newPoint(), transform: Tr
         raise ValueError.newException("Plane id must contain PLANE keyword.")
     result = Plane(id: id, origin: origin, transform: transform)
 
-## private funcs
+# -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
     var n: Normal = newNormal(p.x, p.y, p.z)
     if p.convert(Vector3).Dot(dir) < 0.0:
@@ -47,9 +47,11 @@ proc sphereWorldToLocal(p: Point): Vector2=
     else:
         result = newVector2(u+1.0, v)
 
-## ray intersection
+# --------------------------------------------- Methods --------------------------------------------
 
 method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.base, noSideEffect.}=
+    ## Abstract method for shape.rayIntersect which computes the intersection between a ray and the shape.
+    ## This is an abstract method, do not call it directly.
     raise AbstractMethodError.newException("Shape.ray_intersection is an abstract method and cannot be called.")
 
 method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit]=
