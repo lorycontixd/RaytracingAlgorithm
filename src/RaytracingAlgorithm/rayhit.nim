@@ -8,6 +8,8 @@ type
         t*: float32
         ray*: Ray
 
+# -------------------------------- Constructors -------------------------------------
+
 proc newRayHit*(): RayHit=
     result = RayHit(
         world_point: newPoint(0.0, 0.0, 0.0),
@@ -25,6 +27,22 @@ proc newRayHit*(world_point: Point, normal: Normal, surface_point: Vector2, t: f
         t: t,
         ray: ray
     )
+
+# -------------------------------- Getters & Setters -------------------------------------
+
+func GetPoint(self: RayHit): Point=
+    return self.world_point
+
+func GetNormal(self: RayHit): Normal=
+    return self.normal
+
+func GetSurfacePoint(self: RayHit): Vector2=
+    return self.surface_point
+
+func GetDistance(self: RayHit): float32=
+    return self.t
+
+# -------------------------------- Operators -------------------------------------
 
 proc `==`*(self, other: RayHit): bool =
     ### To verify that two Vector2d are the same or not 
