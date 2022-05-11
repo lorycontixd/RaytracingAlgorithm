@@ -72,8 +72,8 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
         CameraType.Perspective,
         width, height,
         world,
-        12,
-        5
+        10,
+        10
     )
     animator.Play()
     animator.Save(dontDeleteFrames)
