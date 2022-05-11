@@ -1,4 +1,4 @@
-import  geometry, ray
+import  geometry, ray, shape
 
 type
     RayHit* = object
@@ -7,6 +7,7 @@ type
         surface_point*: Vector2
         t*: float32
         ray*: Ray
+        shape*: Shape
 
 # -------------------------------- Constructors -------------------------------------
 
@@ -19,27 +20,28 @@ proc newRayHit*(): RayHit=
         ray: newRay()
     )
 
-proc newRayHit*(world_point: Point, normal: Normal, surface_point: Vector2, t: float32, ray: Ray): RayHit=
+proc newRayHit*(world_point: Point, normal: Normal, surface_point: Vector2, t: float32, ray: Ray, shape: Shape): RayHit=
     result = RayHit(
         world_point: world_point,
         normal: normal,
         surface_point: surface_point,
         t: t,
-        ray: ray
+        ray: ray,
+        shape: shape
     )
 
 # -------------------------------- Getters & Setters -------------------------------------
 
-func GetPoint(self: RayHit): Point=
+func GetPoint*(self: RayHit): Point=
     return self.world_point
 
-func GetNormal(self: RayHit): Normal=
+func GetNormal*(self: RayHit): Normal=
     return self.normal
 
-func GetSurfacePoint(self: RayHit): Vector2=
+func GetSurfacePoint*(self: RayHit): Vector2=
     return self.surface_point
 
-func GetDistance(self: RayHit): float32=
+func GetDistance*(self: RayHit): float32=
     return self.t
 
 # -------------------------------- Operators -------------------------------------
