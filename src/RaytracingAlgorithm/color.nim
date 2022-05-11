@@ -6,6 +6,8 @@ type
     Color* = object 
         r* , g* , b* : float32
 
+# ------------ Constructors ---------------
+
 proc newColor*(): Color=
     result = Color(r:0, g:0, b:0)
 
@@ -43,19 +45,23 @@ proc newColor*(color: string): Color=
         of "grey":
             return newColor(0.5, 0.5, 0.5)
         else:
-            raise InvalidColorError.newException(fmt"Color {color} is not defined.")
+            raise InvalidColorError.newException(fmt"Base color {color} is not defined.")
 
-proc luminosity*(c:Color): float32 =
-    let colormax = max(max(c.r, c.g), c.b)
-    let colormin = min(min(c.r, c.g), c.b)
+# ------------- Methods ----------------
+
+proc luminosity*(color: Color): float32 =
+    ## Color class method to compute luminosity
+    ## 
+    ## Parameters
+    ## - color (Color)
+    ## 
+    ## Returns
+    ## - luminosity (float32): Luminosity of the color
+    let colormax = max(max(color.r, color.g), color.b)
+    let colormin = min(min(color.r, color.g), color.b)
     return (colormax + colormin)/2
-## 
-## Color class method to compute luminosity
-## 
-##      -Parameters: Color
-## 
-##      -Returns: float 32 luminosity
 
+# ------------- Operators --------------
 
 proc `+`*(c1,c2: Color): Color {.inline.}=
     return Color(r: c1.r+c2.r, g: c1.g+c2.g, b: c1.b+c2.b)
@@ -67,25 +73,33 @@ proc `*`*(c1: Color, a:float): Color {.inline.}=
     return Color(r: c1.r*a, g: c1.g*a, b: c1.b*a)
 
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+    ## Color class method to verify if two floats are approximately equal
+    ## 
+    ## Parameters
+    ## - x (float32): left float
+    ## - y (float32): right float
+    ## 
+    ## Returns
+    ##      True (floats are close) or False (floats are not equal)
     return abs(x - y) < epsilon
-##
-## Color class method to verify if two floats are equal
-## 
-##      -Parameters: float32, float32
-## 
-##      -Returns: True (floats are close) or False (floats are not equal)
+
 
 proc `==`*(c1,c2: Color): bool {.inline.}=
+    ## Color class method to verify if two Colors are equal
+    ## 
+    ## Parameters
+    ## - c1 (Color): left color
+    ## - c2 (Color): right color
+    ## 
+    ## Returns
+    ##      True (r,g,b respectively of the two Colors are equal) else: False
     return IsEqual(c1.r, c2.r) and IsEqual(c1.g, c2.g) and IsEqual(c1.b, c2.b)
-##
-## Color class method to verify if two Colors are equal
-## 
-##      -Parameters: Color, Color
-## 
-##      -Returns: True (r,g,b respectively of the two Colors are equal) else: False
+
 
 proc `!=`*(c1, c2: Color): bool {.inline.}=
     return not(c1==c2)
+
+# ------------- Static methods ---------------
 
 proc black*(_: typedesc[Color]): Color {.inline.}=
     return newColor("black")

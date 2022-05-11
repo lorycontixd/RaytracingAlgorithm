@@ -2,7 +2,14 @@ import std/[os, strutils, strformat, macros, parsecfg, times]
 from sequtils import mapIt
 import neo
 
-let packageRootDir* = joinPath(parentDir(getCurrentDir()), "RaytracingAlgorithm/")
+let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
+
+func deleteWord*(s: var string, id: int): string =
+    let copy = s
+    var x = copy.split(" ")
+    x.delete(id)
+    let y = join(x, " ")
+    return y
 
 proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
     #[
@@ -19,6 +26,11 @@ proc size*[T](x: T): int =
         Returns the size of a container of type T
     ]#
     for _ in x:
+        inc result
+
+proc getFileCount(dirPath: string): int =
+    result = 0
+    for kind, path in walkDir(dirPath):
         inc result
 
 proc charSeqToByte*(s: seq[char]): seq[byte] {.inline.}= 
@@ -42,8 +54,8 @@ proc cmdArgsToString*(): string=
     return str
 
 proc getPackageVersion*(): string=
-    const filename = "RaytracingAlgorithm.nimble"
-    var p: Config = loadConfig(joinPath(packageRootDir, filename))
+    var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
+
     result = p.getSectionValue("", "version") 
 
 proc getMatrixRows*(m: Matrix): int =

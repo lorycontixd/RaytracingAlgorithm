@@ -9,12 +9,12 @@ bin           = @["RaytracingAlgorithm"]
 
 # Dependencies
 requires "nim >= 1.6.4"
-requires "therapist"
 requires "SimplePNG"
 requires "neo"
+requires "cligen"
 
 task mytest, "Run the packages tests!":
     exec "nim cpp -r tests/test_camera.nim"
 
-task start, "Run a script":
-    exec "nim cpp -r -d:release test.nim"
+task main, "Run a script":
+    exec "nim cpp -r -d:release src/RaytracingAlgorithm.nim"
