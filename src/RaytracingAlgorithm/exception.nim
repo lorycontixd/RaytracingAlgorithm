@@ -1,24 +1,32 @@
-import std/[os]
+import std/[os, strformat]
 
 type
     CustomException* = ref object of Exception
-    NotImplementedError* = object of CustomException
+    TestError* = object of Exception
 
+    AbstractMethodError* = object of CustomException # not derivable
+    NotImplementedError* = object of CustomException
+    InputError* = object of CustomException
+    TypeError* = object of CustomException
     ImageError* = object of CustomException
 
+    ParserError* = object of InputError
+    InvalidColorError* = object of InputError
+    ShapeIDNotFoundError* = ref object of InputError
+        shape_id*: string
+    
     PFMImageError* = object of ImageError
     PNGImageError* = object of ImageError
 
-    InvalidColorError* = object of CustomException
+    InvalidFormatError* = object of ParserError
 
-    InputParsingError* = object of CustomException
-    TestError* = object of Exception
+    InvalidCommandError* = object of ParserError # invalid command passed (render, animate, pfm2png)
 
-#[
-template myNewException*(exceptn: typedesc, message: string; parentException: ref Exception = nil): untyped =
-    let parent = parentDir(getCurrentDir())
-    let errorDir = joinPath(parent,"examples","errors")
-    if not existsDir(dir):
+    
 
-    (ref exceptn)(msg: message, parent: parentException)
-]#
+
+##### ------------------------------------------  CONSTRUCTORS  ----------------------------------------
+
+## --- Input Errors
+func newShapeIDError*(shape_id: string): ShapeIDNotFoundError=
+    result = ShapeIDNotFoundError(shape_id: shape_id, msg: fmt"Shape id not found: {shape_id}")
