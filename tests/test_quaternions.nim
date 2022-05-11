@@ -40,9 +40,9 @@ proc test_quat4(): void=
         v4: Vector3 = newVector3(5.0, 5.0, 5.0).normalize()
 
     var
-        q1: Quaternion = VectorRotation(v1, v2)
-        q2: Quaternion = VectorRotation(v1, v3)
-        q3: Quaternion = VectorRotation(v1, v4)
+        q1: Quaternion = Quaternion.VectorRotation(v1, v2)
+        q2: Quaternion = Quaternion.VectorRotation(v1, v3)
+        q3: Quaternion = Quaternion.VectorRotation(v1, v4)
     assert (q1 * v1).isClose(v2)
     assert (q2 * v1).isClose(v3)
     assert q2.isClose(Quaternion.yBy90())
