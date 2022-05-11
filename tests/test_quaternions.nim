@@ -46,7 +46,6 @@ proc test_quat4(): void=
     assert (q1 * v1).isClose(v2)
     assert (q2 * v1).isClose(v3)
     assert q2.isClose(Quaternion.yBy90())
-    echo q3*v1, " -- ",v4
     assert (q3 * v1).isClose(v4)
      
 

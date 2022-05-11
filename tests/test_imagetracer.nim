@@ -45,9 +45,6 @@ proc test_image_tracer*()=
         ray1 : Ray = tracer.fireRay(0, 0, 2.5, 1.5 )
         ray2 : Ray = tracer.fireRay(2, 1, 0.5, 0.5)
 
-    echo ray1
-    echo ray2
-
     #testing uv submapping
     assert ray1.isClose(ray2)
 

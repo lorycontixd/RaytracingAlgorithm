@@ -98,8 +98,6 @@ proc test_vector3_slerp(): void=
         start1: Vector3 = Vector3.up()
         end1: Vector3 = Vector3.right()
 
-    echo Vector3.Slerp(start1, end1, 0.5)
-
 
 test_transformation_matrix_inverse()
 test_rotation()
