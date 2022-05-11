@@ -1,4 +1,4 @@
-import geometry, transformation, rayhit, exception, ray, rayhit
+import geometry, transformation, rayhit, exception, ray, material
 import std/[math, typetraits, options, strutils, strformat]
 
 type
@@ -6,6 +6,7 @@ type
         id*: string
         origin*: Point
         transform*: Transformation
+        material*: Material
     
     Sphere* = ref object of Shape
         radius*: float32
@@ -19,10 +20,10 @@ proc newSphere*(id: string = "SPHERE_0", origin: Point = newPoint(), radius: flo
         raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     result = Sphere(id: id, origin: origin, radius: radius)
 
-proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransformation()): Sphere =
+proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Sphere =
     if not id.contains("SPHERE"):
         raise ValueError.newException("Sphere id must contain SPHERE keyword.")
-    result = Sphere(id: id, transform: transform)
+    result = Sphere(id: id, transform: transform, material: material)
     
 
 proc newPlane*(id: string = "PLANE_0", origin: Point = newPoint(), transform: Transformation = newTransformation()): Plane =
@@ -89,6 +90,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.g
     hit.normal = s.transform * sphereNormal(hitpoint, inversed_ray.dir) 
     hit.surface_point = sphereWorldToLocal(hitpoint)
     hit.ray = r
+    hit.shape = s
     result = some(hit)
 
 method rayIntersect*(self: Plane, r: Ray): Option[RayHit] {.raises: [AbstractMethodError].}=
