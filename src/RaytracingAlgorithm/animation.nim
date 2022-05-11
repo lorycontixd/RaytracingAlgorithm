@@ -1,10 +1,10 @@
-import camera, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer
+import camera, color, geometry, quaternion, logger, shape, world, transformation, hdrimage, imagetracer, renderer, matrix
 import std/[os, strformat, options, streams, marshal]
 
 type
     Animation* = ref object
-        start_pos*: Vector3
-        end_pos*: Vector3
+        start_transform*: Transformation
+        end_transform*: Transformation
         width*: int
         height*: int
         camType*: CameraType
@@ -16,6 +16,11 @@ type
         # internal
         frames*: seq[ImageTracer]
         hasPlayed: bool
+
+        translations: seq[Vector3]
+        rotations: seq[Quaternion]
+        scales: seq[Matrix]
+
         ## --------  Class for playing animations --------
         ## An animation is a collection of images (frames) played sequentially.
         ## The animation is 'duration_sec' long and has a total number of frames dictated by 'duration_sec'x'framerate'.
@@ -31,10 +36,14 @@ type
         ## - duration_sec (int): Duration of the animation in seconds
         ## - framerate (int): Number of frames per second
     
+
 # ----------- Constructors -----------
 
-proc newAnimation*(startpos, end_pos: Vector3, camType: CameraType, width,height: int, world: var World, duration_sec: int = 10, framerate: int = 60): Animation=
-    result = Animation(start_pos: startpos, end_pos: end_pos, camType: camType, width: width, height: height, world: world, duration_sec: duration_sec, framerate: framerate, nframes: duration_sec*framerate,  hasPlayed: false)
+func newAnimation*(start_transform, end_transform: Transformation, camType: CameraType, width,height: int, world: var World, duration_sec: int = 10, framerate: int = 60): Animation=
+    result = Animation(start_transform: start_transform, end_transform: end_transform, camType: camType, width: width, height: height, world: world, duration_sec: duration_sec, framerate: framerate, nframes: duration_sec*framerate,  hasPlayed: false)
+    result.translations = newSeq[Vector3](2)
+    result.rotations = newSeq[Quaternion](2)
+    result.scales = newSeq[Matrix](2)
 
 # ----------- Getters & Setters -----------
 
@@ -42,8 +51,79 @@ func GetNFrames(self: Animation): int=
     assert self.nframes == self.duration_sec * self.framerate
     return self.nframes
 
-# ----------- Methods -----------
+# ------------------------------------------------ Methods -----------------------------------------------------------------
 
+## -- Decomposition Utilities --
+
+func ExtractTranslation*(m: Matrix): Vector3=
+    result = newVector3(m[0][3], m[1][3], m[2][3])
+
+func RemoveTranslationFromMatrix(m: Matrix): Matrix=
+    result = newMatrix(m)
+    for i in 0..3:
+        result[i][3] = float32(0.0)
+    result[3][3] = float32(1.0)
+
+func ExtractRotationMatrix*(m: Matrix): Matrix=
+    var M: Matrix = RemoveTranslationFromMatrix(m)
+    #- Extract rotation from transform matrix
+    var 
+        norm: float32
+        count: int = 0
+        R: Matrix = newMatrix(M)
+    
+    while true:
+        var
+            Rnext: Matrix = Zeros()
+            Rit: Matrix = inverse(transpose(R))
+        for i in countup(0,4):
+            for j in countup(0,4):
+                Rnext[i][j] = 0.5 * (R[i][j] + Rit[i][j])
+        norm = 0
+        for i in 0..3:
+            let n = abs(R[i][0] - Rnext[i][0]) + abs(R[i][1] - Rnext[i][1]) + abs(R[i][2] - Rnext[i][2]) 
+            norm = max(norm, n)
+        R = newMatrix(Rnext)
+        count = count + 1
+        if (count > 100 or norm <= 0.0001):
+            break
+    result = newMatrix(R)
+
+func ExtractRotation*(m: Matrix): Quaternion=
+    var R: Matrix = ExtractRotationMatrix(m)
+    result = newQuaternion(R)
+
+func ExtractScale*(R: Matrix, m: Matrix): Matrix=
+    var M: Matrix = newMatrix(m)
+    for i in 0..3:
+        M[i][3] = float32(0.0)
+    M[3][3] = float32(1.0)
+    result = matrix.inverse(R) * M
+
+# -- Animation Methods
+
+func Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
+    ##
+    ##
+
+    #- Extract translation components from transform matrix
+    T = ExtractTranslation(m)
+    #- Compute a matrix with no translation components
+    Rquat = ExtractRotation(m)
+    #- Extract scale matrix -> M=RS
+    S = ExtractScale(ExtractRotationMatrix(m), RemoveTranslationFromMatrix(m))
+
+
+proc FindRotation*(self: var Animation): void {.inline.} =
+    ##
+    
+    Decompose(self.start_transform.m, self.translations[0], self.rotations[0], self.scales[0])
+    Decompose(self.end_transform.m, self.translations[1], self.rotations[1], self.scales[1])
+    if (Dot(self.rotations[0], self.rotations[1]) < 0):
+        self.rotations[1] = self.rotations[1].Negativize()
+
+
+#[
 proc Play*(self: var Animation): void=
     ## Plays an animation and stores the frames in memory.
 
@@ -102,7 +182,7 @@ proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
 
 proc Show*(self: Animation) = discard
 
-        
+        ]#
 
 
     

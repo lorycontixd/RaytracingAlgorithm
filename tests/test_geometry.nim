@@ -1,6 +1,7 @@
 import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/transformation.nim"
 import "../src/RaytracingAlgorithm/utils.nim"
+import "../src/RaytracingAlgorithm/matrix.nim"
 import std/[math]
 
 

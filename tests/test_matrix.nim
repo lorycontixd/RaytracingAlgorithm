@@ -1,4 +1,4 @@
-import "../src/RaytracingAlgorithm/transformation.nim"
+import "../src/RaytracingAlgorithm/matrix.nim"
 
 
 var

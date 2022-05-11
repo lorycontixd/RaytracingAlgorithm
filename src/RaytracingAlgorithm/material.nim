@@ -26,13 +26,16 @@ type
         pigment*: Pigment
 
 # ----------------------------  CONSTRUCTORS -------------------
+proc newUniformPigment*(color: Color = Color.black()): UniformPigment=
+    return UniformPigment(color: color)
+
 proc newCheckeredPigment*(color1, color2: Color, numberOfSteps: int = 10): CheckeredPigment=
     return CheckeredPigment(color1: color1, color2: color2, numberOfSteps: numberOfSteps)
 
-proc newDiffuseBRDF*(pigment: Pigment, reflectance: float32 = 1.0): DiffuseBRDF=
+proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float32 = 1.0): DiffuseBRDF=
     return DiffuseBRDF(pigment: pigment, reflectance: reflectance)
 
-proc newMaterial*(brdf: BRDF, pigment: Pigment): Material=
+proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, pigment: pigment)
 
 # ---------------------------
