@@ -21,6 +21,5 @@ proc test_animation1(): void=
         2
     )
     animation.Play()
-    echo animation.frames
 
 test_animation1()

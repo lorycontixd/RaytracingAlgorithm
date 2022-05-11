@@ -13,7 +13,6 @@ proc test_onoff_renderer(): void=
     var r1: Ray = newRay( newPoint(0.0, 0.0, 0.0), Vector3.right())
 
     let x = onoff.Get()
-    echo x(r1)
 
 test_onoff_renderer()
 

@@ -16,7 +16,6 @@ proc test_transform*()=
     var transform: Transformation = rotation * translation
     # apply transformation
     var transformed = ray.Transform(transform)
-    echo transformed
 
     assert transformed.origin.isClose(newPoint(11.0, -15.0, 13.0))
     assert transformed.dir.isClose(newVector3(16,-16,16))
