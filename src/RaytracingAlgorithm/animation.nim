@@ -16,6 +16,7 @@ type
         # internal
         frames*: seq[ImageTracer]
         hasPlayed: bool
+        hasRotation: bool # if initial state rotation and final state rotation are different
 
         translations: seq[Vector3]
         rotations: seq[Quaternion]
@@ -76,8 +77,8 @@ func ExtractRotationMatrix*(m: Matrix): Matrix=
         var
             Rnext: Matrix = Zeros()
             Rit: Matrix = inverse(transpose(R))
-        for i in countup(0,4):
-            for j in countup(0,4):
+        for i in countup(0,3):
+            for j in countup(0,3):
                 Rnext[i][j] = 0.5 * (R[i][j] + Rit[i][j])
         norm = 0
         for i in 0..3:
@@ -102,7 +103,7 @@ func ExtractScale*(R: Matrix, m: Matrix): Matrix=
 
 # -- Animation Methods
 
-func Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
+proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe, noSideEffect.}=
     ##
     ##
 
@@ -121,6 +122,8 @@ proc FindRotation*(self: var Animation): void {.inline.} =
     Decompose(self.end_transform.m, self.translations[1], self.rotations[1], self.scales[1])
     if (Dot(self.rotations[0], self.rotations[1]) < 0):
         self.rotations[1] = self.rotations[1].Negativize()
+    self.hasRotation = Dot(self.rotations[0], self.rotations[1]) < 0.9995
+    
 
 
 #[

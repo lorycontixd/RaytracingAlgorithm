@@ -18,4 +18,3 @@ var animation: Animation = newAnimation(
 )
 
 animation.FindRotation()
-echo $$animation.translations
