@@ -1,4 +1,4 @@
-import geometry, color, exception
+import geometry, color, exception, hdrimage
 import std/[math]
 
 type
@@ -12,6 +12,7 @@ type
         numberOfSteps*: int
 
     ImagePigment* = ref object of Pigment
+        image*: HdrImage
 
     BRDF* = ref object of RootObj
         pigment*: Pigment
@@ -38,6 +39,9 @@ proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float3
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, pigment: pigment)
 
+proc newImagePigment*(image: HdrImage): ImagePigment=
+    return ImagePigment(image: image)
+
 # ---------------------------
 method getColor*(self: Pigment, vec: Vector2): Color {.base.}=
     raise newException(AbstractMethodError, "")
@@ -54,6 +58,20 @@ method getColor*(self: CheckeredPigment, vec: Vector2): Color=
     else:
         return self.color2
 
+method getColor*(self: ImagePigment, vec: Vector2): Color=
+    var col = int(vec.u * float32(self.image.width))
+    var row = int(vec.v * float32(self.image.height))
+
+    if col >= self.image.width: 
+        col = -1 + self.image.width 
+
+    if row >= self.image.height:
+        row = -1 + self.image.height
+    
+    return self.image.get_pixel(col, row)
+
+method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
+    return self.image
 
 method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color {.base.}=
     raise newException(AbstractMethodError, "")
