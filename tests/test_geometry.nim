@@ -50,6 +50,7 @@ proc test_translation(): void=
     #echo Transformation.translation(trans) * v
     assert (Transformation.translation(trans) * p).isClose( newPoint(4.0, 2.0, 2.0) )
     assert (Transformation.translation(trans) * v).isClose( newVector3(2.0, 0.0, 0.0) )
+    assert (Transformation.translation(trans) * (v * 2.0)).isClose( newVector3(4.0, 0.0, 0.0) )
 
 proc test_scale(): void =
     var
