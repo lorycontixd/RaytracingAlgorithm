@@ -39,7 +39,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, -0.5, 0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
 
-    ## Save image!!
+    ### Save image!!
     imagetracer.fireAllRays(onoff.Get())
     var strmWrite = newFileStream("output.pfm", fmWrite)
     imagetracer.image.write_pfm(strmWrite)
