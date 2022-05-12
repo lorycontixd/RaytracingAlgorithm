@@ -1,3 +1,10 @@
+# ignore main output
 src/RaytracingAlgorithm.out
-examples/randomtests
+# ignore main tests
+examples/privates/
+# ignore outputs
+src/*.log
+src/*.mp4
+src/frames
+# ignore unused hidden files
 .DS_Store

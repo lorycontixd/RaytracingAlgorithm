@@ -9,6 +9,7 @@ type
     InputError* = object of CustomException
     TypeError* = object of CustomException
     ImageError* = object of CustomException
+    MathError* = object of CustomException
 
     ParserError* = object of InputError
     InvalidColorError* = object of InputError
@@ -18,8 +19,9 @@ type
     PFMImageError* = object of ImageError
     PNGImageError* = object of ImageError
 
-    InvalidFormatError* = object of ParserError
+    ZeroDeterminantError* = object of MathError
 
+    InvalidFormatError* = object of ParserError
     InvalidCommandError* = object of ParserError # invalid command passed (render, animate, pfm2png)
 
     

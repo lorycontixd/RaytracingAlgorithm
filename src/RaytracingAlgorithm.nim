@@ -50,8 +50,9 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
 
 proc animate(width: int = 800, height: int = 600, camera: string = "perspective", dontDeleteFrames: bool = false): void=
+    let start = cpuTime()
     logLevel = Level.debug
-    debug("Starting rendering script at ",now())
+    debug("Starting animating script at ",now())
     var
         world: World = newWorld()
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1))
@@ -67,16 +68,18 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
     world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, -0.5, 0.5)) * scale_tranform))
 
     var animator: Animation = newAnimation(
-        newVector3(-1.0, 0.0, 0.0),
-        newVector3(-1.0, 0.0, 0.0),
+        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(110.0),
+        Transformation.translation(-2.5, 0.0, 0.0) * Transformation.rotationX(180.0),
         CameraType.Perspective,
         width, height,
         world,
-        10,
-        10
+        4,
+        15
     )
     animator.Play()
     animator.Save(dontDeleteFrames)
+    let endTIme = cpuTime() - start
+    info(fmt"Animation executed in {endTime}")
 
 
  

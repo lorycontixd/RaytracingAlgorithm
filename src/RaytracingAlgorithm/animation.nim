@@ -59,7 +59,7 @@ func RemoveTranslationFromMatrix(m: Matrix): Matrix=
         result[i][3] = float32(0.0)
     result[3][3] = float32(1.0)
 
-func ExtractRotationMatrix*(m: Matrix): Matrix=
+proc ExtractRotationMatrix*(m: Matrix): Matrix=
     var M: Matrix = RemoveTranslationFromMatrix(m)
     #- Extract rotation from transform matrix
     var 
@@ -84,18 +84,18 @@ func ExtractRotationMatrix*(m: Matrix): Matrix=
             break
     result = newMatrix(R)
 
-func ExtractRotation*(m: Matrix): Quaternion=
+proc ExtractRotation*(m: Matrix): Quaternion=
     var R: Matrix = ExtractRotationMatrix(m)
     result = newQuaternion(R)
 
-func ExtractScale*(R: Matrix, m: Matrix): Matrix=
+proc ExtractScale*(R: Matrix, m: Matrix): Matrix=
     var M: Matrix = newMatrix(m)
     for i in 0..3:
         M[i][3] = float32(0.0)
     M[3][3] = float32(1.0)
     result = matrix.inverse(R) * M
 
-proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe, noSideEffect.}=
+proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
     ##
     ##
 
@@ -117,6 +117,14 @@ proc newAnimation*(start_transform, end_transform: Transformation, camType: Came
     result.actuallyAnimated = (start_transform != end_transform)
     Decompose(result.start_transform.m, result.translations[0], result.rotations[0], result.scales[0])
     Decompose(result.end_transform.m, result.translations[1], result.rotations[1], result.scales[1])
+    
+    echo $result.translations[0], $result.rotations[0]
+    result.scales[0].Show()
+    echo " "
+    
+    echo $result.translations[1], $result.rotations[1]
+    result.scales[1].Show()
+    echo " "
 # ----------------- Animation Methods
   
 
@@ -128,10 +136,10 @@ proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformat
     var dt: float32 = t / float32(self.duration_sec) # clamped between 0 and 1 (0 -> duration)
     var trans: Vector3 = (1.0 - dt) * self.translations[0] + dt * self.translations[1]
     if debug:
-        echo $trans
+        TranslationMatrix(trans).Show()
     var rotate: Quaternion = Slerp(self.rotations[0], self.rotations[1], dt)
     if debug:
-        echo $rotate
+        rotate.toRotationMatrix().Show()
     var scaleMatrix: Matrix = Zeros()
     if debug:
         scaleMatrix.Show()
@@ -153,12 +161,7 @@ proc Play*(self: var Animation): void=
     for i in countup(0, self.nframes-1):
         let
             t = float32(i / (self.nframes - 1)) * float32(self.duration_sec)
-            transform = self.Interpolate(t, true)
-        echo " "
-        
-        #echo t, " "
-        #transform.Show()
-        #echo " "
+            transform = self.Interpolate(t, false)
         
         var
             cam = newPerspectiveCamera(self.width, self.height, transform=transform)
@@ -211,9 +214,13 @@ proc Play*(self: var Animation): void=
 
 proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
     info("Found ",len(self.frames)," frames to save")
-    var dirName: string = "temp"
+    var finaldirname: string = "frames"
+    var dirName: string = joinPath(getCurrentDir(), finaldirname)
     if dirExists(dirName):
-        let resultCode = execShellCmd("rm -f temp/*")
+        warn("Frames folder already found. Removing previous frames.")
+        let resultCode = execShellCmd(fmt"rm -f {dirName}/*")
+        if resultCode != 0:
+            error("Could not delete existing frames")
     else:
         createDir(dirName)
     debug("Created temporary output folder: ",dirName)
@@ -223,16 +230,17 @@ proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
         var img = frame.image
         img.normalize_image(1.0)
         img.clamp_image()
-        var savePath: string = joinPath(dirName, fmt"output_{i}.png")
+        let stringInt = fmt"{i:04}" # int, works
+        var savePath: string = joinPath(dirName, fmt"output_{stringInt}.png")
         img.write_png(savePath, 1.0)
         debug("Written temporary PNG: ",savePath)
         i = i + 1
-    var cmd: string = fmt"ffmpeg -f image2 -framerate {self.framerate} -pattern_type glob -i 'temp/*.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
+    var cmd: string = fmt"ffmpeg -f image2 -r {self.framerate} -i '{dirName}/output_%04d.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
     let res = execShellCmd(cmd)
     debug("FFmpeg command called, return status: ",res)
     if res == 0:
         if not dontDeleteFrames:
-            let res2 = execShellCmd("rm -rf temp/")
+            let res2 = execShellCmd(fmt"rm -rf {dirName}/")
             debug("Temporary folder deleted, return status: ",res2)
     else:
         error("FFmpeg image command failed with return code ", res)

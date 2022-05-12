@@ -13,7 +13,7 @@ proc newTransformation*(m: Matrix, inv: Matrix): Transformation=
     result = Transformation(m:m, inverse:inv) 
 
 proc newTransformation*(m: Matrix): Transformation=
-    result = Transformation(m: m, inverse: matrix.inverse(m))
+    result = Transformation(m: m, inverse: inverse(m))
 
 
 
