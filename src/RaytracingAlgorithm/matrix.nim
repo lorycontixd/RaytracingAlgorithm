@@ -1,5 +1,5 @@
 import geometry, utils
-import std/[sequtils, math]
+import std/[sequtils, math, strutils]
 
 type
     Matrix* = seq[seq[float32]]
@@ -203,6 +203,17 @@ proc transpose*(m1: Matrix): Matrix=
 proc trace*(m: Matrix): float32=
     return m[0][0] + m[1][1] + m[2][2]
 
+proc Show*(m: Matrix): void=
+    for i in countup(0, m.high):
+        var line: string = "["
+        for j in countup(0, m[i].high):
+            let f = round(m[i][j], 3)
+            line = line & $f
+            if j != m.high:
+                line = line & "\t"
+        line = line & "]"
+        echo line
+
 proc `*`*(this, other: Matrix): Matrix=
     ## Matrix4 - Matrix4 product
     result = Zeros()
@@ -214,7 +225,9 @@ proc `*`*(this, other: Matrix): Matrix=
 proc are_matrix_close*(m1, m2 : Matrix): bool=
     for i in 0 .. 3:
         for j in 0 .. 3:
-            return IsEqual(m1[i][j], m2[i][j])
+            if not IsEqual(m1[i][j], m2[i][j]):
+                return false
+    return true
 
 proc `==`*(m1, m2: Matrix): bool=
     return are_matrix_close(m1,m2)

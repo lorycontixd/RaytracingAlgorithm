@@ -1,5 +1,5 @@
 import std/[os, math, macros, strformat]
-import geometry, exception, transformation, matrix
+import geometry, exception, transformation, matrix, mathutils
 
 type
     Quaternion* = ref object
@@ -159,6 +159,9 @@ proc `*`*(v: Vector3, rotation: Quaternion): Vector3 {.inline.}=
 proc `*`*(rotation: Quaternion, scalar: float32): Quaternion=
     ##
     result = newQuaternion(rotation.x * scalar, rotation.y * scalar, rotation.z * scalar, rotation.w * scalar)
+
+proc `*`*(scalar: float32, rotation: Quaternion): Quaternion=
+    return rotation * scalar
 
 proc `/`*(q: Quaternion, scalar: float32): Quaternion=
     ##
@@ -353,8 +356,10 @@ proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
     ##      t (float32): Interpolation value
     ##
     ## Returns
-    ##      Interpolated quaternion between a and b at value t
-    assert a.isNormalized() and b.isNormalized() 
+    ##      Interpolated quaternion between a and b at value t 
+
+
+    #[  Method1 --> Not working well
     t = t.clamp(0.0, 1.0)
 
     var q: Quaternion = newQuaternion()
@@ -370,6 +375,16 @@ proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
     q.z = wa * a.z + wb * b.z
     q.w = wa * a.w + wb * b.w
     result = q.Normalize()
+    ]#
+    var cosTheta: float32 = Dot(a, b)
+    if (cosTheta > 0.9995):
+        return Normalize((1 - t) * a + t * b);
+    else:
+        var theta: float32 = arccos(Clamp(cosTheta, -1, 1))
+        var thetap: float32 = theta * t
+        var qperp: Quaternion = Normalize(b - a * cosTheta)
+        return a * cos(thetap) + qperp * sin(thetap)
+    
 
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
