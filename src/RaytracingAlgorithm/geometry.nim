@@ -95,6 +95,11 @@ template defineProduct(type1: typedesc) =
         result.x = a.x * b
         result.y = a.y * b
         result.z = a.z * b
+    
+    proc `*`*(b: float32, a: type1): type1 =
+        result.x = a.x * b
+        result.y = a.y * b
+        result.z = a.z * b
 
 defineProduct(Vector3)
 defineProduct(Point)

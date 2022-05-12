@@ -6,8 +6,10 @@ type
         m*, inverse*: Matrix
 
 
+proc newTransformation*(): Transformation=
+    result = Transformation(m:IdentityMatrix(), inverse: IdentityMatrix())
 
-proc newTransformation*(m: Matrix=IdentityMatrix(), inv: Matrix=IdentityMatrix()): Transformation=
+proc newTransformation*(m: Matrix, inv: Matrix): Transformation=
     result = Transformation(m:m, inverse:inv) 
 
 proc newTransformation*(m: Matrix): Transformation=
@@ -51,11 +53,24 @@ proc `*`*(self, other: Transformation): Transformation=
         res_inv: Matrix = other.inverse * self.inverse
     result = newTransformation(res_m, res_inv)
 
+proc `==`*(self, other: Transformation): bool=
+    return are_matrix_close(self.m, other.m ) and are_matrix_close(self.inverse, other.inverse)
+
+proc `!=`*(self, other: Transformation): bool=
+    return not (self == other)
+
 
 proc is_consistent*(t : Transformation): bool =
     let product = t.m * t.inverse
     return are_matrix_close(product, IdentityMatrix())
 
+proc Show*(self: Transformation): void=
+    echo "=> Matrix: "
+    self.m.Show()
+    echo ""
+    echo "=> Inverse: "
+    self.inverse.Show()
+    
 
 
 ### -------------------------------------------------- Static methods -----------------------------------
