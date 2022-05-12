@@ -1,4 +1,4 @@
-import geometry, utils
+import geometry, utils, exception
 import std/[sequtils, math, strutils]
 
 type
@@ -36,7 +36,16 @@ proc Ones*(): Matrix=
         for j in 0 .. 3:
             result[i][j] = float32(1.0)
 
-
+proc Show*(m: Matrix): void=
+    for i in countup(0, m.high):
+        var line: string = "["
+        for j in countup(0, m[i].high):
+            let f = round(m[i][j], 3)
+            line = line & $f
+            if j != m.high:
+                line = line & "\t"
+        line = line & "]"
+        echo line
 
 proc TranslationMatrix*(v: Vector3): Matrix=
     result = @[
@@ -164,8 +173,12 @@ proc inverse*(m: Matrix): Matrix {.inline.}=
     var A0113 = m[1][0] * m[3][1] - m[1][1] * m[3][0]
     var A0112 = m[1][0] * m[2][1] - m[1][1] * m[2][0]
 
-    var det = m[0][0] * ( m[1][1] * A2323 - m[1][2] * A1323 + m[1][3] * A1223 ) - m[0][1] * ( m[1][0] * A2323 - m[1][2] * A0323 + m[1][3] * A0223 ) + m[0][2] * ( m[1][0] * A1323 - m[1][1] * A0323 + m[1][3] * A0123 ) - m[0][3] * ( m[1][0] * A1223 - m[1][1] * A0223 + m[1][2] * A0123 ) ;
-    det = 1 / det;
+    var det: float32 = m[0][0] * ( m[1][1] * A2323 - m[1][2] * A1323 + m[1][3] * A1223 ) - m[0][1] * ( m[1][0] * A2323 - m[1][2] * A0323 + m[1][3] * A0223 ) + m[0][2] * ( m[1][0] * A1323 - m[1][1] * A0323 + m[1][3] * A0123 ) - m[0][3] * ( m[1][0] * A1223 - m[1][1] * A0223 + m[1][2] * A0123 ) ;
+    
+    if det == 0:
+        m.Show()
+        raise ZeroDeterminantError.newException("Matrix with zero determinant is not invertible")
+    det = float32(1 / det)
 
     let
         m00 = det *   ( m[1][1] * A2323 - m[1][2] * A1323 + m[1][3] * A1223 )
@@ -203,16 +216,6 @@ proc transpose*(m1: Matrix): Matrix=
 proc trace*(m: Matrix): float32=
     return m[0][0] + m[1][1] + m[2][2]
 
-proc Show*(m: Matrix): void=
-    for i in countup(0, m.high):
-        var line: string = "["
-        for j in countup(0, m[i].high):
-            let f = round(m[i][j], 3)
-            line = line & $f
-            if j != m.high:
-                line = line & "\t"
-        line = line & "]"
-        echo line
 
 proc `*`*(this, other: Matrix): Matrix=
     ## Matrix4 - Matrix4 product
