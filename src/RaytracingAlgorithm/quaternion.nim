@@ -307,7 +307,8 @@ proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
         qz = cos(phi/2) * cos(theta/2) * sin(psi/2) - sin(phi/2) * sin(theta/2) * cos(psi/2)
     return newQuaternion(qx, qy, qz, qw)
 
-proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
+#[
+    proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
     ## Translates a quaternion rotation to a rotation matrix rotation.
     ## 
     var
@@ -342,7 +343,32 @@ proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
         @[m20, m21, m22, m23],
         @[m30, m31, m32, m33]]
     )
+]#
+proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
+    var
+        xx: float32 = q.x * q.x
+        yy: float32 = q.y * q.y
+        zz: float32 = q.z * q.z
+        xy: float32 = q.x * q.y
+        xz: float32 = q.x * q.z
+        yz: float32 = q.y * q.z
+        wx: float32 = q.x * q.w
+        wy: float32 = q.y * q.w
+        wz: float32 = q.z * q.w
 
+    var m: Matrix = Zeros()
+    m[0][0] = 1.0 - 2.0 * (yy + zz)
+    m[0][1] = 2.0 * (xy + wz)
+    m[0][2] = 2.0 * (xz - wy)
+    m[1][0] = 2.0 * (xy - wz)
+    m[1][1] = 1.0 - 2.0 * (xx + zz)
+    m[1][2] = 2.0 * (yz + wx)
+    m[2][0] = 2.0 * (xz + wy)
+    m[2][1] = 2.0 * (yz - wx)
+    m[2][2] = 1.0 - 2.0 * (xx + yy)
+    m[3][3] = 1.0
+
+    return m
 
 proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
     ## Spherical linear interpolation between two quaternions.
