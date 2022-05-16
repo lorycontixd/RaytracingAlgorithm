@@ -16,12 +16,19 @@ proc newQuaternion*(x,y,z,w: float32): Quaternion=
 
 proc newQuaternion*(v: Vector3, w: float32): Quaternion=
     result = newQuaternion(v[0], v[1], v[2], w)
+    let dot = result.x * result.x + result.y * result.y + result.z * result.z + result.w * result.w
+    let magn = sqrt(dot)
+    result.x = result.x/magn
+    result.y = result.y/magn
+    result.z = result.z/magn
+    result.w = result.w/magn
 
+#[
 proc newQuaternion*(m: Matrix): Quaternion= 
     result = newQuaternion()
     let trace = m.trace()
     if (trace > 0.0):
-        let s = sqrt( trace + 1.0 )
+        let s = sqrt( trace + m[3][3] )
         result.w = s / 2.0
         result.x = m[2][1] - m[1][2] * s
         result.y = m[0][2] - m[2][0] * s
@@ -54,7 +61,35 @@ proc newQuaternion*(m: Matrix): Quaternion=
         result.y = result.y/magn
         result.z = result.z/magn
         result.w = result.w/magn
+]#
 
+proc newQuaternion*(m: Matrix): Quaternion=
+    # http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf   
+    result = newQuaternion()
+    let
+        trace = m.trace()
+        a1 = m[0][0] - m[1][1] - m[2][2]
+        a2 = -m[0][0] + m[1][1] - m[2][2]
+        a3 = -m[0][0] - m[1][1] + m[2][2]
+    if (trace > 0):
+        result.w = 0.5 * sqrt( trace + 1.0)
+    else:
+        result.w = 0.5 * sqrt ( ( pow(m[2][1] - m[1][2],2.0) + pow(m[0][2] - m[2][0],2.0) + pow(m[1][0] - m[0][1],2.0)) / (3 - trace) )
+
+    if (a1 > 0):
+        result.x = 0.5 * sqrt ( a1 + 1)
+    else:
+        result.x = 0.5 * sqrt ( ( pow(m[2][1] - m[1][2],2.0) + pow(m[0][1] + m[1][0],2.0) + pow(m[2][0] + m[0][2],2.0)) / (3 - a1) )
+
+    if (a2 > 0):
+        result.y = 0.5 * sqrt (a2 + 1)
+    else:
+        result.y = 0.5 * sqrt ( ( pow(m[0][2] - m[2][0],2.0) + pow(m[0][1] + m[1][0],2.0) + pow(m[1][2] + m[2][1],2.0)) / (3 - a2) )
+
+    if (a3 > 0):
+        result.z = 0.5 * sqrt (a3 + 1)
+    else:
+        result.z = 0.5 * sqrt ( ( pow(m[1][0] - m[0][1],2.0) + pow(m[2][0] + m[0][2],2.0) + pow(m[2][1] + m[1][2],2.0)) / (3 - a3) )
 
 proc newQuaternion*(other: Quaternion): Quaternion=
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)

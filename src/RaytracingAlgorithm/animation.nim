@@ -83,11 +83,12 @@ proc ExtractRotationMatrix*(m: Matrix): Matrix=
         count = count + 1
         if (count > 100 or norm <= 0.0001):
             break
-    result = newMatrix(R)
+    let x = newMatrix(R)
+    result = x
 
 proc ExtractRotation*(m: Matrix): Quaternion=
     var R: Matrix = ExtractRotationMatrix(m)
-    result = newQuaternion(R)
+    result = newQuaternion(R).Normalize()
 
 proc ExtractScale*(R: Matrix, M: Matrix): Matrix=
     result = matrix.inverse(R) * M
@@ -95,7 +96,8 @@ proc ExtractScale*(R: Matrix, M: Matrix): Matrix=
 proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
     ##
     ##
-
+    echo "---> m; "
+    m.Show()
     #- Extract translation components from transform matrix
     T = ExtractTranslation(m)
     #- Compute a matrix with no translation components
@@ -116,7 +118,7 @@ proc newAnimation*(start_transform, end_transform: Transformation, camType: Came
     Decompose(result.end_transform.m, result.translations[1], result.rotations[1], result.scales[1])
     
     echo $result.translations[0],"\n"
-    echo $result.rotations[0]
+    echo "-> ",$result.rotations[0]
     result.rotations[0].toRotationMatrix().Show()
     #result.scales[0].Show()
     echo " "
@@ -185,9 +187,15 @@ proc Play*(self: var Animation): void=
         echo "Frame: ",i
         let
             t = float32(i / (self.nframes - 1)) * float32(self.duration_sec)
+            x = float32(i)/float32(self.nframes-1)
+            #translationMatrix = Transformation.translation(-2.0, 0.0, 0.0)
+            #rotMatrix = Transformation.rotationX(90.0 * (1.0+x))
+            #transform =  translationMatrix * rotMatrix 
             transform = self.Interpolate(t, true)
-            #transform = Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(90.0 * (1.0+x))
             percentage = int(float32(i)/float32(self.nframes-1) * 100.0)
+        #echo "t: ",t,"   Rot matrix: "
+        #rotMatrix.Show()
+        #echo "quat: ",newQuaternion(rotMatrix.m)
         echo "t: ",t,"\n\n\n"
         stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat i, if i > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
         var
