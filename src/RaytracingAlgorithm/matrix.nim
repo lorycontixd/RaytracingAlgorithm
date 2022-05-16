@@ -154,6 +154,7 @@ proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
     
 
 proc inverse*(m: Matrix): Matrix {.inline.}=
+    ## Calculates the inverse matrix of a 4x4 matrix
     var A2323 = m[2][2] * m[3][3] - m[2][3] * m[3][2]
     var A1323 = m[2][1] * m[3][3] - m[2][3] * m[3][1]
     var A1223 = m[2][1] * m[3][2] - m[2][2] * m[3][1]
