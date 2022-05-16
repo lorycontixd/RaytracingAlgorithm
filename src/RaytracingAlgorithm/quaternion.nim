@@ -403,13 +403,13 @@ proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
     result = q.Normalize()
     ]#
     var cosTheta: float32 = Dot(a, b)
-    if (cosTheta > 0.9995):
-        return Normalize((1 - t) * a + t * b);
+    if (cosTheta > 0.9995):  #a,b are parallel
+        return Normalize((1 - t) * a + t * b);  #linear interpolation
     else:
         var theta: float32 = arccos(Clamp(cosTheta, -1, 1))
         var thetap: float32 = theta * t
-        var qperp: Quaternion = Normalize(b - a * cosTheta)
-        return a * cos(thetap) + qperp * sin(thetap)
+        var qperp: Quaternion = Normalize(b - a * cosTheta) #orthogonl to a
+        return a * cos(thetap) + qperp * sin(thetap) #interpolation quaternion
     
 
 
