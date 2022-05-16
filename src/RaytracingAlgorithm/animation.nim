@@ -57,6 +57,7 @@ func RemoveTranslationFromMatrix(m: Matrix): Matrix=
     result = newMatrix(m)
     for i in 0..3:
         result[i][3] = float32(0.0)
+        result[3][i] = float32(0.0)
     result[3][3] = float32(1.0)
 
 proc ExtractRotationMatrix*(m: Matrix): Matrix=
@@ -115,40 +116,17 @@ proc newAnimation*(start_transform, end_transform: Transformation, camType: Came
     Decompose(result.end_transform.m, result.translations[1], result.rotations[1], result.scales[1])
     
     echo $result.translations[0],"\n"
+    echo $result.rotations[0]
     result.rotations[0].toRotationMatrix().Show()
-    result.scales[0].Show()
+    #result.scales[0].Show()
     echo " "
     
     echo $result.translations[1],"\n"
+    echo $result.rotations[1]
     result.rotations[1].toRotationMatrix().Show()
-    result.scales[1].Show()
+    #result.scales[1].Show()
     echo " "
 # ----------------- Animation Methods
-  
-
-#[proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformation {.inline.}=
-    if not self.actuallyAnimated or t <= 0.0:
-        self.start_transform.Show()
-        return self.start_transform
-    if t >= float32(self.duration_sec):
-        self.end_transform.Show()
-        return self.end_transform
-    var dt: float32 = t / float32(self.duration_sec) # clamped between 0 and 1 (0 -> duration)
-    var trans: Vector3 = (1.0 - dt) * self.translations[0] + dt * self.translations[1]
-    if debug:
-        TranslationMatrix(trans).Show()
-    var rotate: Quaternion = Slerp(self.rotations[0], self.rotations[1], dt)
-    if debug:
-        rotate.toRotationMatrix().Show()
-    var scaleMatrix: Matrix = Zeros()
-    if debug:
-        scaleMatrix.Show()
-    #echo $trans
-    for i in countup(0,3):
-        for j in countup(0,3):
-            scaleMatrix[i][j] = Lerp(self.scales[0][i][j], self.scales[1][i][j], dt)
-    return Transformation.translation(trans) * newTransformation(rotate.toRotationMatrix()) * newTransformation(scaleMatrix)
-]#
 
 proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformation {.inline.}=
     if not self.actuallyAnimated or t <= 0.0:
@@ -157,20 +135,42 @@ proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformat
         return self.end_transform
     var dt: float32 = t / float32(self.duration_sec)
     # Interpolate translation at _dt_
-    var trans: Vector3 = (1.0 - dt) * self.translations[0] + dt * self.translations[1];
+    var trans: Vector3 = (1.0 - dt) * self.translations[0] + dt * self.translations[1]
+    if debug:
+        echo "Translation:"
+        echo $trans,"\n"
 
     # Interpolate rotation at _dt_
     var rotate: Quaternion = Slerp(self.rotations[0], self.rotations[1], dt)
     if debug:
+        echo "Rotation:"
+        echo $rotate,"\n"
         rotate.toRotationMatrix().Show()
+        echo "\n"
     # Interpolate scale at _dt_
     var scale: Matrix = Zeros()
     for i in countup(0,3):
         for j in countup(0,3):
             scale[i][j] = Lerp(self.scales[0][i][j], self.scales[1][i][j], dt)
+    if debug:
+        echo "Scale:"
+        scale.Show()
+        echo "\n"
+
+    let
+        transTranform = Transformation.translation(trans)
+        rotTransform = newTransformation(rotate.toRotationMatrix())
+        scaleTransform =  newTransformation(scale)
+
+    transTranform.Show()
+    echo "\n"
+    rotTransform.Show()
+    echo "\n"
+    scaleTransform.Show()
+    echo "\n"
 
     # Compute interpolated matrix as product of interpolated components
-    return Transformation.translation(trans) * newTransformation(rotate.toRotationMatrix()) * newTransformation(scale)
+    return transTranform * rotTransform * scaleTransform
 
 proc Play*(self: var Animation): void=
     ## Plays an animation and stores the frames in memory.
@@ -186,8 +186,9 @@ proc Play*(self: var Animation): void=
         let
             t = float32(i / (self.nframes - 1)) * float32(self.duration_sec)
             transform = self.Interpolate(t, true)
+            #transform = Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(90.0 * (1.0+x))
             percentage = int(float32(i)/float32(self.nframes-1) * 100.0)
-        echo "t: ",t,"\n\n"
+        echo "t: ",t,"\n\n\n"
         stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat i, if i > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
         var
             cam = newPerspectiveCamera(self.width, self.height, transform=transform)
@@ -203,44 +204,6 @@ proc Play*(self: var Animation): void=
         eraseLine()
     stdout.resetAttributes()
 
-#[proc FindRotation*(self: var Animation): void {.inline.} =
-    ##
-    
-    Decompose(self.start_transform.m, self.translations[0], self.rotations[0], self.scales[0])
-    Decompose(self.end_transform.m, self.translations[1], self.rotations[1], self.scales[1])
-    if (Dot(self.rotations[0], self.rotations[1]) < 0):
-        self.rotations[1] = self.rotations[1].Negativize()
-    self.hasRotation = Dot(self.rotations[0], self.rotations[1]) < 0.9995
-]#
-
-
-#[
-proc Play*(self: var Animation): void=
-    ## Plays an animation and stores the frames in memory.
-
-    info("Starting animation ")
-    info("Framerate: ",self.framerate)
-    info("Duration: ",self.duration_sec)
-    info("Camera Type: ",self.camType)
-    info("Estimated frames to be produces: ", self.GetNFrames())
-    var rotation: Quaternion = Quaternion.VectorRotation(self.start_pos, self.end_pos)
-
-    for i in countup(0, self.nframes-1):
-        let
-            t = float32(i / (self.nframes-1))
-            q = rotation * t
-        var
-            cam = newPerspectiveCamera(self.width, self.height, transform=Transformation.translation(self.start_pos) * Transformation.rotationZ(180.0*t))
-            hdrImage: HdrImage = newHdrImage(self.width, self.height)
-            imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
-            onoff: OnOffRenderer = newOnOffRenderer(self.world, Color.black(), Color.white())
-        
-        imagetracer.fireAllRays(onoff.Get())
-        let lum = imagetracer.image.average_luminosity()
-        debug(fmt"Created frame {i+1}/{self.nframes} --> Average Luminosity: {lum}")
-        self.frames.add(imagetracer)
-
-]#
 
 proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
     info("Found ",len(self.frames)," frames to save")

@@ -5,6 +5,8 @@ type
     Quaternion* = ref object
         x*,y*,z*,w*: float32
 
+
+
 # --------------- Constructors -----------------
 proc newQuaternion*(): Quaternion=
     result = Quaternion(x:0, y:0, z:0, w:0)
@@ -46,13 +48,16 @@ proc newQuaternion*(m: Matrix): Quaternion=
         result.x = q[0]
         result.y = q[1]
         result.z = q[2]
+        let dot = result.x * result.x + result.y * result.y + result.z * result.z + result.w * result.w
+        let magn = sqrt(dot)
+        result.x = result.x/magn
+        result.y = result.y/magn
+        result.z = result.z/magn
+        result.w = result.w/magn
 
 
 proc newQuaternion*(other: Quaternion): Quaternion=
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)
-
-proc Identity*(_: typedesc[Quaternion]): Quaternion =
-    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
 
 # ----------------- Operators -------------------
 
@@ -212,8 +217,26 @@ proc Angle*(a,b: Quaternion): float32=
         let angle = arccos(dot) * 2.0
         return radToDeg(angle)
 
+proc Identity*(_: typedesc[Quaternion]): Quaternion =
+    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
+
 proc Norm*(q: Quaternion): float32 =
     return sqrt(Dot(q,q))
+
+proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
+    let magn = Norm(self)
+
+    if magn < epsilon:
+        return Quaternion.Identity()
+    else:
+        return self / magn
+
+proc NormalizeInplace*(self: var Quaternion) : void=
+    let magn = sqrt(Dot(self, self))
+    self.x = self.x/magn
+    self.y = self.y/magn
+    self.z = self.z/magn
+    self.w = self.w/magn
 
 proc squaredNorm*(q: Quaternion): float32 =
     return Norm(q) * Norm(q)
@@ -233,34 +256,19 @@ proc makePositive*(euler: Vector3): Vector3=
 
     result = newVector3(euler)
     if (result.x < negativeFlip):
-        result.x = result.x + 360.0f
+        result.x = result.x + 360.0
     elif (result.x > positiveFlip):
-        result.x -= 360.0f;
+        result.x -= 360.0
 
     if (result.y < negativeFlip):
-        result.y += 360.0f
+        result.y += 360.0
     elif (result.y > positiveFlip):
-        result.y -= 360.0f
+        result.y -= 360.0
 
     if (result.z < negativeFlip):
-        result.z += 360.0f
+        result.z += 360.0
     elif (result.z > positiveFlip):
-        result.z -= 360.0f
-
-proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
-    let magn = Norm(self)
-
-    if magn < epsilon:
-        return Quaternion.Identity()
-    else:
-        return self / magn
-
-proc NormalizeInplace*(self: var Quaternion) : void=
-    let magn = sqrt(Dot(self, self))
-    self.x = self.x/magn
-    self.y = self.y/magn
-    self.z = self.z/magn
-    self.w = self.w/magn
+        result.z -= 360.0
 
 proc isNormalized*(self: Quaternion): bool=
     return self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w == 1
@@ -307,44 +315,9 @@ proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
         qz = cos(phi/2) * cos(theta/2) * sin(psi/2) - sin(phi/2) * sin(theta/2) * cos(psi/2)
     return newQuaternion(qx, qy, qz, qw)
 
-#[
-    proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
-    ## Translates a quaternion rotation to a rotation matrix rotation.
-    ## 
-    var
-        q0: float32 = q[0]
-        q1: float32 = q[1]
-        q2: float32 = q[2]
-        q3: float32 = q[3]
-
-        m00: float32 = 2.0 * (q0 * q0 + q1 * q1)
-        m01: float32 = 2.0 * (q1 * q2 - q0 * q3)
-        m02: float32 = 2.0 * (q1 * q3 + q0 * q2)
-        m03: float32 = 0.0
-
-        m10: float32 = 2.0 * (q1 * q2 + q0 * q3)
-        m11: float32 = 2.0 * (q0 * q0 + q2 * q2)
-        m12: float32 = 2.0 * (q2 * q3 - q0 * q1)
-        m13: float32 = 0.0
-
-        m20: float32 = 2.0 * (q1 * q3 - q0 * q2)
-        m21: float32 = 2.0 * (q2 * q3 + q0 * q1)
-        m22: float32 = 2.0 * (q0 * q0 + q3 * q3) - 1
-        m23: float32 = 0.0
-
-        m30: float32 = 0.0
-        m31: float32 = 0.0
-        m32: float32 = 0.0
-        m33: float32 = 1.0
-
-    result = newMatrix(@[
-        @[m00, m01, m02, m03],
-        @[m10, m11, m12, m13],
-        @[m20, m21, m22, m23],
-        @[m30, m31, m32, m33]]
-    )
-]#
-proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
+proc toRotationMatrix*(q: var Quaternion): Matrix {.inline.}=
+    q = q.Normalize()
+    echo $q
     var
         xx: float32 = q.x * q.x
         yy: float32 = q.y * q.y
@@ -370,7 +343,7 @@ proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
 
     return m
 
-proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
+proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
     ## Spherical linear interpolation between two quaternions.
     ## Interpolates a quaternion in between two quaternions based on the free parameter t.
     ## If t=0, returns the first quaternion. If t=1, returns the second quaternion.
@@ -383,25 +356,9 @@ proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
     ##
     ## Returns
     ##      Interpolated quaternion between a and b at value t 
-
-
-    #[  Method1 --> Not working well
-    t = t.clamp(0.0, 1.0)
-
-    var q: Quaternion = newQuaternion()
-    
-    var 
-        t2: float32 = 1 - t
-        theta: float32 = arccos(clamp(Dot(a,b), -1.0, 1.0))
-        sn: float32 = sin(theta)
-        wa: float32 =  sin(t2 * theta) / sn
-        wb: float32 = sin(t * theta) / sn
-    q.x = wa * a.x + wb * b.x
-    q.y = wa * a.y + wb * b.y
-    q.z = wa * a.z + wb * b.z
-    q.w = wa * a.w + wb * b.w
-    result = q.Normalize()
-    ]#
+    ## 
+    a = a.Normalize()
+    b = b.Normalize()
     var cosTheta: float32 = Dot(a, b)
     if (cosTheta > 0.9995):  #a,b are parallel
         return Normalize((1 - t) * a + t * b);  #linear interpolation
