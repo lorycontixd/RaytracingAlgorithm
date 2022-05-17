@@ -1,8 +1,8 @@
-import std/[os, strformat]
+import std/[strformat]
 
 type
-    CustomException* = ref object of Exception
-    TestError* = object of Exception
+    CustomException* = ref object of CatchableError
+    TestError* = object of CustomException
 
     AbstractMethodError* = object of CustomException # not derivable
     NotImplementedError* = object of CustomException
@@ -10,7 +10,7 @@ type
     TypeError* = object of CustomException
     ImageError* = object of CustomException
     MathError* = object of CustomException
-    IndexErrpr* = object of CustomException
+    IndexError* = object of CustomException
 
     ParserError* = object of InputError
     InvalidColorError* = object of InputError

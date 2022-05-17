@@ -1,8 +1,8 @@
-import camera, mathutils, color, geometry, quaternion, logger, shape, world, transformation, hdrimage, imagetracer, renderer, matrix
-import std/[os, strformat, options, streams, marshal, strutils, terminal]
+import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix
+import std/[os, strformat, strutils, terminal]
 
 type
-    Animation* = ref object
+    Animation* = object
         start_transform*: Transformation
         end_transform*: Transformation
         width*: int
@@ -48,63 +48,6 @@ func GetNFrames(self: Animation): int=
 
 # ------------------------------------------------ Methods -----------------------------------------------------------------
 
-## -- Decomposition Utilities --
-
-func ExtractTranslation*(m: Matrix): Vector3=
-    result = newVector3(m[0][3], m[1][3], m[2][3])
-
-func RemoveTranslationFromMatrix(m: Matrix): Matrix=
-    result = newMatrix(m)
-    for i in 0..3:
-        result[i][3] = float32(0.0)
-        result[3][i] = float32(0.0)
-    result[3][3] = float32(1.0)
-
-proc ExtractRotationMatrix*(m: Matrix): Matrix=
-    var M: Matrix = RemoveTranslationFromMatrix(m)
-    #- Extract rotation from transform matrix
-    var 
-        norm: float32
-        count: int = 0
-        R: Matrix = newMatrix(M)
-    
-    while true:
-        var
-            Rnext: Matrix = Zeros()
-            Rit: Matrix = inverse(transpose(R))
-        for i in countup(0,3):
-            for j in countup(0,3):
-                Rnext[i][j] = 0.5 * (R[i][j] + Rit[i][j])
-        norm = 0
-        for i in 0..3:
-            let n = abs(R[i][0] - Rnext[i][0]) + abs(R[i][1] - Rnext[i][1]) + abs(R[i][2] - Rnext[i][2]) 
-            norm = max(norm, n)
-        R = newMatrix(Rnext)
-        count = count + 1
-        if (count > 100 or norm <= 0.0001):
-            break
-    let x = newMatrix(R)
-    result = x
-
-proc ExtractRotation*(m: Matrix): Quaternion=
-    var R: Matrix = ExtractRotationMatrix(m)
-    result = newQuaternion(R).Normalize()
-
-proc ExtractScale*(R: Matrix, M: Matrix): Matrix=
-    result = matrix.inverse(R) * M
-
-proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
-    ##
-    ##
-    echo "---> m; "
-    m.Show()
-    #- Extract translation components from transform matrix
-    T = ExtractTranslation(m)
-    #- Compute a matrix with no translation components
-    Rquat = ExtractRotation(m)
-    #- Extract scale matrix -> M=RS
-    S = ExtractScale(ExtractRotationMatrix(m), RemoveTranslationFromMatrix(m))
-  
 
 # ----------- Constructors -----------
 
@@ -116,21 +59,10 @@ proc newAnimation*(start_transform, end_transform: Transformation, camType: Came
     result.actuallyAnimated = (start_transform != end_transform)
     Decompose(result.start_transform.m, result.translations[0], result.rotations[0], result.scales[0])
     Decompose(result.end_transform.m, result.translations[1], result.rotations[1], result.scales[1])
-    
-    echo $result.translations[0],"\n"
-    echo "-> ",$result.rotations[0]
-    result.rotations[0].toRotationMatrix().Show()
-    #result.scales[0].Show()
-    echo " "
-    
-    echo $result.translations[1],"\n"
-    echo $result.rotations[1]
-    result.rotations[1].toRotationMatrix().Show()
-    #result.scales[1].Show()
-    echo " "
+
 # ----------------- Animation Methods
 
-proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformation {.inline.}=
+proc Interpolate*(self: var Animation, t: float32, debug: bool = false): Transformation {.inline.}=
     if not self.actuallyAnimated or t <= 0.0:
         return self.start_transform
     if t >= float32(self.duration_sec):
@@ -147,7 +79,6 @@ proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformat
     if debug:
         echo "Rotation:"
         echo $rotate,"\n"
-        rotate.toRotationMatrix().Show()
         echo "\n"
     # Interpolate scale at _dt_
     var scale: Matrix = Zeros()
@@ -161,15 +92,9 @@ proc Interpolate*(self: Animation, t: float32, debug: bool = false): Transformat
 
     let
         transTranform = Transformation.translation(trans)
-        rotTransform = newTransformation(rotate.toRotationMatrix())
-        scaleTransform =  newTransformation(scale)
+        rotTransform = newTransformation(rotate.ToRotation())
+        scaleTransform = newTransformation(scale)
 
-    transTranform.Show()
-    echo "\n"
-    rotTransform.Show()
-    echo "\n"
-    scaleTransform.Show()
-    echo "\n"
 
     # Compute interpolated matrix as product of interpolated components
     return transTranform * rotTransform * scaleTransform
@@ -184,19 +109,11 @@ proc Play*(self: var Animation): void=
     info("Estimated frames to be produces: ", self.GetNFrames())
 
     for i in countup(0, self.nframes-1):
-        echo "Frame: ",i
         let
             t = float32(i / (self.nframes - 1)) * float32(self.duration_sec)
-            x = float32(i)/float32(self.nframes-1)
-            #translationMatrix = Transformation.translation(-2.0, 0.0, 0.0)
-            #rotMatrix = Transformation.rotationX(90.0 * (1.0+x))
-            #transform =  translationMatrix * rotMatrix 
-            transform = self.Interpolate(t, true)
+            transform = self.Interpolate(t, false)
             percentage = int(float32(i)/float32(self.nframes-1) * 100.0)
-        #echo "t: ",t,"   Rot matrix: "
-        #rotMatrix.Show()
-        #echo "quat: ",newQuaternion(rotMatrix.m)
-        echo "t: ",t,"\n\n\n"
+
         stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat i, if i > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
         var
             cam = newPerspectiveCamera(self.width, self.height, transform=transform)
