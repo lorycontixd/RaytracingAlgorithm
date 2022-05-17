@@ -4,6 +4,7 @@ import std/[sequtils, math, strutils]
 type
     Matrix* = seq[seq[float32]]
 
+
 proc newMatrix*(s: seq[seq[float32]]): Matrix=
     return cast[Matrix](s)
 
@@ -35,6 +36,11 @@ proc Ones*(): Matrix=
         result[i] = newSeq[float32](4)
         for j in 0 .. 3:
             result[i][j] = float32(1.0)
+
+proc newMatrix*(): Matrix=
+    return Zeros()
+
+## Methods
 
 proc Show*(m: Matrix): void=
     for i in countup(0, m.high):
