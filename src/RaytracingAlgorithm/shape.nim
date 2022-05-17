@@ -92,7 +92,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.g
     hit.normal = s.transform * sphereNormal(hitpoint, inversed_ray.dir) 
     hit.surface_point = sphereWorldToLocal(hitpoint)
     hit.ray = r
-    #hit.shape = s
+    #hit.hitshape = s
     result = some(hit)
 
 method rayIntersect*(self: Plane, r: Ray): Option[RayHit] {.raises: [AbstractMethodError].}=

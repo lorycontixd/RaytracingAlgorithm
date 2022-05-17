@@ -1,4 +1,4 @@
-import std/[os, strutils, strformat, macros, parsecfg, times]
+import std/[os, strutils, strformat, macros, parsecfg, times, terminal, locks]
 from sequtils import mapIt
 import neo
 
@@ -88,3 +88,18 @@ template timeIt*(theFunc: proc, passedArgs: varargs[untyped]): untyped =
   let res = theFunc(passedArgs)
   echo "Time taken: ",cpuTime() - t
   res
+
+proc showBar*(content: string) =
+    stdout.eraseLine
+    stdout.write("[$1]" % [content])
+    stdout.flushFile
+
+proc progressBar*()=
+    for i in 0..100:
+        stdout.styledWriteLine(fgRed, "0% ", fgWhite, '#'.repeat i, if i > 50: fgGreen else: fgYellow, "\t", $i , "%")
+        sleep 42
+        cursorUp 1
+        eraseLine()
+
+    stdout.resetAttributes()
+    
