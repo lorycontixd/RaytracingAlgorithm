@@ -1,6 +1,6 @@
 
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, rayhit, imagetracer, exception, renderer]
-import std/[segfaults, parsecfg, os, streams, times, options, parseopt, tables, marshal, strutils, strformat, locks]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer]
+import std/[segfaults, os, streams, times, options, tables, strutils, strformat]
 import cligen
 
 proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
@@ -69,8 +69,8 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
     world.Add(newSphere("SPHERE_8", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
 
     var animator: Animation = newAnimation(
-        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.scale(2.0, 2.0, 2.0),
-        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.scale(0.1, 0.1, 0.1),
+        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(0.0),
+        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(120.0),
         CameraType.Perspective,
         width, height,
         world,

@@ -1,4 +1,4 @@
-import world
+from world import World, rayIntersect, newWorld
 from color import Color
 from ray import Ray
 from exception import NotImplementedError, AbstractMethodError

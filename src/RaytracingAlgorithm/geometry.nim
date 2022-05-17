@@ -1,6 +1,4 @@
-import neo
 import std/[math, macros, typetraits, strformat, strutils]
-import exception
 
 type
     Vector3* = object
@@ -17,7 +15,7 @@ type
 
 ## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
-macro defineEmptyConstructors(type1: typedesc): typed =
+macro defineEmptyConstructors(type1: typedesc) =
     let source = fmt"""
 proc new{$type1}*(): {$type1} =
     result = {$type1}(x: 0.0, y: 0.0, z: 0.0)
@@ -30,7 +28,7 @@ proc newVector2*(): Vector2=
 #[proc newPoint*(x: float32, y: float32, z: float32) : Point =
     result = Point(x:x, y:y, z:z)]#
 
-macro defineConstructors(type1: typedesc): typed =
+macro defineConstructors(type1: typedesc) =
     let source = fmt"""
 proc new{$type1}*(x,y,z: float32): {$type1} =
     result = {$type1}(x: x, y: y, z: z)
@@ -40,7 +38,7 @@ proc new{$type1}*(x,y,z: float32): {$type1} =
 proc newVector2*(u, v: float32): Vector2=
     result = Vector2(u:u, v:v)
 
-macro defineCopyConstructors(type1: typedesc): typed =
+macro defineCopyConstructors(type1: typedesc) =
     let source = fmt"""
 proc new{$type1}*(other: {$type1}): {$type1} =
     result = {$type1}(x: other.x, y: other.y, z: other.z)
@@ -75,9 +73,10 @@ defineOperations(`+`, Vector3, Point, Point)
 defineOperations(`-`, Vector3, Point, Point)
 defineOperations(`+`, Point, Vector3, Point)
 defineOperations(`-`, Point, Vector3, Point)
-defineOperations(`-`, Point, Point, Vector3)
 defineOperations(`+`, Normal, Normal, Normal)
 defineOperations(`-`, Normal, Normal, Normal)
+defineOperations(`+`, Point, Point, Point)
+defineOperations(`-`, Point, Point, Point)
 
 template defineVector2Operations(fname: untyped) =
     proc fname*(a, b: Vector2): Vector2=
@@ -89,7 +88,7 @@ defineVector2Operations(`-`)
 
 ## ---------------------------------------  Products  ------------------------------------------
 
-template defineProduct(type1: typedesc) =
+template defineFloatProduct(type1: typedesc) =
     # Product with scalar
     proc `*`*(a: type1, b: float32): type1 =
         result.x = a.x * b
@@ -101,9 +100,37 @@ template defineProduct(type1: typedesc) =
         result.y = a.y * b
         result.z = a.z * b
 
-defineProduct(Vector3)
-defineProduct(Point)
-defineProduct(Normal)
+defineFloatProduct(Vector3)
+defineFloatProduct(Point)
+defineFloatProduct(Normal)
+
+template defineComponentProduct(type1, type2, rettype: typedesc) =
+    proc ComponentProduct*(a: type1, b: type2): rettype=
+        result.x = a.x * b.x
+        result.y = a.y * b.y
+        result.z = a.z * b.z
+
+defineComponentProduct(Point, Point, Point)
+defineComponentProduct(Vector3, Vector3, Vector3)
+defineComponentProduct(Point, Vector3, Vector3)
+defineComponentProduct(Vector3, Point, Vector3)
+
+template defineFloatDivision(type1: typedesc) =
+    # Product with scalar
+    proc `/`*(a: type1, b: float32): type1 =
+        result.x = a.x / b
+        result.y = a.y / b
+        result.z = a.z / b
+    
+    proc `/`*(b: float32, a: type1): type1 =
+        result.x = b / a.x 
+        result.y = b / a.y
+        result.z = b / a.z
+
+defineFloatDivision(Vector3)
+defineFloatDivision(Point)
+defineFloatDivision(Normal)
+
 
 template defineDot(type1: typedesc, type2: typedesc) = 
     proc Dot*(this: type1, other: type2): float32 = 
@@ -508,6 +535,7 @@ proc Dot*(_:typedesc[Vector3], this, other: Vector3): float32 {.inline.} =
 
 macro defineDistance(type1: untyped): void =
     ## Define a distance between objects of type type1
+    ## Use: Distance(pointA, pointB)
     nnkStmtList.newTree(
         nnkProcDef.newTree(
             nnkPostfix.newTree(
@@ -641,6 +669,8 @@ proc Angle*(_: typedesc[Vector2], a,b: Vector2, kEpsilonNormalSqrt: float32 = 1-
         return 0.0
     var dot: float32 = Dot(a, b) / denominator.clamp(-1.0, 1.0)
     return float(radToDeg(arccos(dot)))
+
+#template defineStaticDistance()
 
 proc Slerp*(_: typedesc[Vector3], fromV, toV: Vector3, t: float32): Vector3=
     ## Gives the vector between fromV and toV at percentage t.

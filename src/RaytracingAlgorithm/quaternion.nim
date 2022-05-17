@@ -1,5 +1,5 @@
-import std/[os, math, macros, strformat]
-import geometry, exception, transformation, matrix, mathutils
+import std/[os, math, strformat]
+import geometry, mathutils
 
 type
     Quaternion* = ref object
@@ -62,34 +62,6 @@ proc newQuaternion*(m: Matrix): Quaternion=
         result.z = result.z/magn
         result.w = result.w/magn
 ]#
-
-proc newQuaternion*(m: Matrix): Quaternion=
-    # http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf   
-    result = newQuaternion()
-    let
-        trace = m.trace()
-        a1 = m[0][0] - m[1][1] - m[2][2]
-        a2 = -m[0][0] + m[1][1] - m[2][2]
-        a3 = -m[0][0] - m[1][1] + m[2][2]
-    if (trace > 0):
-        result.w = 0.5 * sqrt( trace + 1.0)
-    else:
-        result.w = 0.5 * sqrt ( ( pow(m[2][1] - m[1][2],2.0) + pow(m[0][2] - m[2][0],2.0) + pow(m[1][0] - m[0][1],2.0)) / (3 - trace) )
-
-    if (a1 > 0):
-        result.x = 0.5 * sqrt ( a1 + 1)
-    else:
-        result.x = 0.5 * sqrt ( ( pow(m[2][1] - m[1][2],2.0) + pow(m[0][1] + m[1][0],2.0) + pow(m[2][0] + m[0][2],2.0)) / (3 - a1) )
-
-    if (a2 > 0):
-        result.y = 0.5 * sqrt (a2 + 1)
-    else:
-        result.y = 0.5 * sqrt ( ( pow(m[0][2] - m[2][0],2.0) + pow(m[0][1] + m[1][0],2.0) + pow(m[1][2] + m[2][1],2.0)) / (3 - a2) )
-
-    if (a3 > 0):
-        result.z = 0.5 * sqrt (a3 + 1)
-    else:
-        result.z = 0.5 * sqrt ( ( pow(m[1][0] - m[0][1],2.0) + pow(m[2][0] + m[0][2],2.0) + pow(m[2][1] + m[1][2],2.0)) / (3 - a3) )
 
 proc newQuaternion*(other: Quaternion): Quaternion=
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)
@@ -211,7 +183,7 @@ proc `==`*(lhs, rhs: Quaternion): bool =
     ##
     return lhs.x == rhs.x and lhs.y == rhs.y and lhs.z == rhs.z and lhs.w == rhs.w
 
-proc `!=`(lhs, rhs: Quaternion): bool=
+proc `!=`*(lhs, rhs: Quaternion): bool=
     ##
     return not(lhs==rhs)
 
@@ -350,33 +322,6 @@ proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
         qz = cos(phi/2) * cos(theta/2) * sin(psi/2) - sin(phi/2) * sin(theta/2) * cos(psi/2)
     return newQuaternion(qx, qy, qz, qw)
 
-proc toRotationMatrix*(q: var Quaternion): Matrix {.inline.}=
-    q = q.Normalize()
-    echo $q
-    var
-        xx: float32 = q.x * q.x
-        yy: float32 = q.y * q.y
-        zz: float32 = q.z * q.z
-        xy: float32 = q.x * q.y
-        xz: float32 = q.x * q.z
-        yz: float32 = q.y * q.z
-        wx: float32 = q.x * q.w
-        wy: float32 = q.y * q.w
-        wz: float32 = q.z * q.w
-
-    var m: Matrix = Zeros()
-    m[0][0] = 1.0 - 2.0 * (yy + zz)
-    m[0][1] = 2.0 * (xy + wz)
-    m[0][2] = 2.0 * (xz - wy)
-    m[1][0] = 2.0 * (xy - wz)
-    m[1][1] = 1.0 - 2.0 * (xx + zz)
-    m[1][2] = 2.0 * (yz + wx)
-    m[2][0] = 2.0 * (xz + wy)
-    m[2][1] = 2.0 * (yz - wx)
-    m[2][2] = 1.0 - 2.0 * (xx + yy)
-    m[3][3] = 1.0
-
-    return m
 
 proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
     ## Spherical linear interpolation between two quaternions.
@@ -403,7 +348,6 @@ proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
         var qperp: Quaternion = Normalize(b - a * cosTheta) #orthogonl to a
         return a * cos(thetap) + qperp * sin(thetap) #interpolation quaternion
     
-
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
     ##

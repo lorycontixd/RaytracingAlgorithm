@@ -1,5 +1,5 @@
-import geometry, transformation, rayhit, exception, ray, material
-import std/[math, typetraits, options, strutils, strformat]
+import geometry, transformation, rayhit, exception, ray, material, aabb, matrix
+import std/[math, options, strutils]
 
 
 type
@@ -8,11 +8,16 @@ type
         origin*: Point
         transform*: Transformation
         material*: Material
+        aabb*: AABB
     
     Sphere* = ref object of Shape
         radius*: float32
     
     Plane* = ref object of Shape
+
+    Cylinder* = ref object of Shape
+        radius*: float32
+        height*: float32
 
 
 # -------------------------------- Constructors -------------------------------------
@@ -25,7 +30,12 @@ proc newSphere*(id: string, origin: Point, radius: float32 ): Sphere =
 proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Sphere =
     if not id.contains("SPHERE"):
         raise ValueError.newException("Sphere id must contain SPHERE keyword.")
-    result = Sphere(id: id, transform: transform, material: material)
+    let o = ExtractTranslation(transform.m).convert(Point)
+    let scaling = ExtractScale(transform.m)
+    if scaling[0][0] != scaling[1][1] or scaling[1][1] != scaling[2][2]:
+        raise NotImplementedError.newException("Asymmetrical spheres have not yet been implemented!")
+    let radius = scaling[0][0]
+    result = Sphere(id: id, transform: transform, material: material, origin: o, radius: radius, aabb: newAABB(newPoint(o.x-radius, o.y-radius, o.z-radius), newPoint( o.x+radius, o.y+radius, o.z+radius)))
     
 
 proc newPlane*(id: string = "PLANE_0", origin: Point = newPoint(), transform: Transformation = newTransformation()): Plane =
@@ -43,8 +53,8 @@ proc sphereNormal(p: Point, dir: Vector3): Normal=
 
 proc sphereWorldToLocal(p: Point): Vector2=
     let
-        u = arctan2(p.y, p.z) / (2.0 * PI)   #p.x non p.z
-        v = arccos(p.z) / PI
+        u = arctan2(p.y, p.z) / (2.0 * PI)   #p.x not p.z ??
+        v = arccos(p.z) / PI ## divided by radius ??
     if u >= 0.0:
         result = newVector2(u,v)
     else:
@@ -52,22 +62,24 @@ proc sphereWorldToLocal(p: Point): Vector2=
 
 ###### --------------------------------------------- Methods --------------------------------------------
 
-## AABB
 
-
-## Intersect
-method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.base, noSideEffect.}=
+#####  ---- Ray Intersection
+method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.base.}=
     ## Abstract method for shape.rayIntersect which computes the intersection between a ray and the shape.
     ## This is an abstract method, do not call it directly.
     raise AbstractMethodError.newException("Shape.ray_intersection is an abstract method and cannot be called.")
 
-method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.gcsafe, noSideEffect.} =
+method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.gcsafe.} =
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32
         inversed_ray: Ray = r.Transform(s.transform.Inverse())
         origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
 
+    if not s.aabb.RayIntersect(inversed_ray):
+        return none(RayHit)
+
+    var
         a = inversed_ray.dir.squareNorm()
         b = 2.0 * origin_vec.Dot(inversed_ray.dir) 
         c = origin_vec.squareNorm() - 1
@@ -99,12 +111,8 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.g
     #hit.hitshape = s
     result = some(hit)
 
-method rayIntersect*(self: Plane, r: Ray): Option[RayHit] {.raises: [AbstractMethodError].}=
-    raise AbstractMethodError.newException("Method is not yet implemented.")
-    
+method rayIntersect*(self: Plane, r: Ray, debug: bool = false): Option[RayHit] {.raises: [NotImplementedError].} =
+    raise NotImplementedError.newException("Plane.rayIntersect: function not yet implemented.")
         
-
-
-            
 
     
