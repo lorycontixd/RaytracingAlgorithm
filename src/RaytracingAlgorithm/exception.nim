@@ -10,6 +10,7 @@ type
     TypeError* = object of CustomException
     ImageError* = object of CustomException
     MathError* = object of CustomException
+    IndexErrpr* = object of CustomException
 
     ParserError* = object of InputError
     InvalidColorError* = object of InputError

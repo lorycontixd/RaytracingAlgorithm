@@ -50,8 +50,12 @@ proc sphereWorldToLocal(p: Point): Vector2=
     else:
         result = newVector2(u+1.0, v)
 
-# --------------------------------------------- Methods --------------------------------------------
+###### --------------------------------------------- Methods --------------------------------------------
 
+## AABB
+
+
+## Intersect
 method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.base, noSideEffect.}=
     ## Abstract method for shape.rayIntersect which computes the intersection between a ray and the shape.
     ## This is an abstract method, do not call it directly.
