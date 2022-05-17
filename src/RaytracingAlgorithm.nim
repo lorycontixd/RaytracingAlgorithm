@@ -1,6 +1,6 @@
 
 import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, rayhit, imagetracer, exception, renderer]
-import std/[segfaults, parsecfg, os, streams, times, options, parseopt, tables, marshal, strutils, strformat]
+import std/[segfaults, parsecfg, os, streams, times, options, parseopt, tables, marshal, strutils, strformat, locks]
 import cligen
 
 proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
@@ -37,7 +37,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     world.Add(newSphere("SPHERE_5", Transformation.translation( newVector3(-0.5, 0.5, -0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_6", Transformation.translation( newVector3(-0.5, -0.5, -0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, -0.5, 0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
+    world.Add(newSphere("SPHERE_8", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
 
     ### Save image!!
     imagetracer.fireAllRays(onoff.Get())
@@ -66,15 +66,16 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
     world.Add(newSphere("SPHERE_5", Transformation.translation( newVector3(-0.5, 0.5, -0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_6", Transformation.translation( newVector3(-0.5, -0.5, -0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, -0.5, 0.5)) * scale_tranform))
+    world.Add(newSphere("SPHERE_8", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
 
     var animator: Animation = newAnimation(
-        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(90.0),
-        Transformation.translation(-2.5, 0.0, 0.0) * Transformation.rotationX(180.0),
+        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationY(0.0),
+        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationY(150.0),
         CameraType.Perspective,
         width, height,
         world,
         4,
-        15
+        10
     )
     animator.Play()
     animator.Save(dontDeleteFrames)
