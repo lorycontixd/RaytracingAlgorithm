@@ -253,6 +253,7 @@ proc ToQuaternion*(m: Matrix): Quaternion=
     else:
         result.z = 0.5 * sqrt ( ( pow(m[1][0] - m[0][1],2.0) + pow(m[2][0] + m[0][2],2.0) + pow(m[2][1] + m[1][2],2.0)) / (3 - a3) )
 
+
 proc ToRotation*(q: var Quaternion): Matrix {.inline.}=
     q = q.Normalize()
     var
@@ -301,7 +302,7 @@ proc `==`*(m1, m2: Matrix): bool=
     return are_matrix_close(m1,m2)
 
 
-## Matrix decomposition
+## -------- Matrix decomposition ----------
 func ExtractTranslation*(m: Matrix): Vector3=
     result = newVector3(m[0][3], m[1][3], m[2][3])
 
@@ -351,8 +352,7 @@ proc ExtractScale*(m: Matrix): Matrix=
 proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
     ##
     ##
-    echo "---> m; "
-    m.Show()
+
     #- Extract translation components from transform matrix
     T = ExtractTranslation(m)
     #- Compute a matrix with no translation components

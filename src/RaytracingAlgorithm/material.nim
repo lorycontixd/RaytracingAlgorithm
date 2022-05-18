@@ -1,4 +1,4 @@
-import geometry, color, exception, hdrimage
+import geometry, color, exception, hdrimage, pcg, mathutils, ray
 import std/[math]
 
 type
@@ -21,6 +21,7 @@ type
         reflectance*: float32
 
     SpecularBRDF* = ref object of BRDF
+        thresholdAngle*: float32
 
     Material* = object
         brdf*: BRDF
@@ -36,6 +37,9 @@ proc newCheckeredPigment*(color1, color2: Color, numberOfSteps: int = 10): Check
 proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float32 = 1.0): DiffuseBRDF=
     return DiffuseBRDF(pigment: pigment, reflectance: reflectance)
 
+proc newSpecularBRDF*(pigment: Pigment = newUniformPigment(), thresholdAngle: float32 = PI / 1800.0): SpecularBRDF=
+    return SpecularBRDF(pigment: pigment, thresholdANgle: thresholdAngle)
+
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, emitted_radiance: pigment)
 
@@ -43,6 +47,7 @@ proc newImagePigment*(image: HdrImage): ImagePigment=
     return ImagePigment(image: image)
 
 # ---------------------------
+
 method getColor*(self: Pigment, vec: Vector2): Color {.base.}=
     raise newException(AbstractMethodError, "")
 
@@ -77,4 +82,47 @@ method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2):
     raise newException(AbstractMethodError, "")
 
 method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
-    self.pigment.get_color(uv) * (self.reflectance / PI)
+    self.pigment.getColor(uv) * (self.reflectance / PI)
+
+method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_point: Point, normal: Normal, depth: int): Ray {.base.}=
+    raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
+
+method ScatterRay*(
+        self: DiffuseBRDF,
+        pcg: var PCG,
+        incoming_dir: Vector3,
+        interaction_point: Point,
+        normal: Normal,
+        depth: int
+    ): Ray=
+    let
+        (e1, e2, e3) = CreateOnbFromZ(normal)
+        cos_theta_sq = pcg.random_float()
+        cos_theta = sqrt(cos_theta_sq)
+        sin_theta = sqrt(1 - cos_theta_sq)
+        phi = 2.0 * PI * pcg.random_float()
+
+    return newRay(
+        interaction_point,
+        e1 * cos(phi) * cos_theta + e2 * sin(phi) * cos_theta + e3 * sin_theta,
+        1e-3,
+        Inf,
+        depth
+    )
+        
+method ScatterRay*(
+        self: SpecularBRDF,
+        pcg: var PCG,
+        incoming_dir: Vector3,
+        interaction_point: Point,
+        normal: Normal,
+        depth: int
+    ): Ray=
+    var newIncomingDir: Vector3 = incoming_dir.normalize()
+    var newnormal: Vector3 = normal.convert(Vector3).normalize()
+    return newRay(interaction_point, newIncomingDir - newnormal * 2.0 * newnormal.Dot(newIncomingDir), 1e-3, Inf, depth)
+
+
+
+
+    
