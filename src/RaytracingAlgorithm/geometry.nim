@@ -180,26 +180,6 @@ proc norm*(a: Vector2): float32 =
 
 ## ------------------------------------  Other operators  ---------------------------------------
 
-# normalize
-template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or Normal 
-    proc normalize*(a: type1): type1=
-        result.x = a.x/a.norm()
-        result.y = a.y/a.norm()
-        result.z = a.z/a.norm()
-
-    proc normalizeInplace*(a: var type1): void=
-        a.x = a.x/a.norm()
-        a.y = a.y/a.norm()
-        a.z = a.z/a.norm()
-
-defineNormalize(Vector3)
-defineNormalize(Normal)
-
-proc normalize*(a: Vector2): Vector2=
-    result.u = a.u/a.norm()
-    result.v = a.v/a.norm()
-
-# neg
 template defineNegative(type1: typedesc) =
     proc neg*(a: type1): type1 =
         result.x = -a.x
@@ -244,6 +224,31 @@ template defineEqualities(type1: typedesc) =
 defineEqualities(Vector3)
 defineEqualities(Point)
 defineEqualities(Normal)
+
+# normalize
+template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or Normal 
+    proc normalize*(a: type1): type1=
+        result.x = a.x/a.norm()
+        result.y = a.y/a.norm()
+        result.z = a.z/a.norm()
+
+    proc normalizeInplace*(a: var type1): void=
+        a.x = a.x/a.norm()
+        a.y = a.y/a.norm()
+        a.z = a.z/a.norm()
+
+    proc IsNormalized*(a: type1): bool=
+        return (a.x * a.x + a.y * a.y * a.z * a.z).IsEqual(1.0)
+
+defineNormalize(Vector3)
+defineNormalize(Normal)
+
+proc normalize*(a: Vector2): Vector2=
+    result.u = a.u/a.norm()
+    result.v = a.v/a.norm()
+
+
+
 
 proc `==`*(this, other: Vector2): bool =
     return this.u == other.u and this.v == other.v

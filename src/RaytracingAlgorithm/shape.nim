@@ -88,9 +88,6 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.g
         inversed_ray: Ray = r.Transform(s.transform.Inverse())
         origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
 
-    if not s.aabb.RayIntersect(inversed_ray):
-        return none(RayHit)
-
     var
         a = inversed_ray.dir.squareNorm()
         b = 2.0 * origin_vec.Dot(inversed_ray.dir) 
@@ -150,7 +147,8 @@ method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit]
         ray,
         self.material,
     ))
-    
+
+
 method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit]=
     var hit: RayHit = newRayHit()
     var
