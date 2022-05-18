@@ -123,4 +123,4 @@ proc magenta*(_: typedesc[Color]): Color {.inline.}=
     return newColor("magenta")
 
 proc cyan*(_: typedesc[Color]): Color {.inline.}=
-    return newColor("cyan   ")
+    return newColor("cyan")
