@@ -17,12 +17,12 @@ func GetIndex*(self: World, s_id: string): int {.raises: [ShapeIDNotFoundError, 
             return i
     raise newShapeIDError(s_id)#ShapeIDNotFoundError.newException("ID not found in world shapes.")
 
-method Add*(self: var World, s: Sphere): void {.base.}=
+method Add*(self: var World, s: Shape): void {.base.}=
     ## Add a shape to the world scene.
     ##
     ## Parameters
     ##      s (Shape): Shape to be added
-    self.shapes.add(cast[Shape](s))
+    self.shapes.add(s)
 
 
 method Remove*(self: var World, s_id: string): void {.base.}=

@@ -37,11 +37,10 @@ proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransfor
     let radius = scaling[0][0]
     result = Sphere(id: id, transform: transform, material: material, origin: o, radius: radius, aabb: newAABB(newPoint(o.x-radius, o.y-radius, o.z-radius), newPoint( o.x+radius, o.y+radius, o.z+radius)))
     
-
-proc newPlane*(id: string = "PLANE_0", origin: Point = newPoint(), transform: Transformation = newTransformation()): Plane =
+proc newPlane*(id: string = "PLANE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Plane =
     if not id.contains("PLANE"):
         raise ValueError.newException("Plane id must contain PLANE keyword.")
-    result = Plane(id: id, origin: origin, transform: transform)
+    result = Plane(id: id, transform: transform, material: material, origin: ExtractTranslation(transform.m).convert(Point))
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -108,11 +107,36 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.g
     hit.normal = s.transform * sphereNormal(hitpoint, inversed_ray.dir) 
     hit.surface_point = sphereWorldToLocal(hitpoint)
     hit.ray = r
+    hit.material = s.material
     #hit.hitshape = s
     result = some(hit)
 
-method rayIntersect*(self: Plane, r: Ray, debug: bool = false): Option[RayHit] {.raises: [NotImplementedError].} =
-    raise NotImplementedError.newException("Plane.rayIntersect: function not yet implemented.")
-        
+method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit] =
+    let inv_ray = ray.Transform(Inverse(self.transform))
+    if abs(inv_ray.dir.z) < 1e-5:
+        return none(RayHit)
+
+    let t = -inv_ray.origin.z / inv_ray.dir.z
+
+    if (t <= inv_ray.tmin) or (t >= inv_ray.tmax):
+        return none(RayHit)
+
+    let hit_point = inv_ray.at(t)
+
+    var normalZ: float32
+    if inv_ray.dir.z < 0.0:
+        normalZ = float32(1.0)
+    else:
+        normalZ = float32(-1.0)
+
+    return some(newRayHit(
+        self.transform * hit_point,
+        self.transform * newNormal(0.0, 0.0, normalZ),
+        newVector2(hit_point.x - floor(hit_point.x), hit_point.y - floor(hit_point.y)),
+        t,
+        ray,
+        self.material,
+    ))
+    
 
     
