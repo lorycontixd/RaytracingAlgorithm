@@ -1,9 +1,9 @@
 
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material]
 import std/[segfaults, os, streams, times, options, tables, strutils, strformat]
 import cligen
 
-proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
+#[proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
     ## 
     
     logLevel = Level.debug
@@ -46,9 +46,58 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     imagetracer.image.normalize_image(1.0)
     imagetracer.image.clamp_image()
     imagetracer.image.write_png("output.png", 1.0)
+]#
+
+proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
+    var cam: Camera
+    if camera.toLower() == "perspective":
+        cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
+    elif camera.toLower() == "orthogonal":
+        cam = newOrthogonalCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
+    else:
+        raise TestError.newException("Invalid camera passed to main.")
+    var
+        w: World = newWorld()
+        img: HdrImage = newHdrImage(width, height)
+        tracer: ImageTracer = newImageTracer(img, cam)
+        render: Renderer = newPathTracer(w, Color.black())
+        scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
+
+    var
+        sky_material = newMaterial(
+            newDiffuseBRDF(newUniformPigment(Color.black())),
+            newUniformPigment(newColor(1.0, 0.9, 0.5)) # ielou
+        )
+
+        ground_material = newMaterial(
+            newDiffuseBRDF(newCheckeredPigment(newColor(0.3, 0.5, 0.1), newColor(0.1, 0.2, 0.5)))
+        )
+
+        sphere_material = newMaterial(
+            newDiffuseBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)))
+        )
+
+        mirror_material = newMaterial(
+            newSpecularBRDF(newUniformPigment(newColor(0.6, 0.2, 0.3)))
+        )
+
+    w.Add(newSphere("SPHERE_0", Transformation.scale(200.0, 200.0, 200.0) * Transformation.translation(0.0, 0.0, 0.4), sky_material))
+    w.Add(newPlane("PLANE_0", Transformation.translation(0.0, 0.0, 0.0), ground_material))
+    w.Add(newSphere("SPHERE_1", Transformation.translation(0.0, 0.0, 1.0), sphere_material))
+    w.Add(newSphere("SPHERE_2", Transformation.translation(1.0, 2.5, 0.0), mirror_material))
+
+    tracer.fireAllRays(render.Get())
+    var strmWrite = newFileStream("output.pfm", fmWrite)
+    tracer.image.write_pfm(strmWrite)
+    tracer.image.normalize_image(1.0)
+    tracer.image.clamp_image()
+    tracer.image.write_png("output.png", 1.0)
 
 
 
+
+
+#######  --
 proc animate(width: int = 800, height: int = 600, camera: string = "perspective", dontDeleteFrames: bool = false): void=
     let start = cpuTime()
     logLevel = Level.debug
@@ -72,6 +121,7 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
         Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(0.0),
         Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(120.0),
         CameraType.Perspective,
+        newFlatRenderer(world, Color.green()),
         width, height,
         world,
         4,

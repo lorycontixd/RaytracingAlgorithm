@@ -8,6 +8,7 @@ type
         width*: int
         height*: int
         camType*: CameraType
+        render*: Renderer
         world*: World
         duration_sec*: int
         framerate*: int
@@ -51,8 +52,8 @@ func GetNFrames(self: Animation): int=
 
 # ----------- Constructors -----------
 
-proc newAnimation*(start_transform, end_transform: Transformation, camType: CameraType, width,height: int, world: var World, duration_sec: int = 10, framerate: int = 60): Animation=
-    result = Animation(start_transform: start_transform, end_transform: end_transform, camType: camType, width: width, height: height, world: world, duration_sec: duration_sec, framerate: framerate, nframes: duration_sec*framerate,  hasPlayed: false)
+proc newAnimation*(start_transform, end_transform: Transformation, camType: CameraType, render: Renderer, width,height: int, world: var World, duration_sec: int = 10, framerate: int = 60): Animation=
+    result = Animation(start_transform: start_transform, end_transform: end_transform, camType: camType, render: render, width: width, height: height, world: world, duration_sec: duration_sec, framerate: framerate, nframes: duration_sec*framerate,  hasPlayed: false)
     result.translations = newSeq[Vector3](2)
     result.rotations = newSeq[Quaternion](2)
     result.scales = newSeq[Matrix](2)
@@ -119,8 +120,7 @@ proc Play*(self: var Animation): void=
             cam = newPerspectiveCamera(self.width, self.height, transform=transform)
             hdrImage: HdrImage = newHdrImage(self.width, self.height)
             imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
-            onoff: OnOffRenderer = newOnOffRenderer(self.world, Color.black(), Color.white())
-        imagetracer.fireAllRays(onoff.Get())
+        imagetracer.fireAllRays(self.render.Get())
         let lum = imagetracer.image.average_luminosity()
         debug(fmt"Created frame {i+1}/{self.nframes} --> Average Luminosity: {lum}")
         self.frames.add(imagetracer)
@@ -162,7 +162,6 @@ proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
             debug("Temporary folder deleted, return status: ",res2)
     else:
         error("FFmpeg image command failed with return code ", res)
-
 
 
 proc Show*(self: Animation) = discard
