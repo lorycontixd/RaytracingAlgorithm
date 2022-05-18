@@ -1,8 +1,9 @@
-import geometry, utils, exception
-import std/[sequtils, math, strutils]
+import geometry, exception, quaternion
+import std/[math]
 
 type
     Matrix* = seq[seq[float32]]
+
 
 proc newMatrix*(s: seq[seq[float32]]): Matrix=
     return cast[Matrix](s)
@@ -35,6 +36,11 @@ proc Ones*(): Matrix=
         result[i] = newSeq[float32](4)
         for j in 0 .. 3:
             result[i][j] = float32(1.0)
+
+proc newMatrix*(): Matrix=
+    return Zeros()
+
+## Methods
 
 proc Show*(m: Matrix): void=
     for i in countup(0, m.high):
@@ -153,7 +159,8 @@ proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
 
     
 
-proc inverse*(m: Matrix): Matrix {.inline.}=
+proc Inverse*(m: Matrix): Matrix {.inline.}=
+    ## Calculates the inverse matrix of a 4x4 matrix
     var A2323 = m[2][2] * m[3][3] - m[2][3] * m[3][2]
     var A1323 = m[2][1] * m[3][3] - m[2][3] * m[3][1]
     var A1223 = m[2][1] * m[3][2] - m[2][2] * m[3][1]
@@ -205,7 +212,7 @@ proc inverse*(m: Matrix): Matrix {.inline.}=
         @[m30, m31, m32, m33]
     ])
 
-proc transpose*(m1: Matrix): Matrix=
+proc Transpose*(m1: Matrix): Matrix=
     result = cast[Matrix](@[
         @[float32(m1[0][0]), float32(m1[1][0]), float32(m1[2][0]), float32(m1[3][0])],
         @[float32(m1[0][1]), float32(m1[1][1]), float32(m1[2][1]), float32(m1[3][1])],
@@ -213,8 +220,66 @@ proc transpose*(m1: Matrix): Matrix=
         @[float32(m1[0][3]), float32(m1[1][3]), float32(m1[2][3]), float32(m1[3][3])],
     ])
 
-proc trace*(m: Matrix): float32=
+proc Trace*(m: Matrix): float32=
     return m[0][0] + m[1][1] + m[2][2]
+
+
+proc ToQuaternion*(m: Matrix): Quaternion=
+    ##
+    ##   
+    result = newQuaternion()
+    let
+        trace = m.Trace()
+        a1 = m[0][0] - m[1][1] - m[2][2]
+        a2 = -m[0][0] + m[1][1] - m[2][2]
+        a3 = -m[0][0] - m[1][1] + m[2][2]
+    if (trace > 0):
+        result.w = 0.5 * sqrt( trace + 1.0)
+    else:
+        result.w = 0.5 * sqrt ( ( pow(m[2][1] - m[1][2],2.0) + pow(m[0][2] - m[2][0],2.0) + pow(m[1][0] - m[0][1],2.0)) / (3 - trace) )
+
+    if (a1 > 0):
+        result.x = 0.5 * sqrt ( a1 + 1)
+    else:
+        result.x = 0.5 * sqrt ( ( pow(m[2][1] - m[1][2],2.0) + pow(m[0][1] + m[1][0],2.0) + pow(m[2][0] + m[0][2],2.0)) / (3 - a1) )
+
+    if (a2 > 0):
+        result.y = 0.5 * sqrt (a2 + 1)
+    else:
+        result.y = 0.5 * sqrt ( ( pow(m[0][2] - m[2][0],2.0) + pow(m[0][1] + m[1][0],2.0) + pow(m[1][2] + m[2][1],2.0)) / (3 - a2) )
+
+    if (a3 > 0):
+        result.z = 0.5 * sqrt (a3 + 1)
+    else:
+        result.z = 0.5 * sqrt ( ( pow(m[1][0] - m[0][1],2.0) + pow(m[2][0] + m[0][2],2.0) + pow(m[2][1] + m[1][2],2.0)) / (3 - a3) )
+
+proc ToRotation*(q: var Quaternion): Matrix {.inline.}=
+    q = q.Normalize()
+    var
+        xx: float32 = q.x * q.x
+        yy: float32 = q.y * q.y
+        zz: float32 = q.z * q.z
+        xy: float32 = q.x * q.y
+        xz: float32 = q.x * q.z
+        yz: float32 = q.y * q.z
+        wx: float32 = q.x * q.w
+        wy: float32 = q.y * q.w
+        wz: float32 = q.z * q.w
+
+    var m: Matrix = Zeros()
+    m[0][0] = 1.0 - 2.0 * (yy + zz)
+    m[0][1] = 2.0 * (xy + wz)
+    m[0][2] = 2.0 * (xz - wy)
+    m[1][0] = 2.0 * (xy - wz)
+    m[1][1] = 1.0 - 2.0 * (xx + zz)
+    m[1][2] = 2.0 * (yz + wx)
+    m[2][0] = 2.0 * (xz + wy)
+    m[2][1] = 2.0 * (yz - wx)
+    m[2][2] = 1.0 - 2.0 * (xx + yy)
+    m[3][3] = 1.0
+    return m
+
+
 
 
 proc `*`*(this, other: Matrix): Matrix=
@@ -234,3 +299,63 @@ proc are_matrix_close*(m1, m2 : Matrix): bool=
 
 proc `==`*(m1, m2: Matrix): bool=
     return are_matrix_close(m1,m2)
+
+
+## Matrix decomposition
+func ExtractTranslation*(m: Matrix): Vector3=
+    result = newVector3(m[0][3], m[1][3], m[2][3])
+
+func RemoveTranslationFromMatrix(m: Matrix): Matrix=
+    result = newMatrix(m)
+    for i in 0..3:
+        result[i][3] = float32(0.0)
+        result[3][i] = float32(0.0)
+    result[3][3] = float32(1.0)
+
+proc ExtractRotationMatrix*(m: Matrix): Matrix=
+    var M: Matrix = RemoveTranslationFromMatrix(m)
+    #- Extract rotation from transform matrix
+    var 
+        norm: float32
+        count: int = 0
+        R: Matrix = newMatrix(M)
+    
+    while true:
+        var
+            Rnext: Matrix = Zeros()
+            Rit: Matrix = Inverse(Transpose(R))
+        for i in countup(0,3):
+            for j in countup(0,3):
+                Rnext[i][j] = 0.5 * (R[i][j] + Rit[i][j])
+        norm = 0
+        for i in 0..3:
+            let n = abs(R[i][0] - Rnext[i][0]) + abs(R[i][1] - Rnext[i][1]) + abs(R[i][2] - Rnext[i][2]) 
+            norm = max(norm, n)
+        R = newMatrix(Rnext)
+        count = count + 1
+        if (count > 100 or norm <= 0.0001):
+            break
+    let x = newMatrix(R)
+    result = x
+
+proc ExtractRotation*(m: Matrix): Quaternion=
+    var R: Matrix = ExtractRotationMatrix(m)
+    result = ToQuaternion(R).Normalize()
+
+proc ExtractScale*(R: Matrix, M: Matrix): Matrix=
+    result = matrix.Inverse(R) * M
+
+proc ExtractScale*(m: Matrix): Matrix=
+    result = ExtractScale(ExtractRotationMatrix(m), RemoveTranslationFromMatrix(m))
+
+proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
+    ##
+    ##
+    echo "---> m; "
+    m.Show()
+    #- Extract translation components from transform matrix
+    T = ExtractTranslation(m)
+    #- Compute a matrix with no translation components
+    Rquat = ExtractRotation(m)
+    #- Extract scale matrix -> M=RS
+    S = ExtractScale(m)

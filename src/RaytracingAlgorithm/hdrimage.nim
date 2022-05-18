@@ -1,4 +1,4 @@
-import std/[strutils, streams, tables, strformat, endians, random, math, options]
+import std/[strutils, streams, strformat, endians, random, math, options]
 import color, exception, utils, logger
 import simplepng
 
@@ -126,7 +126,7 @@ proc average_luminosity*(self: var HdrImage, delta: float = 1e-10): float32 {.in
     var cumsum: float = 0.0
     for pix in self.pixels:
         cumsum += log10(delta + pix.luminosity())
-    return pow(10, cumsum/ float(size(self.pixels)))
+    return pow(10, cumsum / float(size(self.pixels)))
 
 
 proc normalize_image*(self: var HdrImage, factor: float32, luminosity: Option[float32] = none(float32), delta: float32 = 1e-10)=
@@ -193,9 +193,9 @@ proc fill_gradient*(self: var HdrImage)=
     for i in 0..self.width-1:
         for j in 0..self.height-1:
             self.set_pixel(i,j, newColor(
-                float(i/ self.width),
-                float(i/ self.width),
-                float(i/ self.width)
+                float32(i / self.width),
+                float32(i / self.width),
+                float32(i / self.width)
             ))
 
 

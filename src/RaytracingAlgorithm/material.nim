@@ -24,7 +24,7 @@ type
 
     Material* = object
         brdf*: BRDF
-        pigment*: Pigment
+        emitted_radiance*: Pigment
 
 # ----------------------------  CONSTRUCTORS -------------------
 proc newUniformPigment*(color: Color = Color.black()): UniformPigment=
@@ -37,7 +37,7 @@ proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float3
     return DiffuseBRDF(pigment: pigment, reflectance: reflectance)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
-    return Material(brdf: brdf, pigment: pigment)
+    return Material(brdf: brdf, emitted_radiance: pigment)
 
 proc newImagePigment*(image: HdrImage): ImagePigment=
     return ImagePigment(image: image)

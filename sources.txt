@@ -1,0 +1,4 @@
+- AABB intersection:
+    - doesnt work: https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html
+    - works: https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
+- Rotation Matrix to Quaternion:   http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf

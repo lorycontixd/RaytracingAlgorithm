@@ -1,5 +1,4 @@
-import geometry, utils, matrix
-import std/[sequtils, math]
+import geometry, matrix
 
 type
     Transformation* = object
@@ -13,7 +12,7 @@ proc newTransformation*(m: Matrix, inv: Matrix): Transformation=
     result = Transformation(m:m, inverse:inv) 
 
 proc newTransformation*(m: Matrix): Transformation=
-    result = Transformation(m: m, inverse: inverse(m))
+    result = Transformation(m: m, inverse: Inverse(m))
 
 
 
@@ -52,12 +51,72 @@ proc `*`*(self, other: Transformation): Transformation=
         res_m: Matrix = self.m * other.m
         res_inv: Matrix = other.inverse * self.inverse
     result = newTransformation(res_m, res_inv)
+#[
+proc `*`*(self: Transformation, b: Bounds3): Bounds3=
+    result = newBounds3(self * newPoint(b.pMin.x, b.pMin.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMin.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMin.x, b.pMax.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMin.x, b.pMin.y, b.pMax.z))
+    result = Union(result, self * newPoint(b.pMin.x, b.pMax.y, b.pMax.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMax.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMin.y, b.pMax.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMax.y, b.pMax.z))
+]#
 
 proc `==`*(self, other: Transformation): bool=
     return are_matrix_close(self.m, other.m ) and are_matrix_close(self.inverse, other.inverse)
 
 proc `!=`*(self, other: Transformation): bool=
     return not (self == other)
+
+func TransformVector3*(self: Transformation, v: Vector3): Vector3=
+    return self * v
+
+func TransformNormal*(self: Transformation, n: Normal): Normal=
+    return self * n
+
+func TransformPoint*(self: Transformation, p: Point): Point=
+    return self * p
+
+#func TransformBounds*(self: Transformation, bounds: Bounds3): Bounds3=
+#    return self * bounds
+
+proc LookAt*(pos: Point, look: Point, up: Vector3): Transformation=
+    ## Returns the necessary transformation to get an object to face a specific point (usually used on a camera)
+    ## The call specifies the position of the object and the point for the object to look at, together with an "up" bector for object orientation.
+    ## The returned transformation is a transformation between object(camera) space to world space.
+    ## 
+    ## Parameters
+    ##      position (Point): 
+    ##      look (Point):
+    ##      up (Vector3):
+    ## Returns
+    ##      
+    var cameraToWorld: Matrix = newMatrix()
+    # Set camera position in world space
+    cameraToWorld[0][3] = pos[0]
+    cameraToWorld[1][3] = pos[1]
+    cameraToWorld[2][3] = pos[2]
+    cameraToWorld[3][3] = float32(1.0)
+
+    let
+        dir = (look - pos).convert(Vector3).normalize()
+        right = Vector3.Cross(up.normalize(), dir).normalize()
+        newUp = Vector3.Cross(dir, right)
+    cameraToWorld[0][0] = right.x
+    cameraToWorld[1][0] = right.y
+    cameraToWorld[2][0] = right.z
+    cameraToWorld[3][0] = float32(0.0)
+    cameraToWorld[0][1] = newUp.x
+    cameraToWorld[1][1] = newUp.y
+    cameraToWorld[2][1] = newUp.z
+    cameraToWorld[3][1] = float32(0.0)
+    cameraToWorld[0][2] = dir.x
+    cameraToWorld[1][2] = dir.y
+    cameraToWorld[2][2] = dir.z
+    cameraToWorld[3][2] = float32(0.0)
+    return newTransformation(Inverse(cameraToWorld), cameraToWorld)
+
 
 
 proc is_consistent*(t : Transformation): bool =
