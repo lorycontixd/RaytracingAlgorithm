@@ -1,5 +1,7 @@
 import world
-from color import Color
+import material
+import color
+import rayhit
 from ray import Ray
 from exception import NotImplementedError, AbstractMethodError
 import std/[options]
@@ -14,12 +16,17 @@ type
     OnOffRenderer* = ref object of Renderer
         color*: Color
 
+    FlatRenderer* = ref object of Renderer
+
 # ----------- Constructors -----------
 func newOnOffRenderer*(world: World, backgroundColor, color: Color): OnOffRenderer=
     return OnOffRenderer(world:world, backgroundColor:backgroundColor, color:color)
 
 func newDebugRenderer*(world: World, backgroundColor: Color): DebugRenderer=
     return DebugRenderer(world:world, backgroundColor: backgroundColor)
+
+func newFlatRenderer*(world: World, backgroundColor: Color): FlatRenderer=
+    return FlatRenderer(world: world, backgroundColor: backgroundColor)
 
 # ----------- Methods -----------
 method Get*(renderer: Renderer): (proc(r: Ray): Color) {.base, raises:[AbstractMethodError].}=
@@ -38,5 +45,15 @@ method Get*(renderer: OnOffRenderer): (proc(r: Ray): Color) =
         else:
             return renderer.backgroundColor
 
+method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) =
+    return proc(r: Ray): Color =
+        var hit: Option[RayHit] = renderer.world.rayIntersect(r)
+        if hit == none(RayHit):
+            return renderer.backgroundColor
 
+        let material = hit.get().material
+        var
+            brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint()) 
+            emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
+        return ( brdfColor + emittedRadianceColor )
 

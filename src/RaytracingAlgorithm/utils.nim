@@ -1,5 +1,4 @@
-import std/[os, strutils, strformat, macros, parsecfg, times, terminal, locks]
-from sequtils import mapIt
+import std/[os, strutils, macros, parsecfg, times, terminal]
 import neo
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
@@ -28,7 +27,7 @@ proc size*[T](x: T): int =
     for _ in x:
         inc result
 
-proc getFileCount(dirPath: string): int =
+proc getFileCount*(dirPath: string): int =
     result = 0
     for kind, path in walkDir(dirPath):
         inc result

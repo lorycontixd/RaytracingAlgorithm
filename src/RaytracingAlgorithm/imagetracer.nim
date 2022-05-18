@@ -1,5 +1,4 @@
 import hdrimage, camera, ray, color
-import std/[typetraits, macros]
 
 
 type 
