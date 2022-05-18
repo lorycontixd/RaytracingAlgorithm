@@ -1,5 +1,4 @@
 import std/[os, strutils, macros, parsecfg, times, terminal]
-import neo
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
 
@@ -56,22 +55,6 @@ proc getPackageVersion*(): string=
     var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
 
     result = p.getSectionValue("", "version") 
-
-proc getMatrixRows*(m: Matrix): int =
-    var k: int = 0
-    for i in m.rows:
-        inc k
-    return k
-
-proc getMatrixCols*(m: Matrix): int =
-    var k: int = 0
-    for i in m.columns:
-        inc k
-    return k
-
-proc getMatrixSize*(m: Matrix): (int,int)=
-    result = (getMatrixRows(m), getMatrixCols(m))
-
 
 macro apply*(f, t: typed): auto =
   var args = newSeq[NimNode]()

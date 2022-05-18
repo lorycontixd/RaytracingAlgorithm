@@ -4,7 +4,7 @@ type
     PCG* = object
         state*: uint64
         inc*: uint64
-    
+
 
 
 proc random*(self: var PCG): uint32=
