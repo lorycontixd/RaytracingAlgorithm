@@ -31,5 +31,8 @@ proc newPCG*(init_state: uint64 = 42, init_seq: uint64 = 54): PCG=
     discard result.random()
 
 proc random_float*(self: var PCG): float32=
-    return cast[float32]( cast[int](self.random()) / cast[int](  pow(2.0, 32.0)-1 ) )
+    var num: uint32 = cast[uint32](self.random())
+    var den: float32 = pow(2.0, 32.0) - 1
+    return num.float32 / den
+    
 

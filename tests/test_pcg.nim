@@ -9,4 +9,8 @@ proc test_random =
     for expected in @[2707161783'u32, 2068313097'u32, 3122475824'u32, 2211639955'u32, 3215226955'u32, 3421331566'u32]:
         assert expected == pcg.random()
 
+    for i in 0..100:
+        let f1 = pcg.random_float()
+        assert (0 < f1 and f1 < 1)
+
 test_random()
