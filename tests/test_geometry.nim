@@ -91,7 +91,7 @@ proc test_transformation_matrix_inverse(): void=
             @[-quar, quar, quar, quar]
         ])
 
-    assert m1.inverse().are_matrix_close(m1)
+    assert m1.Inverse().are_matrix_close(m1)
     #assert m2.are_matrix_close(invm2)  ### not wokring??? prints same matrix
 
 proc test_vector3_slerp(): void=

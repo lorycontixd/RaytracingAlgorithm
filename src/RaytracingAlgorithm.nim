@@ -59,8 +59,9 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     var
         w: World = newWorld()
         img: HdrImage = newHdrImage(width, height)
-        tracer: ImageTracer = newImageTracer(img, cam)
-        render: Renderer = newPathTracer(w, Color.black())
+        pcg: PCG = newPCG()
+        tracer: ImageTracer = newAntiAliasing(img, cam, 100, pcg)
+        render: Renderer = newPathTracer(w, Color.black(), pcg)
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
     var

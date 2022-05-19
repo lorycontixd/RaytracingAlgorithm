@@ -23,6 +23,10 @@ type
     SpecularBRDF* = ref object of BRDF
         thresholdAngle*: float32
 
+    PhongBRDF* = ref object of BRDF
+        diffuseCoefficient*: float32
+        specularCoefficienet*: float32
+
     Material* = object
         brdf*: BRDF
         emitted_radiance*: Pigment
@@ -84,6 +88,16 @@ method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2):
 method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
     self.pigment.getColor(uv) * (self.reflectance / PI)
 
+method eval*(self: SpecularBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
+    let
+        theta_in = arccos(Dot(normal.normalize(), in_dir.normalize()))
+        theta_out = arccos(Dot(normal.normalize(), out_dir.normalize()))
+
+    if abs(theta_in - theta_out) < self.thresholdAngle:
+        return self.pigment.get_color(uv)
+    else:
+        return Color.black()
+
 method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_point: Point, normal: Normal, depth: int): Ray {.base.}=
     raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
 
@@ -122,7 +136,11 @@ method ScatterRay*(
     var newnormal: Vector3 = normal.convert(Vector3).normalize()
     return newRay(interaction_point, newIncomingDir - newnormal * 2.0 * newnormal.Dot(newIncomingDir), 1e-3, Inf, depth)
 
-
-
-
-    
+method ScatterRay*(
+        self: PhongBRDF,
+        pcg: var PCG,
+        incoming_dir: Vector3,
+        interaction_point: Point,
+        normal: Normal,
+        depth: int
+    ): Ray = discard
