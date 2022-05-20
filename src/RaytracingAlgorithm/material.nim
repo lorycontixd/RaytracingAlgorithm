@@ -24,8 +24,13 @@ type
         thresholdAngle*: float32
 
     PhongBRDF* = ref object of BRDF
-        diffuseCoefficient*: float32
-        specularCoefficienet*: float32
+        diffuseReflectivity*: float32
+        specularReflectivity*: float32
+        shininess*: float32
+
+    CompleteBRDF* = ref object of BRDF 
+
+
 
     Material* = object
         brdf*: BRDF
@@ -43,6 +48,9 @@ proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float3
 
 proc newSpecularBRDF*(pigment: Pigment = newUniformPigment(), thresholdAngle: float32 = PI / 1800.0): SpecularBRDF=
     return SpecularBRDF(pigment: pigment, thresholdANgle: thresholdAngle)
+
+proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 1.0, diffuseReflectivity: float32 = 1.0, specularReflectivity: float32 = 1.0): PhongBRDF=
+    return PhongBRDF(pigment: pigment, shininess: shininess, diffuseReflectivity: diffuseReflectivity, specularReflectivity: specularReflectivity)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, emitted_radiance: pigment)
@@ -136,11 +144,27 @@ method ScatterRay*(
     var newnormal: Vector3 = normal.convert(Vector3).normalize()
     return newRay(interaction_point, newIncomingDir - newnormal * 2.0 * newnormal.Dot(newIncomingDir), 1e-3, Inf, depth)
 
-method ScatterRay*(
+method ScatterRay*( 
         self: PhongBRDF,
         pcg: var PCG,
         incoming_dir: Vector3,
         interaction_point: Point,
         normal: Normal,
         depth: int
-    ): Ray = discard
+    ): Ray =
+    let
+        (e1, e2, e3) = CreateOnbFromZ(normal)   
+        cos_theta = pow(1 - pcg.random_float(), 1.0 / (1+self.shininess))
+        sin_theta = sqrt(1 - cos_theta * cos_theta)
+        phi = 2.0 * PI * pcg.random_float()
+    
+    return newRay(
+        interaction_point,
+        e1 * cos(phi) * sin_theta + e2 * sin(phi) * sin_theta + e3 * cos_theta,
+        1e-3,
+        Inf,
+        depth
+    )
+    
+
+    

@@ -75,7 +75,8 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
         )
 
         sphere_material = newMaterial(
-            newDiffuseBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)))
+            #(newUniformPigment(newColor(0.3, 0.4, 0.8)))
+            newPhongBRDF(newUniformPigment(Color.blue()), 100.0 )
         )
 
         mirror_material = newMaterial(
