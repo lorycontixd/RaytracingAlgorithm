@@ -61,7 +61,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
         img: HdrImage = newHdrImage(width, height)
         pcg: PCG = newPCG()
         tracer: ImageTracer = newAntiAliasing(img, cam, 100, pcg)
-        render: Renderer = newPathTracer(w, Color.black(), pcg)
+        render: Renderer = newPathTracer(w, Color.blue(), pcg, 10, 3, 4)
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
     var
@@ -76,7 +76,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
         sphere_material = newMaterial(
             #(newUniformPigment(newColor(0.3, 0.4, 0.8)))
-            newPhongBRDF(newUniformPigment(Color.blue()), 100.0 )
+            newPhongBRDF(newUniformPigment(Color.white()), 1000.0, 0.5, 0.5 )
         )
 
         mirror_material = newMaterial(
@@ -85,7 +85,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
     w.Add(newSphere("SPHERE_0", Transformation.scale(200.0, 200.0, 200.0) * Transformation.translation(0.0, 0.0, 0.4), sky_material))
     w.Add(newPlane("PLANE_0", Transformation.translation(0.0, 0.0, 0.0), ground_material))
-    w.Add(newSphere("SPHERE_1", Transformation.translation(0.0, 0.0, 1.0), sphere_material))
+    w.Add(newSphere("SPHERE_1", Transformation.translation(0.0, 0.0, 1.5), sphere_material))
     w.Add(newSphere("SPHERE_2", Transformation.translation(1.0, 2.5, 0.0), mirror_material))
 
     tracer.fireAllRays(render.Get())

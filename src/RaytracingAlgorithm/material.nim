@@ -49,7 +49,9 @@ proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float3
 proc newSpecularBRDF*(pigment: Pigment = newUniformPigment(), thresholdAngle: float32 = PI / 1800.0): SpecularBRDF=
     return SpecularBRDF(pigment: pigment, thresholdANgle: thresholdAngle)
 
-proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 1.0, diffuseReflectivity: float32 = 1.0, specularReflectivity: float32 = 1.0): PhongBRDF=
+proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 10.0, diffuseReflectivity: float32 = 0.3, specularReflectivity: float32 = 0.5): PhongBRDF=
+    assert (diffuseReflectivity + specularReflectivity <= 1) # must obey energy conservation
+    assert (shininess >= 0.0) ## cannot have negative values of shininess 
     return PhongBRDF(pigment: pigment, shininess: shininess, diffuseReflectivity: diffuseReflectivity, specularReflectivity: specularReflectivity)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
@@ -152,15 +154,32 @@ method ScatterRay*(
         normal: Normal,
         depth: int
     ): Ray =
+    var newDir: Vector3
     let
         (e1, e2, e3) = CreateOnbFromZ(normal)   
-        cos_theta = pow(1 - pcg.random_float(), 1.0 / (1+self.shininess))
-        sin_theta = sqrt(1 - cos_theta * cos_theta)
-        phi = 2.0 * PI * pcg.random_float()
-    
+        r = pcg.random_float()
+
+    if (r >= 0 and r < self.diffuseReflectivity):
+        # diffusive behaviour
+        let
+            cos_theta_sq = pcg.random_float()
+            cos_theta = sqrt(cos_theta_sq)
+            sin_theta = sqrt(1 - cos_theta_sq)
+            phi = 2.0 * PI * pcg.random_float()
+        newDir = e1 * cos(phi) * cos_theta + e2 * sin(phi) * cos_theta + e3 * sin_theta
+    elif (r >= self.diffuseReflectivity and r < self.diffuseReflectivity + self.specularReflectivity):
+        # specular behaviour
+        let
+            theta = arccos( pow(  pcg.random_float(), 1.0 / (1.0 + self.shininess)) )
+            phi = 2 * PI * pcg.random_float()
+        newDir = e1 * sin(theta) * cos(phi) + e2 * sin(theta) * sin(phi) + e3 * cos(theta)
+    else:
+        #no contribution
+        newDir = newVector3(0.0, 0.0, 0.0)
+
     return newRay(
         interaction_point,
-        e1 * cos(phi) * sin_theta + e2 * sin(phi) * sin_theta + e3 * cos_theta,
+        newdir,
         1e-3,
         Inf,
         depth
