@@ -64,7 +64,6 @@ method Get*(renderer: OnOffRenderer): (proc(r: Ray): Color) =
     return proc(r: Ray): Color=
         let intersection = rayIntersect(renderer.world,r)
         if intersection.isSome:
-            #echo intersection
             return renderer.color
         else:
             return renderer.backgroundColor
