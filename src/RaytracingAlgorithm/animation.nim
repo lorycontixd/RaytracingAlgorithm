@@ -164,6 +164,9 @@ proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
         error("FFmpeg image command failed with return code ", res)
 
 
+proc SetWorld*(self: var Animation, w: World): void=
+    self.world = w
+
 proc Show*(self: Animation) = discard
 
     

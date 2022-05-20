@@ -97,7 +97,8 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) =
             hit_color_lum = max(hit_color.r, max(hit_color.g, hit_color.b))
         
         if ray.depth >= renderer.russianRouletteLimit:
-            if renderer.pcg.random_float() > hit_color_lum:
+            let q = max(0.05, 1 - hit_color_lum)
+            if renderer.pcg.random_float() > q:
                 hit_color = hit_color * (1.0 / (1 - hit_color_lum))
             else:
                 return emitted_radiance
