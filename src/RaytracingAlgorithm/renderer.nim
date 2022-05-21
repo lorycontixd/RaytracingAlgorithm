@@ -11,6 +11,7 @@ type
     Renderer* = ref object of RootObj
         world*: World
         backgroundColor*: Color
+        raysShot*: int
 
     DebugRenderer* = ref object of Renderer
 
@@ -24,6 +25,8 @@ type
         numRays*: int
         maxRayDepth*: int
         russianRouletteLimit*: int
+
+        
 
 # ----------- Constructors -----------
 func newOnOffRenderer*(world: World, backgroundColor, color: Color): OnOffRenderer {.inline.}=
@@ -80,7 +83,8 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) =
             emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
         return ( brdfColor + emittedRadianceColor )
 
-method Get*(renderer: PathTracer): (proc(ray: Ray): Color) =
+
+method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe.} =
     return proc(ray: Ray): Color=
         if ray.depth > renderer.maxRayDepth:
             return Color.black()
@@ -89,11 +93,9 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) =
             return renderer.backgroundColor
         
         let hit = hitrecord.get()
+        var hit_color: Color = hit.material.brdf.pigment.getColor(hit.GetSurfacePoint())
         let
-            hit_material = hit.material
-        var hit_color: Color = hit_material.brdf.pigment.getColor(hit.GetSurfacePoint())
-        let
-            emitted_radiance = hit_material.emitted_radiance.getColor(hit.GetSurfacePoint())
+            emitted_radiance = hit.material.emitted_radiance.getColor(hit.GetSurfacePoint())
             hit_color_lum = max(hit_color.r, max(hit_color.g, hit_color.b))
         
         if ray.depth >= renderer.russianRouletteLimit:
@@ -106,7 +108,7 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) =
         var cum_radiance: Color = Color.black()
         if hit_color_lum > 0.0:
             for ray_index in countup(0, renderer.numRays):
-                let newRay = hit_material.brdf.ScatterRay(
+                let newRay = hit.material.brdf.ScatterRay(
                     renderer.pcg,
                     hit.ray.dir,
                     hit.world_point,
@@ -115,4 +117,5 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) =
                 )
                 let newRadiance = renderer.Get()(newRay)
                 cum_radiance = cum_radiance + hit_color * newRadiance
+                renderer.raysShot  = renderer.raysShot + 1
         return emitted_radiance + cum_radiance * (1.0 / float32(renderer.numRays))

@@ -1,7 +1,9 @@
 
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material]
-import std/[segfaults, os, streams, times, options, tables, strutils, strformat]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats]
+import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool]
 import cligen
+
+
 
 #[proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
     ## 
@@ -49,6 +51,7 @@ import cligen
 ]#
 
 proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
+    var stats: Stats = newStats()
     var cam: Camera
     if camera.toLower() == "perspective":
         cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
@@ -60,8 +63,9 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
         w: World = newWorld()
         img: HdrImage = newHdrImage(width, height)
         pcg: PCG = newPCG()
-        tracer: ImageTracer = newAntiAliasing(img, cam, 100, pcg)
-        render: Renderer = newPathTracer(w, Color.blue(), pcg, 10, 3, 4)
+        tracer: ImageTracer = newAntiAliasing(img, cam, 500, pcg)
+        render: Renderer = newPathTracer(w, Color.blue(), pcg, 12, 4, 5)
+        #render: Renderer = newFlatRenderer(w, Color.black())
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
     var
@@ -76,7 +80,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 
         sphere_material = newMaterial(
             #(newUniformPigment(newColor(0.3, 0.4, 0.8)))
-            newPhongBRDF(newUniformPigment(Color.white()), 1000.0, 0.5, 0.5 )
+            newPhongBRDF(newUniformPigment(Color.white()) , 500.0, 0.3, 0.7 )
         )
 
         mirror_material = newMaterial(
@@ -94,7 +98,6 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     tracer.image.normalize_image(1.0)
     tracer.image.clamp_image()
     tracer.image.write_png("output.png", 1.0)
-
 
 
 
@@ -157,6 +160,8 @@ proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string,
 
 
 when isMainModule:
+    when compileOption("profiler"):
+        import nimprof
     addLogger( open( joinPath(getCurrentDir(), "main.log"), fmWrite)) # For file logging
     #addLogger( stdout ) # For console logging
 

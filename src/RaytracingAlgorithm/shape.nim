@@ -149,7 +149,7 @@ method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit]
     ))
 
 
-method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit]=
+method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit] =
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32

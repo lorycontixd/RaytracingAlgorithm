@@ -1,5 +1,5 @@
 import shape, rayhit, ray, exception
-import std/[sugar, macros, typetraits, strutils, options]
+import std/[sugar, macros, typetraits, strutils, options, locks]
 
 type
     World* = ref object
@@ -56,7 +56,7 @@ proc Show*(self: World): void=
     for shape in self.shapes:
         echo shape.id
 
-proc rayIntersect*(self: World, r:Ray): Option[RayHit]=
+proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, gcsafe.}=
     ## Shoots a ray in the scene and returns the closest shape that the ray hits.
     ##
     ## Parameters
@@ -67,7 +67,7 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit]=
     var
         closest: Option[RayHit] = none(RayHit)
         intersection: Option[RayHit]
-
+    
     for shape in self.shapes:
         intersection = shape.rayIntersect(r, false)
 
@@ -77,4 +77,3 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit]=
         if closest == none(RayHit) or intersection.get().t < closest.get().t:
             closest = intersection
     return closest
-            
