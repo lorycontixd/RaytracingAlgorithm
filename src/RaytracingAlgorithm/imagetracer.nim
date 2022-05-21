@@ -1,5 +1,5 @@
 import hdrimage, camera, ray, color, pcg
-import std/[math]
+import std/[math, threadpool]
 
 
 type 
@@ -33,7 +33,6 @@ func fireAllRays*(self: var ImageTracer, f: proc): void =
             color = f(ray)
             self.image.set_pixel(col, row, color)
 
-# 
 func newAntiAliasing*(image: var HdrIMage, camera: Camera, samples: int, pcg: PCG): AntiAliasing=
     return AntiAliasing(image: image, camera: camera, samplesPerSide: samples, pcg: pcg)
 
@@ -47,14 +46,16 @@ func fireAllRays*(self: var AntiAliasing, f: proc): void=
             cum_color = Color.black()
 
             if self.samplesPerSide > 0:
-                for inter_pixel_row in countup(0, self.samplesPerSide-1):
-                    for inter_pixel_col in countup(0, self.samplesPerSide-1):
-                        let
-                            u_pixel = (inter_pixel_col + self.pcg.random_float()) / self.samplesPerSide
-                            v_pixel = (inter_pixel_row + self.pcg.random_float()) / self.samplesPerSide
-                            ray = self.fireRay(col, row, u_pixel, v_pixel)
-                            cum_color = cum_color + f(ray)
-                self.image.sel_pixel(col, row, cum_color * (1.0 / pow(self.samplesPerSide, 2.0)))
+                parallel:
+                    for inter_pixel_row in countup(0, self.samplesPerSide-1):
+                        for inter_pixel_col in countup(0, self.samplesPerSide-1):
+                            let
+                                u_pixel = (inter_pixel_col + self.pcg.random_float()) / self.samplesPerSide
+                                v_pixel = (inter_pixel_row + self.pcg.random_float()) / self.samplesPerSide
+                                
+                                ray = spawn self.fireRay(col, row, u_pixel, v_pixel)
+                                cum_color = cum_color + f(^ray)
+                    self.image.sel_pixel(col, row, cum_color * (1.0 / pow(self.samplesPerSide, 2.0)))
             else:
                 ray = self.fire_ray(col, row)
                 self.image.set_pixel(col, row, f(ray))
