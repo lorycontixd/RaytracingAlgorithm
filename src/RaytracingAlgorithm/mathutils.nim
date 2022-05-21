@@ -1,5 +1,4 @@
 import geometry
-
 ## ---------------------------------------------------------------
 
 ## ---------------------------------------------------------------
@@ -35,9 +34,7 @@ func Clamp01*(value: float32): float32=
 
 func CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3)=
     ## Normal must be normalized
-    var normal: Normal
-    if not normal.IsNormalized():
-        normal = normall.normalize()
+    var normal: Normal = normall.normalize()
     var sign: float32
     if normal.z > 0.0:
         sign = 1.0 
@@ -46,12 +43,10 @@ func CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3)=
     let
         a = -1.0 / (sign + normal.z)
         b = normal.x * normal.y * a
-
+    let
         e1 = newVector3(1.0 + sign * normal.x * normal.x * a, sign * b, -sign * normal.x)
         e2 = newVector3(b, sign + normal.y * normal.y * a, -normal.y)
-
     return (e1, e2, newVector3(normal.x, normal.y, normal.z))
-
 
 func Lerp*(a,b: float32, t: var float32): float32=
     return a + (b - a) * Clamp01(t)

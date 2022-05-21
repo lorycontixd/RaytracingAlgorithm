@@ -212,7 +212,12 @@ proc Inverse*(m: Matrix): Matrix {.inline.}=
         @[m30, m31, m32, m33]
     ])
 
-proc Transpose*(m1: Matrix): Matrix=
+proc TransposeInplace*(m1: var Matrix): Matrix=
+    for i in 0..m1.high:
+        for j in 0..m1[i].high:
+            swap m1[j][i], m1[i][j]
+
+proc Transpose*(m1: var Matrix): Matrix=
     result = cast[Matrix](@[
         @[float32(m1[0][0]), float32(m1[1][0]), float32(m1[2][0]), float32(m1[3][0])],
         @[float32(m1[0][1]), float32(m1[1][1]), float32(m1[2][1]), float32(m1[3][1])],
