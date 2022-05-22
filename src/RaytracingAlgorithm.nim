@@ -1,6 +1,6 @@
 
 import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats]
-import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool]
+import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
 import cligen
 
 
@@ -51,7 +51,6 @@ import cligen
 ]#
 
 proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
-    var stats: Stats = newStats()
     var cam: Camera
     if camera.toLower() == "perspective":
         cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
@@ -63,8 +62,9 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
         w: World = newWorld()
         img: HdrImage = newHdrImage(width, height)
         pcg: PCG = newPCG()
-        tracer: ImageTracer = newAntiAliasing(img, cam, 500, pcg)
-        render: Renderer = newPathTracer(w, Color.blue(), pcg, 12, 4, 5)
+        tracer:  ImageTracer = newImageTracer(img, cam)
+        #tracer: AntiAliasing = newAntiAliasing(img, cam, 500, pcg)
+        render: Renderer = newPathTracer(w, Color.blue(), pcg, 4, 1, 3)
         #render: Renderer = newFlatRenderer(w, Color.black())
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
@@ -99,6 +99,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
     tracer.image.clamp_image()
     tracer.image.write_png("output.png", 1.0)
 
+    echo "-> ",$$mainStats
 
 
 
