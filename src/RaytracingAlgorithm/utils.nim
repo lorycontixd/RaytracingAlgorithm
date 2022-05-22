@@ -1,4 +1,4 @@
-import std/[os, strutils, macros, parsecfg, times, terminal]
+import std/[os, strutils, macros, parsecfg, times, terminal, parseutils]
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
 
@@ -84,4 +84,13 @@ proc progressBar*()=
         eraseLine()
 
     stdout.resetAttributes()
-    
+
+
+## Get function name 
+template procName*: string =
+  when not declaredInScope(internalCProcName):
+    var internalCProcName {.exportc:"__the_name_should_not_be_used", inject.}: cstring
+    {.emit: "__the_name_should_not_be_used = __func__;".}
+    var realProcNameButShouldnotBeUsed {.inject.}: string
+    discard parseUntil($internalCProcName, realProcNameButShouldnotBeUsed, "__")
+  realProcNameButShouldnotBeUsed
