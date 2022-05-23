@@ -24,7 +24,7 @@ proc fireRay*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pi
         v:float32 = 1.0 - (float32(row) + v_pixel) / float32(self.image.height)
     return self.camera.fireRay(u, v)
 
-proc fireAllRays*(self: var ImageTracer, f: proc): void =
+proc fireAllRays*(self: var ImageTracer, f: proc): void {.injectProcName.}=
     let start = cpuTime()
     var
         color: Color
@@ -38,11 +38,10 @@ proc fireAllRays*(self: var ImageTracer, f: proc): void =
     let endTime = cpuTime() - start
     mainStats.AddCall(procName, endTime)
 
-
 func newAntiAliasing*(image: var HdrImage, camera: Camera, samples: int, pcg: PCG): AntiAliasing=
     return AntiAliasing(image: image, camera: camera, samplesPerSide: samples, pcg: pcg)
 
-proc fireAllRays*(self: var AntiAliasing, f: proc): void=
+proc fireAllRays*(self: var AntiAliasing, f: proc): void {.injectProcName.}=
     var
         cumcolor: Color
         ray: Ray

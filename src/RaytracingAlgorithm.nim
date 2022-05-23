@@ -4,6 +4,7 @@ import std/[segfaults, os, streams, times, options, tables, strutils, strformat,
 import cligen
 
 
+proc demo(demoName: string, width: int = 800, height: int = 600): auto = discard
 
 #[proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
     ## 
@@ -51,6 +52,7 @@ import cligen
 ]#
 
 proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto=
+    info("Starting rendering script at ",now())
     var cam: Camera
     if camera.toLower() == "perspective":
         cam = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
@@ -64,7 +66,7 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
         pcg: PCG = newPCG()
         tracer:  ImageTracer = newImageTracer(img, cam)
         #tracer: AntiAliasing = newAntiAliasing(img, cam, 500, pcg)
-        render: Renderer = newPathTracer(w, Color.blue(), pcg, 4, 1, 3)
+        render: Renderer = newFlatRenderer(w, Color.blue() )#, pcg, 3, 1, 3)
         #render: Renderer = newFlatRenderer(w, Color.black())
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
@@ -107,11 +109,11 @@ proc render(width: int = 800, height: int = 600, camera: string = "perspective",
 proc animate(width: int = 800, height: int = 600, camera: string = "perspective", dontDeleteFrames: bool = false): void=
     let start = cpuTime()
     logLevel = Level.debug
-    debug("Starting animating script at ",now())
+    info("Starting animating script at ",now())
     var
         world: World = newWorld()
         scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1))
-    debug(fmt"Using renderer: OnOffRenderer")
+    
 
     world.Add(newSphere("SPHERE_0", Transformation.translation( newVector3(0.5, 0.5, 0.5)) * scale_tranform))
     world.Add(newSphere("SPHERE_1", Transformation.translation( newVector3(0.5, 0.5, -0.5)) * scale_tranform))
@@ -161,8 +163,8 @@ proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string,
 
 
 when isMainModule:
-    when compileOption("profiler"):
-        import nimprof
+    #when compileOption("profiler"):
+    #    import nimprof
     addLogger( open( joinPath(getCurrentDir(), "main.log"), fmWrite)) # For file logging
     #addLogger( stdout ) # For console logging
 

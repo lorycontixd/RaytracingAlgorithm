@@ -242,6 +242,7 @@ template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or No
 
 defineNormalize(Vector3)
 defineNormalize(Normal)
+defineNormalize(Point)
 
 proc normalize*(a: Vector2): Vector2=
     result.u = a.u/a.norm()
