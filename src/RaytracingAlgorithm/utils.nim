@@ -87,10 +87,25 @@ proc progressBar*()=
 
 
 ## Get function name 
-template procName*: string =
+#[template procName*: string =
   when not declaredInScope(internalCProcName):
     var internalCProcName {.exportc:"__the_name_should_not_be_used", inject.}: cstring
     {.emit: "__the_name_should_not_be_used = __func__;".}
     var realProcNameButShouldnotBeUsed {.inject.}: string
     discard parseUntil($internalCProcName, realProcNameButShouldnotBeUsed, "__")
-  realProcNameButShouldnotBeUsed
+  realProcNameButShouldnotBeUsed]#
+
+macro injectProcName*(procDef: untyped): untyped =
+  procDef.expectKind({nnkProcDef, nnkMethodDef})
+  
+  let
+    procName = procDef[0].toStrLit
+    procNameId = ident("procName")
+  
+  let pnameDef = quote do:
+    let `procNameId` = `procName`
+  
+  procDef.body.insert(0, pnameDef)
+  
+  return procDef
+

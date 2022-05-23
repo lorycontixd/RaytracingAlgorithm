@@ -108,6 +108,8 @@ method eval*(self: SpecularBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: V
     else:
         return Color.black()
 
+method eval*(self: PhongBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color = discard
+
 method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_point: Point, normal: Normal, depth: int): Ray {.base.}=
     raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
 

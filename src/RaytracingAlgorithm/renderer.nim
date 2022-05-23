@@ -3,9 +3,12 @@ import material
 import color
 import rayhit
 import pcg
+import geometry
+import stats
+from utils import injectProcName
 from ray import Ray
 from exception import NotImplementedError, AbstractMethodError
-import std/[options]
+import std/[options, math, times]
 
 type
     Renderer* = ref object of RootObj
@@ -26,6 +29,9 @@ type
         maxRayDepth*: int
         russianRouletteLimit*: int
 
+    PointlightRenderer* = ref object of Renderer
+        ambientColor*: Color
+
         
 
 # ----------- Constructors -----------
@@ -41,6 +47,9 @@ func newFlatRenderer*(world: World, backgroundColor: Color): FlatRenderer{.inlin
 func newPathTracer*(world: World, backgroundColor: Color = Color.black(), pcg: PCG = newPCG(), numRays: int = 10, maxRayDepth: int = 2, russianRouletteLimit: int = 3): PathTracer {.inline.}=
     return PathTracer(world: world, backgroundColor: backgroundColor, pcg: pcg, numRays: numRays, maxRayDepth: maxRayDepth, russianRouletteLimit: russianRouletteLimit)
 
+func newPointlightRenderer*(world: World, backgroundColor: Color, ambientColor: Color): PointlightRenderer {.inline.}=
+    return PointlightRenderer(world: world, backgroundColor: backgroundColor, ambientColor: ambientColor)
+
 # ------------ Operators --------------
 func `$`*(renderer: OnOffRenderer): string =
     return "OnOffRenderer"
@@ -54,6 +63,8 @@ func `$`*(renderer: PathTracer): string=
 func `$`*(renderer: FlatRenderer): string=
     return "FlatRenderer"
 
+func `$`*(renderer: PointlightRenderer): string=
+        return "PointlightRenderer"
 
 # ----------- Methods -----------
 method Get*(renderer: Renderer): (proc(r: Ray): Color) {.base, raises:[AbstractMethodError].}=
@@ -71,8 +82,9 @@ method Get*(renderer: OnOffRenderer): (proc(r: Ray): Color) =
         else:
             return renderer.backgroundColor
 
-method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) =
+method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
     return proc(r: Ray): Color =
+        let start = cpuTime()
         var hit: Option[RayHit] = renderer.world.rayIntersect(r)
         if hit == none(RayHit):
             return renderer.backgroundColor
@@ -81,11 +93,14 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) =
         var
             brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint()) 
             emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
+        let endTime = cpuTime() - start
+        mainStats.AddCall(procName, endTime)
         return ( brdfColor + emittedRadianceColor )
 
 
-method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe.} =
+method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe, injectProcName.} =
     return proc(ray: Ray): Color=
+        let start = cpuTime()
         if ray.depth > renderer.maxRayDepth:
             return Color.black()
         let hitrecord = renderer.world.rayIntersect(ray)
@@ -118,4 +133,38 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe.} =
                 let newRadiance = renderer.Get()(newRay)
                 cum_radiance = cum_radiance + hit_color * newRadiance
                 renderer.raysShot  = renderer.raysShot + 1
+        let endTime = cpuTime() - start
+        mainStats.AddCall(procName, endTime)
         return emitted_radiance + cum_radiance * (1.0 / float32(renderer.numRays))
+
+method Get*(self: PointlightRenderer): (proc(ray: Ray): Color)=
+    return proc(ray: Ray): Color=
+        let hit = self.world.rayIntersect(ray)
+        if not hit.isSome:
+            return self.backgroundColor
+        
+        let hitrecord = hit.get()
+        let hitmaterial = hitrecord.material
+        var result_color: Color = self.ambientColor
+        for light in self.world.pointLights:
+            if self.world.IsPointVisible(light.position, hitrecord.world_point):
+                let
+                    distance_vec = (hitrecord.world_point - light.position).convert(Vector3)
+                    distance = distance_vec.norm()
+                    in_dir = distance_vec * (1.0 / distance)
+                    costheta = max(0.0, Dot(ray.dir.normalize().neg(), hitrecord.normal.normalize()))
+                var distance_factor: float32
+                if light.linearRadius > 0.0:
+                    distance_factor = pow((light.linearRadius / distance), 2.0) 
+                else:
+                    distance_factor = 1.0
+                let
+                    emitted_color = hitmaterial.emitted_radiance.getColor(hitrecord.GetSurfacePoint())
+                    brdf_color = hitmaterial.brdf.eval(
+                        hitrecord.normal,
+                        in_dir,
+                        ray.dir,
+                        hitrecord.GetSurfacePoint()
+                    )
+                result_color = result_color + (emitted_color + brdf_color) * light.color * cos_theta * distance_factor
+        return result_color

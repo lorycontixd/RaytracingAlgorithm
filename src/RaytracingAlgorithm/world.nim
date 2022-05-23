@@ -1,9 +1,10 @@
-import shape, rayhit, ray, exception
-import std/[sugar, macros, typetraits, strutils, options, locks]
+import shape, rayhit, ray, exception, lights, geometry, utils, stats
+import std/[sugar, macros, typetraits, strutils, options, locks, times]
 
 type
     World* = ref object
-        shapes*: seq[shape.Shape]
+        shapes*: seq[Shape]
+        pointLights*: seq[Light]
 
 func newWorld*(): World =
     return World(shapes: @[])
@@ -56,7 +57,7 @@ proc Show*(self: World): void=
     for shape in self.shapes:
         echo shape.id
 
-proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, gcsafe.}=
+proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.} =
     ## Shoots a ray in the scene and returns the closest shape that the ray hits.
     ##
     ## Parameters
@@ -64,6 +65,7 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, gcsafe.}=
     ## 
     ## Returns
     ##      Option of a RayHit. Null if the fired ray does not intersect a shape in the scene, RayHit with collision information if a shape was hit.
+    let start = cpuTime()
     var
         closest: Option[RayHit] = none(RayHit)
         intersection: Option[RayHit]
@@ -76,4 +78,15 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, gcsafe.}=
         
         if closest == none(RayHit) or intersection.get().t < closest.get().t:
             closest = intersection
+    let endTime = cpuTime() - start
+    mainStats.AddCall(procName, endTime)
     return closest
+
+func IsPointVisible*(self: World, point: Point, observer_position: Point): bool =
+    let 
+        dir = (point - observer_position).normalize().convert(Vector3)
+        ray = newRay(observer_position, dir, 1e-2, Inf)
+    for shape in self.shapes:
+        if shape.rayIntersect(ray).isSome:
+            return false
+    return true
