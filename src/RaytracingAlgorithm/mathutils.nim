@@ -1,7 +1,15 @@
-import geometry
+import geometry, stats, utils
+import std/[times]
 ## ---------------------------------------------------------------
 
 ## ---------------------------------------------------------------
+
+func CharacteristicFunction*[T](a: T): T=
+    assert T is int or T is float or T is float32
+    if a > 0:
+        return cast[T](1)
+    else:
+        return cast[T](0)
 
 func Clamp*(value: var float32, min, max: float32): float32=
     ##  Clamps a value between a minimum and a maximum float value.
@@ -32,8 +40,9 @@ func Clamp01*(value: float32): float32=
     else:
         return value
 
-func CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3)=
+proc CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3) {.injectProcName.}=
     ## Normal must be normalized
+    let start = now()
     var normal: Normal = normall.normalize()
     var sign: float32
     if normal.z > 0.0:
@@ -46,6 +55,8 @@ func CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3)=
     let
         e1 = newVector3(1.0 + sign * normal.x * normal.x * a, sign * b, -sign * normal.x)
         e2 = newVector3(b, sign + normal.y * normal.y * a, -normal.y)
+    let endTime = now() - start
+    mainStats.AddCall(procName, endTime)
     return (e1, e2, newVector3(normal.x, normal.y, normal.z))
 
 func Lerp*(a,b: float32, t: var float32): float32=

@@ -1,5 +1,5 @@
-import geometry, transformation, rayhit, exception, ray, material, aabb, matrix
-import std/[math, options, strutils]
+import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils
+import std/[math, options, strutils, times]
 
 
 type
@@ -81,7 +81,8 @@ method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.ba
     ## This is an abstract method, do not call it directly.
     raise AbstractMethodError.newException("Shape.ray_intersection is an abstract method and cannot be called.")
 
-method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.gcsafe.} =
+method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.injectProcName.} =
+    let start = now()
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32
@@ -119,7 +120,9 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.g
     hit.ray = r
     hit.material = s.material
     #hit.hitshape = s
-    result = some(hit)
+    let endTime = now() - start
+    mainStats.AddCall(procName, endTime, 2)
+    return some(hit)
 
 method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit] =
     let inv_ray = ray.Transform(Inverse(self.transform))
@@ -149,7 +152,8 @@ method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit]
     ))
 
 
-method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit] =
+method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit] {.injectProcName.}=
+    let start = now()
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32
@@ -188,4 +192,6 @@ method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayH
     hit.ray = ray
     hit.material = self.material
     #hit.hitshape = s
-    result = some(hit)
+    let endTime = now() - start
+    mainStats.AddCall(procName, endTime, 2)
+    return some(hit)
