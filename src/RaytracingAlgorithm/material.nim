@@ -28,9 +28,17 @@ type
         specularReflectivity*: float32
         shininess*: float32
 
-    CompleteBRDF* = ref object of BRDF 
+    CookTorranceNDF* = enum
+        GGX, Beckmann, Blinn
 
+    
 
+    CookTorranceBRDF* = ref object of BRDF 
+        roughness*: float32
+        albedo*: float32
+        metallic*: float32
+        ndf*: CookTorranceNDF
+    
 
     Material* = object
         brdf*: BRDF
@@ -53,6 +61,9 @@ proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 
     assert (diffuseReflectivity + specularReflectivity <= 1) # must obey energy conservation
     assert (shininess >= 0.0) ## cannot have negative values of shininess 
     return PhongBRDF(pigment: pigment, shininess: shininess, diffuseReflectivity: diffuseReflectivity, specularReflectivity: specularReflectivity)
+
+proc newCookTorranceBRDF*(pigment: Pigment = newUniformPigment(), roughness: float32 = 0.5, albedo: float32 = 0.5, metallic: float32 = 0.5, ndf: CookTorranceNDF = CookTorranceNDF.GGX): CookTorranceBRDF =
+    return CookTorranceBRDF(pigment: pigment, roughness: roughness, albedo: albedo, metallic: metallic, ndf: ndf)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, emitted_radiance: pigment)
@@ -93,25 +104,18 @@ method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
     return self.image
 
 method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color {.base.}=
-    raise newException(AbstractMethodError, "")
+    raise newException(AbstractMethodError, "BRDF.eval is an abstract method and cannot be called.")
 
-method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
-    self.pigment.getColor(uv) * (self.reflectance / PI)
-
-method eval*(self: SpecularBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
-    let
-        theta_in = arccos(Dot(normal.normalize(), in_dir.normalize()))
-        theta_out = arccos(Dot(normal.normalize(), out_dir.normalize()))
-
-    if abs(theta_in - theta_out) < self.thresholdAngle:
-        return self.pigment.get_color(uv)
-    else:
-        return Color.black()
-
-method eval*(self: PhongBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color = discard
 
 method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_point: Point, normal: Normal, depth: int): Ray {.base.}=
     raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
+
+
+
+## Lambertian Diffuse BRDF
+
+method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
+    self.pigment.getColor(uv) * (self.reflectance / PI)
 
 method ScatterRay*(
         self: DiffuseBRDF,
@@ -135,6 +139,18 @@ method ScatterRay*(
         Inf,
         depth
     )
+
+## Specular BRDF
+
+method eval*(self: SpecularBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
+    let
+        theta_in = arccos(Dot(normal.normalize(), in_dir.normalize()))
+        theta_out = arccos(Dot(normal.normalize(), out_dir.normalize()))
+
+    if abs(theta_in - theta_out) < self.thresholdAngle:
+        return self.pigment.get_color(uv)
+    else:
+        return Color.black()
         
 method ScatterRay*(
         self: SpecularBRDF,
@@ -148,6 +164,13 @@ method ScatterRay*(
     var newnormal: Vector3 = normal.convert(Vector3).normalize()
     return newRay(interaction_point, newIncomingDir - newnormal * 2.0 * newnormal.Dot(newIncomingDir), 1e-3, Inf, depth)
 
+## Phong BRDF
+
+method eval*(self: PhongBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color =
+    let newIncomingDir = in_dir.normalize()
+    let newNormal =  normal.convert(Vector3).normalize()    
+    self.pigment.getColor(uv) * ((self.diffuseReflectivity / PI) + self.specularReflectivity * ((self.shininess + 2) / 2 * PI) * pow(cos(Dot(out_dir, newIncomingDir - newnormal * 2.0 * newnormal.Dot(newIncomingDir))), self.shininess))
+
 method ScatterRay*( 
         self: PhongBRDF,
         pcg: var PCG,
@@ -160,7 +183,6 @@ method ScatterRay*(
     let
         (e1, e2, e3) = CreateOnbFromZ(normal)   
         r = pcg.random_float()
-
     if (r >= 0 and r < self.diffuseReflectivity):
         # diffusive behaviour
         let
@@ -187,5 +209,70 @@ method ScatterRay*(
         depth
     )
     
+
+## Cook Torrance BRDF
+
+func GeometryFunction(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal): float32=
+    ## Calculates the attenuation of the light due to microfacets shadowing each other.
+    ## It models the probability that at a given point, the microfacets are occluded by each other
+    ## If GGX NDF is defined, then use GGX Geometry Function, else use Cook-Torrance Geometry Function
+    let half_vector = in_dir + out_dir
+    if self.ndf == CookTorranceNDF.GGX:
+        return CharacteristicFunction(Dot(in_dir, normal.convert(Vector3))) * ( 2.0 / 1 + sqrt(1 + self.roughness * self.roughness * pow(tan(Dot(in_dir, normal.convert(Vector3))) , 2.0)) )
+    else:
+        return min( 1.0, min(  (2*Dot(normal.convert(Vector3), half_vector)*Dot(normal.convert(Vector3), in_dir))/(Dot(in_dir, half_vector))  ,   (2*Dot(normal.convert(Vector3), half_vector)*Dot(normal.convert(Vector3), out_dir))/(Dot(in_dir, half_vector))  ) )
+
+func FresnelSchlick(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal, n: int): float32=
+    let f0 = pow(float32(n-1), 2.0) / pow(float32(n+1), 2.0)
+    let half_vector = in_dir + out_dir
+    return f0 + (1-f0) * pow( 1.0 - Dot(out_dir, half_vector), 5.0)
+
+func NDF(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal): float32=
+    let half_vector = in_dir + out_dir
+    let r2 = pow(self.roughness, 2.0)
+    if self.ndf == CookTorranceNDF.GGX:
+        # GGX / Trowbridge-Reitz
+        let
+            a1 = self.roughness
+            a2 = a1 * a1
+            noH = abs(half_vector.z)
+            d = (noH * a2 - noH) * noH + 1
+        return a2 / (d * d * PI)
+    elif self.ndf == CookTorranceNDF.Beckmann:
+        return 1.0 / (PI * pow(self.roughness, 2.0) * pow( Dot(half_vector, normal.convert(Vector3)) , 4.0)) * exp( - pow( tan(Dot(half_vector, normal.convert(Vector3))),2.0) / pow(self.roughness, 2.0))
+
+method ScatterRay*( 
+        self: CookTorranceBRDF,
+        pcg: var PCG,
+        incoming_dir: Vector3,
+        interaction_point: Point,
+        normal: Normal,
+        depth: int
+    ): Ray =
+    var newDir: Vector3
+    let
+        (e1, e2, e3) = CreateOnbFromZ(normal)
+        rough2 = pow(self.roughness, 2.0)
+    if self.ndf == CookTorranceNDF.GGX:
+        var theta: float32 = arccos(sqrt( rough2 / (pcg.random_float() * (rough2 - 1) + 1) ))
+        var phi: float32 = pcg.random_float()
+        newDir = e1 * sin(theta) * cos(phi) + e2 * sin(theta) * sin(phi) + e3 * cos(theta)
+    elif self.ndf == CookTorranceNDF.Beckmann:
+        var theta: float32 = arccos(sqrt( 1 / (1 - rough2 * ln(1 - pcg.random_float())) ))
+        var phi: float32 = pcg.random_float()
+        newDir = e1 * sin(theta) * cos(phi) + e2 * sin(theta) * sin(phi) + e3 * cos(theta)
+    elif self.ndf == CookTorranceNDF.Blinn:
+        var theta: float32 = arccos( 1.0 / pow(pcg.random_float(), self.roughness + 1))
+        var phi: float32 = pcg.random_float()
+    else:
+        raise TestError.newException("")
+    return newRay(
+        interaction_point,
+        newDir,
+        1e-3,
+        Inf,
+        depth
+    )
+
 
     

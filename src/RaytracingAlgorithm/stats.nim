@@ -1,10 +1,10 @@
-import std/[times, nimprof, typetraits, strutils, options, locks]
+import std/[times, typetraits, strutils, options, locks, strformat, streams]
 type
     FunctionCallback* = object
         funcName*: string
-        timeTaken*: float32
+        timeTaken*: Duration
         callCount*: int
-        timePerCall: float32
+        timePerCall: float64
         depth*: int
 
     Stats* = object
@@ -22,7 +22,6 @@ type
         averageFloatExtracted*: float32
 
         # rays
-        
         raysShot*: int
 
         # world
@@ -35,23 +34,24 @@ type
 
 ## function callback
 func newFunctionCallback*(fname: string): FunctionCallback=
-    return FunctionCallback(funcName: fname, callCount: 0)
+    return FunctionCallback(funcName: fname, callCount: 1)
 
-func newFunctionCallback*(fName: string, timeTaken: float32): FunctionCallback=
-    return FunctionCallback(funcName: fName, timeTaken: timeTaken, callCount: 0)
+func newFunctionCallback*(fName: string, timeTaken: Duration): FunctionCallback=
+    return FunctionCallback(funcName: fName, timeTaken: timeTaken, callCount: 1)
 
-func newFunctionCallback*(fName: string, timeTaken: float32, callCount: int, depth: int = 1): FunctionCallback=
-    return FunctionCallback(funcName: fName, timeTaken: timeTaken, callCount: callCount, timePerCall: timeTaken/callCount.float32, depth: depth)
+func newFunctionCallback*(fName: string, timeTaken: Duration, depth: int = 1): FunctionCallback=
+    return FunctionCallback(funcName: fName, timeTaken: timeTaken, callCount: 1, timePerCall: float32(timeTaken.inSeconds)/1.0, depth: depth)
 
-func AddTimer*(self: var FunctionCallback, duration: float32): void=
-    self.timeTaken = self.timeTaken + duration
+func AddTimer*(self: var FunctionCallback, duration: Duration): void=
+    self.timeTaken += duration
 
-proc AddFuncCall*(self: var FunctionCallback, duration: float32): void=
+proc AddFuncCall*(self: var FunctionCallback, duration: Duration): void=
     self.AddTimer(duration)
     inc self.callCount
+    self.timePerCall = float64(self.timeTaken.inSeconds) / float64(self.callCount)
 
-## stats
 
+#### stats
 proc newStats*(): Stats =
     return Stats(startTime: now(), functionCallbacks: newSeq[FunctionCallback]())
 
@@ -68,20 +68,46 @@ proc FindFunctionCallback*(self: var Stats, fName: string): Option[int]=
             return some(i)
     return none(int)
 
-func ToFile*(): void = discard
+proc ToString*(self: var Stats): string =
+    let startdate = self.startTime.format("yyyy-MM-dd, HH:mm:ss")
+    var enddate: string
+    try:
+        enddate = self.endTime.format("yyyy-MM-dd, HH:mm:ss")
+    except:
+        self.closeStats()
+        enddate = self.endTime.format("yyyy-MM-dd, HH:mm:ss")
+    var s: string = "--------- Raytracing Statistics ---------\n"
+    s = s & "[Time taken]\n"
+    s = s & "- Start: " & startdate & "\n"
+    s = s & "- End: " & enddate & "\n"
+    s = s & "- Total duration: " & $self.duration & "\n\n"
+    s = s & "[Function Callbacks]\n"
+    for callback in  self.functionCallbacks:
+        s = s & "-- " & callback.funcName & " --> Total Time: " & $callback.timeTaken.inSeconds & ",  Call count: " & $callback.callCount & ",  Average Time Per Call: " & formatFloat(callback.timePerCall, ffDecimal, 9) & ",  Depth: " & $callback.depth & "\n"
+    return s
 
-func Show*(): void = discard
+proc Show*(self: var Stats): void =
+    echo self.ToString()
 
-proc AddCall*(self: var Stats, fName: string, duration: float32) {.thread, gcsafe.}=
+proc ToFile*(self: var Stats): void =
+    var strm: FileStream = newFileStream("stats.txt", fmWrite)
+    strm.write(self.ToString())
+
+proc AddCall*(self: var Stats, fName: string, duration: Duration) {.thread, gcsafe.}=
     let res = self.FindFunctionCallback(fName)
     if not res.isSome:
-        self.functionCallbacks.add(newFunctionCallback(fName, cast[float32](duration), 1))
+        self.functionCallbacks.add(newFunctionCallback(fName, cast[Duration](duration), 1))
     else:   
         var callback_index: int = res.get()
         self.functionCallbacks[callback_index].AddFuncCall(duration)
 
-proc Test*(s: Stats, i: int) {.thread.}=
-    echo "hi"
+proc AddCall*(self: var Stats, fName: string, duration: Duration, depth: int) {.thread, gcsafe.}=
+    let res = self.FindFunctionCallback(fName)
+    if not res.isSome:
+        self.functionCallbacks.add(newFunctionCallback(fName, duration, depth))
+    else:   
+        var callback_index: int = res.get()
+        self.functionCallbacks[callback_index].AddFuncCall(duration)
 
 func SetRaysShot*(self: var Stats, rays: int): void=
     self.raysShot = rays
