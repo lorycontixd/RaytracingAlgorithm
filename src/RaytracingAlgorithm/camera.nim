@@ -29,7 +29,7 @@ proc newPerspectiveCamera*(aspectratio: float32, distance: float32=1.0, transfor
 
 # -------------------------------- Methods -------------------------------------
 
-method fireRay*(c: Camera, u,v:float32): Ray {.base, inline, raises:[AbstractMethodError].} =
+method fireRay*(c: Camera, u,v:float32): Ray {.base, inline, raises:[AbstractMethodError, ValueError].} =
     raise AbstractMethodError.newException("Camera.fireRay is an abstract method and cannot be called.")
 
 method fireRay*(self: OrthogonalCamera, u,v: float32): Ray {.inline.} =

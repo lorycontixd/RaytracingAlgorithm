@@ -66,11 +66,11 @@ proc test_transformation_composition(): void=
     var
         translation: Vector3 = newVector3(1.0, 1.0, 1.0)
         scale: Vector3 = newVector3(2.0, 2.0, 2.0)
-        res: Matrix = @[
-            @[float32(scale.x),float32(0.0), float32(0.0), float32(translation.x)],
-            @[float32(0.0),float32(scale.y), float32(0.0), float32(translation.y)],
-            @[float32(0.0),float32(0.0), float32(scale.z), float32(translation.z)],
-            @[float32(0.0),float32(0.0), float32(0.0), float32(1.0)],
+        res: Matrix = [
+            float32(scale.x),float32(0.0), float32(0.0), float32(translation.x),
+            float32(0.0),float32(scale.y), float32(0.0), float32(translation.y),
+            float32(0.0),float32(0.0), float32(scale.z), float32(translation.z),
+            float32(0.0),float32(0.0), float32(0.0), float32(1.0)
         ]
     assert (TranslationMatrix(translation) * ScaleMatrix(scale)).are_matrix_close(res)
 
@@ -78,18 +78,18 @@ proc test_transformation_matrix_inverse(): void=
     var
         quar: float32 = 1/4
         m1: Matrix = IdentityMatrix()
-        m2: Matrix = cast[Matrix](@[
-            @[float32(1.0), float32(1.0), float32(1.0), float32(-1.0)],
-            @[float32(1.0), float32(1.0), float32(-1.0), float32(1.0)],
-            @[float32(1.0), float32(-1.0), float32(1.0), float32(1.0)],
-            @[float32(-1.0), float32(1.0), float32(1.0), float32(1.0)],
-        ])
-        invm2: Matrix =  cast[Matrix](@[
-            @[quar, quar, quar, -quar],
-            @[quar, quar, -quar, quar],
-            @[quar, -quar, quar, quar],
-            @[-quar, quar, quar, quar]
-        ])
+        m2: Matrix = [
+            float32(1.0), float32(1.0), float32(1.0), float32(-1.0),
+            float32(1.0), float32(1.0), float32(-1.0), float32(1.0),
+            float32(1.0), float32(-1.0), float32(1.0), float32(1.0),
+            float32(-1.0), float32(1.0), float32(1.0), float32(1.0)
+        ]
+        invm2: Matrix = [
+            quar, quar, quar, -quar,
+            quar, quar, -quar, quar,
+            quar, -quar, quar, quar,
+            -quar, quar, quar, quar
+        ]
 
     assert m1.Inverse().are_matrix_close(m1)
     #assert m2.are_matrix_close(invm2)  ### not wokring??? prints same matrix

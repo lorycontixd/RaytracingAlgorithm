@@ -22,18 +22,18 @@ proc Inverse*(t: Transformation): Transformation=
 
 proc `*`*(t: Transformation, other: Vector3): Vector3=
     result = newVector3(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z,# + t m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z,# + t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z,# + t.m[2][3]
+        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z,# + t m[0,3],
+        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z,# + t.m[1,3],
+        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z,# + t.m[2,3]
     )
-
+   
 proc `*`*(t: Transformation, other: Point): Point=
     result = newPoint(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z + t.m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z + t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z + t.m[2][3]
+        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z + t.m[0,3],
+        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z + t.m[1,3],
+        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z + t.m[2,3]
     )
-    let w = other.x * t.m[3][0] + other.y * t.m[3][1] + other.z * t.m[3][2]  + t.m[3][3] 
+    let w = other.x * t.m[3,0] + other.y * t.m[3,1] + other.z * t.m[3,2]  + t.m[3,3] 
     if float32(w) != 1.0 and float32(w) != 0.0:
         result.x = result.x / w
         result.y = result.y / w
@@ -41,9 +41,9 @@ proc `*`*(t: Transformation, other: Point): Point=
 
 proc `*`*(t: Transformation, other: Normal): Normal=
     result = newNormal(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z + t.m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z + t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z + t.m[2][3]
+        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z + t.m[0,3],
+        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z + t.m[1,3],
+        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z + t.m[2,3]
     )
 
 proc `*`*(self, other: Transformation): Transformation= 
@@ -69,13 +69,13 @@ proc `==`*(self, other: Transformation): bool=
 proc `!=`*(self, other: Transformation): bool=
     return not (self == other)
 
-func TransformVector3*(self: Transformation, v: Vector3): Vector3=
+proc TransformVector3*(self: Transformation, v: Vector3): Vector3=
     return self * v
 
-func TransformNormal*(self: Transformation, n: Normal): Normal=
+proc TransformNormal*(self: Transformation, n: Normal): Normal=
     return self * n
 
-func TransformPoint*(self: Transformation, p: Point): Point=
+proc TransformPoint*(self: Transformation, p: Point): Point=
     return self * p
 
 #func TransformBounds*(self: Transformation, bounds: Bounds3): Bounds3=
@@ -94,27 +94,27 @@ proc LookAt*(pos: Point, look: Point, up: Vector3): Transformation=
     ##      
     var cameraToWorld: Matrix = newMatrix()
     # Set camera position in world space
-    cameraToWorld[0][3] = pos[0]
-    cameraToWorld[1][3] = pos[1]
-    cameraToWorld[2][3] = pos[2]
-    cameraToWorld[3][3] = float32(1.0)
+    cameraToWorld[0,3] = pos[0]
+    cameraToWorld[1,3] = pos[1]
+    cameraToWorld[2,3] = pos[2]
+    cameraToWorld[3,3] = float32(1.0)
 
     let
         dir = (look - pos).convert(Vector3).normalize()
         right = Vector3.Cross(up.normalize(), dir).normalize()
         newUp = Vector3.Cross(dir, right)
-    cameraToWorld[0][0] = right.x
-    cameraToWorld[1][0] = right.y
-    cameraToWorld[2][0] = right.z
-    cameraToWorld[3][0] = float32(0.0)
-    cameraToWorld[0][1] = newUp.x
-    cameraToWorld[1][1] = newUp.y
-    cameraToWorld[2][1] = newUp.z
-    cameraToWorld[3][1] = float32(0.0)
-    cameraToWorld[0][2] = dir.x
-    cameraToWorld[1][2] = dir.y
-    cameraToWorld[2][2] = dir.z
-    cameraToWorld[3][2] = float32(0.0)
+    cameraToWorld[0,0] = right.x
+    cameraToWorld[1,0] = right.y
+    cameraToWorld[2,0] = right.z
+    cameraToWorld[3,0] = float32(0.0)
+    cameraToWorld[0,1] = newUp.x
+    cameraToWorld[1,1] = newUp.y
+    cameraToWorld[2,1] = newUp.z
+    cameraToWorld[3,1] = float32(0.0)
+    cameraToWorld[0,2] = dir.x
+    cameraToWorld[1,2] = dir.y
+    cameraToWorld[2,2] = dir.z
+    cameraToWorld[3,2] = float32(0.0)
     return newTransformation(Inverse(cameraToWorld), cameraToWorld)
 
 

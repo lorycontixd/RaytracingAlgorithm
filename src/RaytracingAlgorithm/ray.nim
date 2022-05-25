@@ -1,4 +1,5 @@
 import geometry, transformation
+import std/[strformat]
 
 type
     Ray* = ref object
@@ -73,6 +74,9 @@ proc `[]`*(self:Ray, t: float32): Point=
 
 proc `==`*(self, other: Ray): bool=
     return self.origin == other.origin and self.dir == other.dir and self.tmin == other.tmin and self.tmax == other.tmax and self.depth == other.depth
+
+proc `$`*(self: Ray): string=
+    return fmt"Ray(origin:{$self.origin}, dir:{$self.dir}, tmin: {$self.tmin}, tmax: {$self.tmax}, depth: {$self.depth})"
 
 proc `isClose`*(self, other: Ray, epsilon: float32 = 1e-4): bool=
     if self.tmax != Inf and other.tmax != Inf:

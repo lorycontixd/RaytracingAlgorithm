@@ -32,9 +32,9 @@ proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransfor
         raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     let o = ExtractTranslation(transform.m).convert(Point)
     let scaling = ExtractScale(transform.m)
-    if scaling[0][0] != scaling[1][1] or scaling[1][1] != scaling[2][2]:
+    if scaling[0,0] != scaling[1,1] or scaling[1,1] != scaling[2,2]:
         raise NotImplementedError.newException("Asymmetrical spheres have not yet been implemented!")
-    let radius = scaling[0][0]
+    let radius = scaling[0,0]
     result = Sphere(id: id, transform: transform, material: material, origin: o, radius: radius, aabb: newAABB(newPoint(o.x-radius, o.y-radius, o.z-radius), newPoint( o.x+radius, o.y+radius, o.z+radius)))
     
 proc newPlane*(id: string = "PLANE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Plane =
