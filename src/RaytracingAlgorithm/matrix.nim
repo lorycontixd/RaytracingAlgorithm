@@ -5,31 +5,17 @@ type
     Matrix* = array[16, float32]
 
 
-proc newMatrix*(s: seq[seq[float32]]): Matrix=
-    return cast[Matrix](s)
-
-#[proc newMatrix*(m: Matrix): Matrix=
-    return newMatrix([
-        [m[0,0], m[0,1], m[0,2], m[0,3]],
-        [m[1,0], m[1,1], m[1,2], m[1,3]],
-        [m[2,0], m[2,1], m[2,2], m[2,3]],
-        [m[3,0], m[3,1], m[3,2], m[3,3]],
-    ])
-]#
-
 proc GetOffset*(row, col: int): int =
     return row + 4 * col
 
 proc GetValue*(self: Matrix, row, col: int): float32=
     return self[GetOffset(row, col)] 
 
-proc `[]`*(m: Matrix, i, j: int): float64 =
+proc `[]`*(m: Matrix, i, j: int): float32 =
   m.GetValue(i,j)
 
 proc `[]=`*(m: var Matrix, i, j: int, value: float32): void =
   m[GetOffset(i,j)] = value
-
-
 
 
 proc Zeros*(): Matrix =
@@ -152,10 +138,10 @@ proc RotationZ_Matrix*(angle_deg: float32): Matrix=
         cosang = cos(degToRad(angle_deg))
 
     result = [
-        [float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
-        [float32(sinang), float32(cosang), float32(0.0), float32(0.0)],
-        [float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
-        [float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+        float32(cosang), float32(-sinang), float32(0.0), float32(0.0),
+        float32(sinang), float32(cosang), float32(0.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(1.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(0.0), float32(1.0)
     ]
 
 proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
@@ -163,10 +149,10 @@ proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
     result = [
-        [float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
-        [float32(-sinang), float32(cosang), float32(0.0), float32(0.0)],
-        [float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
-        [float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+        float32(cosang), float32(-sinang), float32(0.0), float32(0.0),
+        float32(-sinang), float32(cosang), float32(0.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(1.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(0.0), float32(1.0)
     ]
 
     
@@ -221,7 +207,7 @@ proc Inverse*(m: Matrix): Matrix {.inline, injectProcName.}=
     let endTime = now() - start
     mainStats.AddCall(procName, endTime, 2)
     return [
-        m00, m01, m02, m03,
+        m00.float32, m01, m02, m03,
         m10, m11, m12, m13,
         m20, m21, m22, m23,
         m30, m31, m32, m33
@@ -311,7 +297,7 @@ proc `*`*(this, other: Matrix): Matrix=
     for i in 0 .. 3:
         for j in 0 .. 3:
             for k in 0 .. 3:
-                result[i,j] += this[i,k] * other[k,j]
+                result[i,j] = result[i,j] + this[i,k] * other[k,j]
 
 proc are_matrix_close*(m1, m2 : Matrix): bool=
     for i in 0 .. 3:
