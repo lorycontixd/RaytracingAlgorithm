@@ -42,6 +42,7 @@ proc demo(demoName: string, width: int = 800, height: int = 600): auto =
             imagetracer.image.clamp_image()
             imagetracer.image.write_png("output.png", 1.0)
             let endTime = cpuTime() - start
+            mainStats.closeStats()
             mainStats.Show()
 
         of "materials":
@@ -55,7 +56,7 @@ proc demo(demoName: string, width: int = 800, height: int = 600): auto =
                 tracer:  ImageTracer = newImageTracer(img, cam)
                 #tracer: AntiAliasing = newAntiAliasing(img, cam, 500, pcg)
 
-                render: Renderer = newPathTracer(w, Color.blue(), pcg, 3, 6, 3)
+                render: Renderer = newPathTracer(w, Color.blue(), pcg, 3, 2, 2)
                 #render: Renderer = newFlatRenderer(w, Color.black())
                 #render: Renderer = newPointlightRenderer(w, Color.black(), Color.blue())
                 scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
