@@ -1,5 +1,5 @@
-import geometry, exception, quaternion
-import std/[math]
+import geometry, exception, quaternion, stats, utils
+import std/[math, times]
 
 type
     Matrix* = seq[seq[float32]]
@@ -159,8 +159,9 @@ proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
 
     
 
-proc Inverse*(m: Matrix): Matrix {.inline.}=
+proc Inverse*(m: Matrix): Matrix {.inline, injectProcName.}=
     ## Calculates the inverse matrix of a 4x4 matrix
+    let start = now()
     var A2323 = m[2][2] * m[3][3] - m[2][3] * m[3][2]
     var A1323 = m[2][1] * m[3][3] - m[2][3] * m[3][1]
     var A1223 = m[2][1] * m[3][2] - m[2][2] * m[3][1]
@@ -205,6 +206,8 @@ proc Inverse*(m: Matrix): Matrix {.inline.}=
         m32 = det * - ( m[0][0] * A1213 - m[0][1] * A0213 + m[0][2] * A0113 )
         m33 = det *   ( m[0][0] * A1212 - m[0][1] * A0212 + m[0][2] * A0112 )
 
+    let endTime = now() - start
+    mainStats.AddCall(procName, endTime, 2)
     return cast[Matrix](@[
         @[m00, m01, m02, m03],
         @[m10, m11, m12, m13],
@@ -354,7 +357,7 @@ proc ExtractScale*(R: Matrix, M: Matrix): Matrix=
 proc ExtractScale*(m: Matrix): Matrix=
     result = ExtractScale(ExtractRotationMatrix(m), RemoveTranslationFromMatrix(m))
 
-proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline, gcSafe.}=
+proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline.}=
     ##
     ##
 
