@@ -6,7 +6,7 @@ type
 
 
 proc GetOffset*(row, col: int): int =
-    return row + 4 * col
+    return col + 4 * row
 
 proc GetValue*(self: Matrix, row, col: int): float32=
     return self[GetOffset(row, col)] 
@@ -220,7 +220,7 @@ proc TransposeInplace*(m1: var Matrix): Matrix=
             m1[j,i] = m1[i,j]
             m1[i,j] = temp
 
-proc Transpose*(m1: var Matrix): Matrix=
+proc Transpose*(m1: Matrix): Matrix=
     result = [
         float32(m1[0,0]), float32(m1[1,0]), float32(m1[2,0]), float32(m1[3,0]),
         float32(m1[0,1]), float32(m1[1,1]), float32(m1[2,1]), float32(m1[3,1]),

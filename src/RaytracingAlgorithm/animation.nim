@@ -85,7 +85,7 @@ proc Interpolate*(self: var Animation, t: float32, debug: bool = false): Transfo
     var scale: Matrix = Zeros()
     for i in countup(0,3):
         for j in countup(0,3):
-            scale[i][j] = Lerp(self.scales[0][i][j], self.scales[1][i][j], dt)
+            scale[i,j] = Lerp(self.scales[0][i,j], self.scales[1][i,j], dt)
     if debug:
         echo "Scale:"
         scale.Show()
