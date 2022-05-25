@@ -5,7 +5,7 @@ type
     Matrix* = seq[seq[float32]]
 
 
-proc newMatrix*(s: seq[seq[float32]]): Matrix=
+proc newMatrix*(s: ): Matrix=
     return cast[Matrix](s)
 
 #[proc newMatrix*(m: Matrix): Matrix=
@@ -130,8 +130,8 @@ proc RotationY_InverseMatrix*(angle_deg: float32): Matrix=
     result = @[
         @[float32(cosang), float32(0.0), float32(-sinang), float32(0.0)],
         @[float32(0.0), float32(1.0), float32(0.0), float32(0.0)],
-        @[float32(sinang), float32(0.0), float32(cosang), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+        @[float32(sinang), float32(0.0), float32(cosang), float32(0.0),
+        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0
     ]
 
 proc RotationZ_Matrix*(angle_deg: float32): Matrix=
@@ -139,22 +139,22 @@ proc RotationZ_Matrix*(angle_deg: float32): Matrix=
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
 
-    result = @[
-        @[float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
-        @[float32(sinang), float32(cosang), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    result = [
+        float32(cosang), float32(-sinang), float32(0.0), float32(0.0),
+        float32(sinang), float32(cosang), float32(0.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(1.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(0.0), float32(1.0)
     ]
 
 proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
-    result = @[
-        @[float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
-        @[float32(-sinang), float32(cosang), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
+    result = [
+        float32(cosang), float32(-sinang), float32(0.0), float32(0.0),
+        float32(-sinang), float32(cosang), float32(0.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(1.0), float32(0.0),
+        float32(0.0), float32(0.0), float32(0.0), float32(1.0)
     ]
 
     
@@ -221,7 +221,7 @@ proc TransposeInplace*(m1: var Matrix): Matrix=
             swap m1[j][i], m1[i][j]
 
 proc Transpose*(m1: var Matrix): Matrix=
-    result = cast[Matrix](@[
+    result = [
         @[float32(m1[0][0]), float32(m1[1][0]), float32(m1[2][0]), float32(m1[3][0])],
         @[float32(m1[0][1]), float32(m1[1][1]), float32(m1[2][1]), float32(m1[3][1])],
         @[float32(m1[0][2]), float32(m1[1][2]), float32(m1[2][2]), float32(m1[3][2])],
