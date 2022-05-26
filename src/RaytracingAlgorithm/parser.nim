@@ -13,6 +13,7 @@ type
         savedChar*: char
         savedLocation*: SourceLocation
         savedToken*: Option[Token]
+        tabulations*: int
 
     KeywordType* = enum
         NEW,
@@ -57,17 +58,51 @@ type
 
 converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s)
 
-proc UnreadChar(self: var InputStream, c: char): void=
+proc newSourceLocation*(filename: string, row: int = 1, col: int = 1): SourceLocation=
+    return SourceLocation(fileName: filename, lineNum: row, colNum: col)
+
+proc newInputStream*(strm: Stream, location: SourceLocation, tabulations: int = 4): InputStream=
+    return InputStream(stream: strm, location: location, tabulations: tabulations)
+    
+
+proc UpdatePosition(self: var InputStream, c: char)=
+        #Update `location` after having read `c` from the stream
+        echo "detected c: ",c
+        if c == ' ':
+            return
+        elif c == '\n':
+            self.location.lineNum += 1
+            self.location.colNum = 1
+        elif c == '\t':
+            self.location.colNum += self.tabulations
+        else:
+            self.location.colNum += 1
+        echo "-> ",self.location.colNum
+
+proc ReadChar*(self: var InputStream): char=
+    #Read a new character from the stream
+    var c: char
+    if self.savedChar != ' ':
+        c = self.savedChar
+        self.savedChar = ' '
+    else:
+    c = self.stream.readChar()
+    echo "c. ",c
+    self.savedLocation.shallowCopy(self.location)
+    self.UpdatePosition(c)
+    return c
+
+proc UnreadChar*(self: var InputStream, c: char): void=
     self.savedChar = c
     self.location.shallowCopy(self.savedLocation)
 
-proc SkipWhitespacesAndComments(self: var InputStream): void=
+proc SkipWhitespacesAndComments*(self: var InputStream): void=
     var WHITESPACE: string = " \t\n\r"
-    let s = @['\r','\n',' ']
+    let s = {'\r','\n',' '}
     var c: char = self.stream.readChar()
     while c in WHITESPACE or c == '#':
         if c == '#':
-            while not s.any(x => x == self.stream.readChar()) :
+            while not s.contains(self.stream.readChar()):
                 discard
         c = self.stream.readChar()
         if c == ' ':

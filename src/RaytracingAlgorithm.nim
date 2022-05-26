@@ -1,5 +1,5 @@
 
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles]
 import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
 import cligen
 
@@ -47,7 +47,7 @@ proc demo(demoName: string, width: int = 800, height: int = 600): auto =
 
         of "materials":
             info("Starting demo render of 'materials' scene")
-            let start = cpuTime()
+            let start = now()
             var cam: Camera = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
             var
                 w: World = newWorld()
@@ -56,8 +56,8 @@ proc demo(demoName: string, width: int = 800, height: int = 600): auto =
                 tracer:  ImageTracer = newImageTracer(img, cam)
                 #tracer: AntiAliasing = newAntiAliasing(img, cam, 500, pcg)
 
-                render: Renderer = newPathTracer(w, Color.blue(), pcg, 3, 2, 2)
-                #render: Renderer = newFlatRenderer(w, Color.black())
+                #render: Renderer = newPathTracer(w, Color.blue(), pcg, 2, 2, 2)
+                render: Renderer = newFlatRenderer(w, Color.black())
                 #render: Renderer = newPointlightRenderer(w, Color.black(), Color.blue())
                 scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
@@ -84,15 +84,16 @@ proc demo(demoName: string, width: int = 800, height: int = 600): auto =
             w.Add(newSphere("SPHERE_0", Transformation.scale(200.0, 200.0, 200.0) * Transformation.translation(0.0, 0.0, 0.4), sky_material))
             w.Add(newPlane("PLANE_0", Transformation.translation(0.0, 0.0, 0.0), ground_material))
             w.Add(newSphere("SPHERE_1", Transformation.translation(0.0, 0.0, 1.5), sphere_material))
-            w.Add(newSphere("SPHERE_2", Transformation.translation(1.0, 2.5, 0.0), mirror_material))
+            w.Add(newSphere("SPHERE_2", Transformation.translation(1.0, 2.5, 0.0), mirror_material)) 
             tracer.fireAllRays(render.Get())
             var strmWrite = newFileStream("output.pfm", fmWrite)
             tracer.image.write_pfm(strmWrite)
             tracer.image.normalize_image(1.0)
             tracer.image.clamp_image()
             tracer.image.write_png("output.png", 1.0)
-            let endTime = cpuTime() - start
+            let endTime = now() - start
             mainStats.Show()
+            echo $endTIme
 
 
 proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto = discard
@@ -157,8 +158,8 @@ proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string,
 
 
 when isMainModule:
-    #when compileOption("profiler"):
-    #    import nimprof
+    when compileOption("profiler"):
+        import nimprof
     addLogger( open( joinPath(getCurrentDir(), "main.log"), fmWrite)) # For file logging
     #addLogger( stdout ) # For console logging
 

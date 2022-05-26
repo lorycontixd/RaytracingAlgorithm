@@ -104,6 +104,12 @@ defineFloatProduct(Vector3)
 defineFloatProduct(Point)
 defineFloatProduct(Normal)
 
+proc `*`*(scalar: float32, v: Vector2): Vector2=
+    result = newVector2(v.u * scalar, v.v * scalar)
+
+proc `*`*(v: Vector2, scalar: float32): Vector2=
+    result = scalar * v
+
 template defineComponentProduct(type1, type2, rettype: typedesc) =
     proc ComponentProduct*(a: type1, b: type2): rettype=
         result.x = a.x * b.x
@@ -143,6 +149,7 @@ defineDot(Vector3, Vector3)
 defineDot(Normal, Vector3)
 defineDot(Vector3, Normal)
 defineDot(Point, Vector3)
+defineDot(Vector3, Point)
 
 proc Dot*(this, other: Vector2): float32=
     result = this.u * other.u + this.v * other.v
@@ -188,9 +195,14 @@ template defineNegative(type1: typedesc) =
 
 defineNegative(Vector3)
 defineNegative(Normal)
+defineNegative(Point)
+
 
 proc neg*(a: Vector2): Vector2=
     result = newVector2(-a.u, -a.v)
+
+
+
 
 # convert
 template defineConvert(type1: typedesc, rettype: typedesc) =
@@ -203,6 +215,7 @@ defineConvert(Vector3, Normal)
 defineConvert(Point, Vector3)
 defineConvert(Vector3, Point)
 defineConvert(Normal, Vector3)
+defineConvert(Normal, Point)
 
 # eq
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
@@ -529,6 +542,35 @@ macro toString(type1: untyped): untyped=
 toString(Vector3)      
 toString(Point)  
 toString(Normal)  
+
+
+proc `[]`*(self: Vector2, index: int): float32=
+    case index:
+        of 0:
+            return self.u
+        of 1:
+            return self.v
+        else:
+            raise ValueError.newException("Invalid index access for Vector2")
+
+proc `[]=`*(self: var Vector2, index: int, val: float32): void=
+    case index:
+        of 0:
+            self.u = val
+        of 1:
+            self.v = val
+        else:
+            raise ValueError.newException("Invalid index access for Vector2")
+
+template definePermute(type1: typedesc)=
+    proc Permute*(a: type1, x,y,z: int): type1=
+        result.x = a[x]
+        result.y = a[y]
+        result.z = a[z]
+
+definePermute(Vector3)
+definePermute(Normal)
+definePermute(Point)
 
 
 ## ----------------------------------------  Vector3 Specific  ----------------------------------------------
