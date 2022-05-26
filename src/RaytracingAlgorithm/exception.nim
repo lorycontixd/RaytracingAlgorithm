@@ -25,7 +25,8 @@ type
     InvalidFormatError* = object of ParserError
     InvalidCommandError* = object of ParserError # invalid command passed (render, animate, pfm2png)
 
-    
+    InvalidTokenError* = object of ParserError
+        
 
 
 ##### ------------------------------------------  CONSTRUCTORS  ----------------------------------------

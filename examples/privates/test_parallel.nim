@@ -1,25 +1,18 @@
-import std/locks
+import std/[times, math]
 
-const
-  iters: int = 9
-var
-  thr: array[0..4, Thread[int]]
-  L: Lock
+const n: int64 = 10000000000
 
-proc threadFunc(index: int) {.thread.} =
-  for i in 0..index-1:
-    acquire(L) # lock stdout
-    echo i
-    release(L)
+var start = cpuTime()
+var sum: int64 = 0
+for i in 0 || n:
+  sum += 1
+var endTime = cpuTime() - start
+echo "Parallel for: ",endTime,"\t Sum= ",sum
 
-initLock(L)
-let n = int(iters/thr.high)
-let extra = iters mod thr.high
-echo "n: ",n
-echo "extra: ",extra
-for j in 0..int(iters/thr.high)-1:
-  for i in 0..high(thr):
-    createThread(thr[i], threadFunc, i + j * high(thr))
-  joinThreads(thr)
 
-deinitLock(L) 
+start = cpuTime()
+sum = 0
+for i in 0..n:
+  sum += 1
+endTime = cpuTime() - start
+echo "Normal for: ",endTime,"\t Sum= ",sum
