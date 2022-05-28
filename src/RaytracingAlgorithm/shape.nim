@@ -64,10 +64,9 @@ proc CreateTriangleMesh*(transform: Transformation, nTriangles: int, vertexIndic
         triangles.add(newTriangle(id=fmt"TRIANGLE_{i}",transform=transform, mesh=mesh, triNumber=i) )
     return triangles
 
-proc CreateTriangleMesh*(mesh: TriangleMesh, mat: Material = newMaterial()): seq[Triangle] {.inline.}=
+proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
     for i in  0..mesh.nTriangles-1:
-        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i,  material=mat) )
-
+        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i,  material=mesh.material) )
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -308,7 +307,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
             newVector2(u,v),
             t,
             invray,
-            self.material
+            self.mesh.material
         )
         return some(hit)
     else:

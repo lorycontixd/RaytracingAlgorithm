@@ -88,7 +88,6 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
         var hit: Option[RayHit] = renderer.world.rayIntersect(r)
         if hit == none(RayHit):
             return renderer.backgroundColor
-
         let material = hit.get().material
         var
             brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint()) 

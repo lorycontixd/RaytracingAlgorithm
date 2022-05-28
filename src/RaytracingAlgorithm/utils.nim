@@ -100,3 +100,16 @@ macro injectProcName*(procDef: untyped): untyped =
   
   return procDef
 
+
+func TriangulatePolygon*(vertices: seq[int]): seq[int]=
+    var newVertices: seq[int]
+    var pivot: int = vertices[0]
+    for i in 1..len(vertices)-2:
+        newVertices.add(pivot)
+        newVertices.add(vertices[i])
+        newVertices.add(vertices[i+1])
+    return newVertices
+
+
+        
+
