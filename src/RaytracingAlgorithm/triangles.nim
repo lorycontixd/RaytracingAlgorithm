@@ -16,7 +16,6 @@ type
         uvs*: Option[seq[Vector2]]
 
         transform*: Transformation
-        material*: Material
 
 
 ## Constructors
@@ -28,8 +27,7 @@ proc newTriangleMesh*(
         points: seq[Point],
         tangents: Option[seq[Vector3]] = none(seq[Vector3]),
         normals: Option[seq[Normal]] = none(seq[Normal]),
-        uvs: Option[seq[Vector2]] = none(seq[Vector2]),
-        material: Material = newMaterial()
+        uvs: Option[seq[Vector2]] = none(seq[Vector2])
     ): TriangleMesh {.inline, injectProcName.}=
     var newpoints: seq[Point]
     var newtangents: seq[Vector3]
@@ -142,7 +140,7 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
                 let polyVT = TriangulatePolygon(tempv)
                 nTriangles += int(len(polyV)/3)
                 vertexIndices.add(polyV)
-    return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints, material=material)
+    return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints)
                 
 
 

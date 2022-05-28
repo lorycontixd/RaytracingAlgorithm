@@ -56,7 +56,6 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
     var aabb: AABB = Union( newAABB(transform * mesh.positions[v[0]], transform * mesh.positions[v[1]]), mesh.positions[v[2]])
     result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, aabb: aabb)
 
-
 proc CreateTriangleMesh*(transform: Transformation, nTriangles: int, vertexIndices: seq[int], nVertices: int, points: seq[Point], tangents: Option[seq[Vector3]], normals: Option[seq[Normal]], uvs: Option[seq[Vector2]]): seq[Triangle]=
     var mesh: TriangleMesh = newTriangleMesh(transform, nTriangles, nVertices, vertexIndices, points, tangents, normals, uvs)
     var triangles: seq[Triangle]
@@ -66,7 +65,7 @@ proc CreateTriangleMesh*(transform: Transformation, nTriangles: int, vertexIndic
 
 proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
     for i in  0..mesh.nTriangles-1:
-        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i,  material=mesh.material) )
+        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i) )
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -307,7 +306,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
             newVector2(u,v),
             t,
             invray,
-            self.mesh.material
+            self.material
         )
         return some(hit)
     else:
