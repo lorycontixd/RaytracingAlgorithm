@@ -1,5 +1,5 @@
-import geometry, transformation, utils
-import std/[options, streams, os, parseutils, strutils]
+import geometry, transformation, utils, material
+import std/[options, streams, os, parseutils, strutils, sequtils, enumerate]
 
 ## 
 ## Triangle Mesh: A class representing a mesh of many triangles.
@@ -16,10 +16,10 @@ type
         uvs*: Option[seq[Vector2]]
 
         transform*: Transformation
+        material*: Material
 
 
 ## Constructors
-
 proc newTriangleMesh*(
         transform: Transformation,
         nTriangles: int,
@@ -28,7 +28,8 @@ proc newTriangleMesh*(
         points: seq[Point],
         tangents: Option[seq[Vector3]] = none(seq[Vector3]),
         normals: Option[seq[Normal]] = none(seq[Normal]),
-        uvs: Option[seq[Vector2]] = none(seq[Vector2])
+        uvs: Option[seq[Vector2]] = none(seq[Vector2]),
+        material: Material = newMaterial()
     ): TriangleMesh {.inline, injectProcName.}=
     var newpoints: seq[Point]
     var newtangents: seq[Vector3]
@@ -50,7 +51,6 @@ proc newTriangleMesh*(
         resNormals = some(newnormals)
     else:
         resNormals = none(seq[Normal])
-    
     return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: nVertices, vertexIndices: vertexIndices, positions: newpoints, tangents: resTangents, normals: resNormals, uvs: uvs)
 
 proc newTriangleMesh*(
@@ -98,7 +98,55 @@ proc newTriangleMesh*(
         vertices
     )
 
+proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: Material = newMaterial()): TriangleMesh {.inline.}=
+    let KEYWORDS = @["v","vt","vn","f","g"]
+    var vertexPoints: seq[Point]
+    var vertexNormals: seq[Normal]
+    var textureCoordinates: seq[Vector2]
+    var vertexIndices, vertexNormalIndices, vertexTextureIndices: seq[int]
+    var nTriangles: int = 0
 
+    var line: string
+    let strm = newFileStream(objFile, fmRead)
+    while not strm.atEnd():
+        line = strm.readLine()
+        let spaceIndex = skipUntil(line,' ',0)
+        var key: string = ""
+        for i in 0..spaceIndex-1:
+            key = key & line[i]
+        if not KEYWORDS.contains(key):
+            continue
+        
+        line.delete(0, spaceIndex)
+        var items: seq[string] = line.split(" ")
+        case key
+            of "v":
+                vertexPoints.add(newPoint(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
+            of "vn":
+                vertexNormals.add(newNormal(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
+            of "vt":
+                textureCoordinates.add(newVector2(parseFloat(items[0]), parseFloat(items[1])))
+            of "f":
+                if items.contains(""):
+                    items.delete(items.find(""))
+                var
+                    tempv, tempvn, tempvt: seq[int]
+                for i, item in enumerate(items):
+                    var splititem: seq[string] = item.split("/")
+                    tempv.add( parseInt(splititem[0])-1)
+                    tempvn.add( parseInt(splititem[1])-1)
+                    tempvt.add( parseInt(splititem[2])-1)
+
+                let polyV = TriangulatePolygon(tempv)
+                let polyVN = TriangulatePolygon(tempv)
+                let polyVT = TriangulatePolygon(tempv)
+                nTriangles += int(len(polyV)/3)
+                vertexIndices.add(polyV)
+    return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints, material=material)
+                
+
+
+#[
 proc newTriangleMeshOBJ*(
         transform: Transformation,
         objFile: string
@@ -132,14 +180,23 @@ proc newTriangleMeshOBJ*(
             break
     while not strm.atEnd():
         line = strm.readLine()
+        echo line
         if not line.startsWith("f "):
-            break
+            continue
         line = line.replace("f ","")
-        let splitline = line.split(" ")
+        var splitline: seq[string] = line.split(" ")
+        echo splitline
         var temp: seq[int]
+        ## remove unnecessary chars before the actual number
+        splitline.delete(splitline.find(""))
+        echo splitline
         for elem in splitline:
             let newsplit = elem.split("/")
-            temp.add(parseInt(newsplit[0]))
+            var faceIndex: string= newsplit[0]
+            for c in faceIndex:
+                if not Digits.contains(c):
+                    faceIndex.removePrefix(c)
+            temp.add(parseInt(faceIndex))
         indices.add(temp[0]-1)
         indices.add(temp[1]-1)
         indices.add(temp[2]-1)
@@ -156,3 +213,4 @@ proc newTriangleMeshOBJ*(
         indices,
         vertices
     )
+]#
