@@ -19,15 +19,15 @@ const
 var cam: Camera = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-3.0, 0.0, 0.0)))
 
 var keymatimg: HdrImage = newHdrImage()
-keymatimg.read_pfm(newFileStream("privates/key/keyB_tx.pfm", fmRead))
+keymatimg.read_pfm(newFileStream("objs/key/keyB_tx.pfm", fmRead))
 #var keymatpigment: Pigment = newImagePigment(keymatimg)
 var keymatpigment: Pigment = newUniformPigment(newColor(0.9, 0.5, 0.6))
 
 var keymat: Material = newMaterial(newPhongBRDF(keymatpigment, 10.0, 0.4, 0.6),keymatpigment )
-var keymesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(7.0, -2.0, 4.0) * Transformation.rotationY(90.0), "privates/key/key.obj", newMaterial())
+var keymesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(7.0, -2.0, 4.0) * Transformation.rotationY(90.0), "objs/key/key.obj", newMaterial())
 var keytriangles: seq[Triangle] = CreateTriangleMesh(keymesh)
 
-var treemesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(3.0, 3.0, 0.0) * Transformation.rotationX(90.0) * Transformation.scale(0.6, 0.6, 0.6), "privates/tree/tree.obj")
+var treemesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(3.0, 3.0, 0.0) * Transformation.rotationX(90.0) * Transformation.scale(0.6, 0.6, 0.6), "objs/tree/tree.obj")
 var treetriangles: seq[Triangle] = CreateTriangleMesh(treemesh)
 
 #materials
