@@ -1,4 +1,5 @@
-import  geometry, ray, material#, shape
+import geometry, ray, material#, shape
+from utils import IsEqual
 
 type
     RayHit* = object

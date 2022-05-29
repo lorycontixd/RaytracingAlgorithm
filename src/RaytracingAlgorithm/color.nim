@@ -1,6 +1,7 @@
 import std/[strutils, strformat]
 #import docstrings
 import exception
+from utils import IsEqual
 
 type
     Color* = object 
@@ -71,17 +72,6 @@ proc `*`*(c1,c2: Color): Color {.inline.}=
 
 proc `*`*(c1: Color, a:float): Color {.inline.}=
     return Color(r: c1.r*a, g: c1.g*a, b: c1.b*a)
-
-proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
-    ## Color class method to verify if two floats are approximately equal
-    ## 
-    ## Parameters
-    ## - x (float32): left float
-    ## - y (float32): right float
-    ## 
-    ## Returns
-    ##      True (floats are close) or False (floats are not equal)
-    return abs(x - y) < epsilon
 
 
 proc `==`*(c1,c2: Color): bool {.inline.}=

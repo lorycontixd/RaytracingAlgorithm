@@ -32,7 +32,6 @@ type
         GGX, Beckmann, Blinn
 
     
-
     CookTorranceBRDF* = ref object of BRDF 
         roughness*: float32
         albedo*: float32
@@ -111,7 +110,6 @@ method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_
     raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
 
 
-
 ## Lambertian Diffuse BRDF
 
 method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
@@ -141,7 +139,6 @@ method ScatterRay*(
     )
 
 ## Specular BRDF
-
 method eval*(self: SpecularBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
     let
         theta_in = arccos(Dot(normal.normalize(), in_dir.normalize()))

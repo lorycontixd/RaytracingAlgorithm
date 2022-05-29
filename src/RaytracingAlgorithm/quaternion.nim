@@ -1,5 +1,6 @@
 import std/[os, math, strformat]
 import geometry, mathutils
+from utils import IsEqual
 
 type
     Quaternion* = ref object
