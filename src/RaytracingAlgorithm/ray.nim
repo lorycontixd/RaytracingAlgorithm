@@ -1,4 +1,5 @@
 import geometry, transformation
+from utils import IsEqual
 import std/[strformat]
 
 type

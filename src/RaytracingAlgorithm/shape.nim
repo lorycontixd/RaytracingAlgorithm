@@ -1,4 +1,4 @@
-import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils, triangles, mathutils
+import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils, triangles, mathutils, color
 import std/[math, options, strutils, times, strformat]
 
 
@@ -53,20 +53,12 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
     if not id.contains("TRIANGLE"):
         raise ValueError.newException("Triangle id must contain CYLINDER keyword.")
     var v: array[3, int] = [mesh.vertexIndices[3 * triNumber], mesh.vertexIndices[3 * triNumber + 1], mesh.vertexIndices[3 * triNumber + 2]]
-    var aabb: AABB = Union( newAABB(transform * mesh.positions[v[0]], transform * mesh.positions[v[1]]), mesh.positions[v[2]])
+    var aabb: AABB = Union( newAABB(transform * mesh.vertexPositions[v[0]], transform * mesh.vertexPositions[v[1]]), mesh.vertexPositions[v[2]])
     result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, aabb: aabb)
-
-
-proc CreateTriangleMesh*(transform: Transformation, nTriangles: int, vertexIndices: seq[int], nVertices: int, points: seq[Point], tangents: Option[seq[Vector3]], normals: Option[seq[Normal]], uvs: Option[seq[Vector2]]): seq[Triangle]=
-    var mesh: TriangleMesh = newTriangleMesh(transform, nTriangles, nVertices, vertexIndices, points, tangents, normals, uvs)
-    var triangles: seq[Triangle]
-    for i in 0..nTriangles-1:
-        triangles.add(newTriangle(id=fmt"TRIANGLE_{i}",transform=transform, mesh=mesh, triNumber=i) )
-    return triangles
 
 proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
     for i in  0..mesh.nTriangles-1:
-        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i,  material=mesh.material) )
+        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i, material= mesh.material))
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -274,9 +266,9 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
     var
         #invray: Ray = ray.Transform(self.transform.Inverse()) ## Inversed ray
         invray = ray
-        vertex0: Vector3 = self.mesh.positions[self.vertices[0]].convert(Vector3)
-        vertex1: Vector3 = self.mesh.positions[self.vertices[1]].convert(Vector3)
-        vertex2: Vector3 = self.mesh.positions[self.vertices[2]].convert(Vector3)
+        vertex0: Vector3 = self.mesh.vertexPositions[self.vertices[0]].convert(Vector3)
+        vertex1: Vector3 = self.mesh.vertexPositions[self.vertices[1]].convert(Vector3)
+        vertex2: Vector3 = self.mesh.vertexPositions[self.vertices[2]].convert(Vector3)
         edge1, edge2, h, s, q: Vector3
         a, f, u, v: float32
     
@@ -307,7 +299,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
             newVector2(u,v),
             t,
             invray,
-            self.mesh.material
+            self.material
         )
         return some(hit)
     else:
@@ -322,9 +314,9 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
 method rayIntersect*(self: Triangle, r: Ray, debug: bool = false): Option[RayHit] = 
     var ray: Ray = r.Transform(self.transform.Inverse()) ## Inversed ray
     var
-        pp0 = self.mesh.positions[self.vertices[0]] - ray.origin.convert(Vector3)
-        pp1 = self.mesh.positions[self.vertices[1]] - ray.origin.convert(Vector3)
-        pp2 = self.mesh.positions[self.vertices[2]] - ray.origin.convert(Vector3)
+        pp0 = self.mesh.vertexPositions[self.vertices[0]] - ray.origin.convert(Vector3)
+        pp1 = self.mesh.vertexPositions[self.vertices[1]] - ray.origin.convert(Vector3)
+        pp2 = self.mesh.vertexPositions[self.vertices[2]] - ray.origin.convert(Vector3)
         v = newVector3(abs(ray.dir.x), abs(ray.dir.y), abs(ray.dir.z))
         p0, p1, p2: Point
     # permutation
@@ -435,8 +427,8 @@ method rayIntersect*(self: Triangle, r: Ray, debug: bool = false): Option[RayHit
     var
         ray: Ray = r.Transform(self.transform.Inverse()) ## Inversed ray
         res: RayHit = newRayHit()
-        v0v1: Vector3 = (self.mesh.positions[self.vertices[1]] - self.mesh.positions[self.vertices[0]]).convert(Vector3)
-        v0v2: Vector3 = (self.mesh.positions[self.vertices[2]] - self.mesh.positions[self.vertices[0]]).convert(Vector3)
+        v0v1: Vector3 = (self.mesh.vertexPositions[self.vertices[1]] - self.mesh.vertexPositions[self.vertices[0]]).convert(Vector3)
+        v0v2: Vector3 = (self.mesh.vertexPositions[self.vertices[2]] - self.mesh.vertexPositions[self.vertices[0]]).convert(Vector3)
         n: Normal = Cross(v0v1, v0v2).convert(Normal)
         nNorm: float32 = n.norm()z
 
@@ -447,7 +439,7 @@ method rayIntersect*(self: Triangle, r: Ray, debug: bool = false): Option[RayHit
     if ndotray.IsEqual(0.0):
         # parallel -> no intersection
         return none(RayHit)
-    let d = Dot(n.convert(Vector3).neg(), self.mesh.positions[self.vertices[0]])
+    let d = Dot(n.convert(Vector3).neg(), self.mesh.vertexPositions[self.vertices[0]])
     let t = -Dot(n, ray.origin.convert(Vector3)) + d / ndotray
     # Check if intersection is behind the ray
     if t < 0.0:
@@ -460,8 +452,8 @@ method rayIntersect*(self: Triangle, r: Ray, debug: bool = false): Option[RayHit
 
     # Edge 0
     var
-        e0: Vector3 = (self.mesh.positions[self.vertices[1]] - self.mesh.positions[self.vertices[0]]).convert(Vector3)
-        vp0: Vector3 = (p - self.mesh.positions[self.vertices[0]]).convert(Vector3)
+        e0: Vector3 = (self.mesh.vertexPositions[self.vertices[1]] - self.mesh.vertexPositions[self.vertices[0]]).convert(Vector3)
+        vp0: Vector3 = (p - self.mesh.vertexPositions[self.vertices[0]]).convert(Vector3)
     C = Cross(e0, vp0)
     if (Dot(n, C) < 0.0):
         # p is on the right side
@@ -469,8 +461,8 @@ method rayIntersect*(self: Triangle, r: Ray, debug: bool = false): Option[RayHit
 
     #Edge 1
     var
-        e1: Vector3 = (self.mesh.positions[self.vertices[2]] - self.mesh.positions[self.vertices[1]]).convert(Vector3)
-        vp1: Vector3 = (p - self.mesh.positions[self.vertices[1]]).convert(Vector3)
+        e1: Vector3 = (self.mesh.vertexPositions[self.vertices[2]] - self.mesh.vertexPositions[self.vertices[1]]).convert(Vector3)
+        vp1: Vector3 = (p - self.mesh.vertexPositions[self.vertices[1]]).convert(Vector3)
     C = Cross(e1, vp1)
     if (Dot(n, C) < 0.0):
         # p is on the right side
@@ -478,8 +470,8 @@ method rayIntersect*(self: Triangle, r: Ray, debug: bool = false): Option[RayHit
 
     #Edge 2
     var
-        e2: Vector3 = (self.mesh.positions[self.vertices[0]] - self.mesh.positions[self.vertices[2]]).convert(Vector3)
-        vp2: Vector3 = (p - self.mesh.positions[self.vertices[2]]).convert(Vector3)
+        e2: Vector3 = (self.mesh.vertexPositions[self.vertices[0]] - self.mesh.vertexPositions[self.vertices[2]]).convert(Vector3)
+        vp2: Vector3 = (p - self.mesh.vertexPositions[self.vertices[2]]).convert(Vector3)
     C = Cross(e2, vp2)
     if (Dot(n, C) < 0.0):
         # p is on the right side
