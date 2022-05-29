@@ -1,4 +1,5 @@
 import std/[math, macros, typetraits, strformat, strutils]
+from utils import IsEqual
 
 type
     Vector3* = object
@@ -216,10 +217,6 @@ defineConvert(Point, Vector3)
 defineConvert(Vector3, Point)
 defineConvert(Normal, Vector3)
 defineConvert(Normal, Point)
-
-# eq
-proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
-    return abs(x - y) < epsilon
 
 template defineEqualities(type1: typedesc) =
     proc `==`*(this, other: type1): bool=

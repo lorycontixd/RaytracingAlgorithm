@@ -19,6 +19,17 @@ proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
         x[i] = s[i]
     return x
 
+proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+    ## Function to verify if two floats are approximately equal
+    ## 
+    ## Parameters
+    ## - x (float32): left float
+    ## - y (float32): right float
+    ## 
+    ## Returns
+    ##      True (floats are close) or False (floats are not equal)
+    return abs(x - y) < epsilon
+
 proc size*[T](x: T): int =
     #[
         Returns the size of a container of type T
@@ -102,6 +113,8 @@ macro injectProcName*(procDef: untyped): untyped =
 
 
 func TriangulatePolygon*(vertices: seq[int]): seq[int]=
+    if len(vertices) == 0:
+        return @[]
     var newVertices: seq[int]
     var pivot: int = vertices[0]
     for i in 1..len(vertices)-2:

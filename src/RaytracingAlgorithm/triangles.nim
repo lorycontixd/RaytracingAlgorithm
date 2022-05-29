@@ -10,48 +10,48 @@ type
         nVertices*: int
 
         vertexIndices*: seq[int]
-        positions*: seq[Point] # position of each vertex
-        tangents*: Option[seq[Vector3]] # (optional) tangent to each vertex -> shading tangents
+        vertexPositions*: seq[Point] # position of each vertex
+        normalIndices*: Option[seq[int]]
         normals*: Option[seq[Normal]] # (optional) normal to each vertex -> shading normals
+        textureIndices*: Option[seq[int]]
         uvs*: Option[seq[Vector2]]
 
         transform*: Transformation
+        material*: Material
 
 
 ## Constructors
+
+
 proc newTriangleMesh*(
         transform: Transformation,
         nTriangles: int,
         nVertices: int,
         vertexIndices: seq[int],
         points: seq[Point],
-        tangents: Option[seq[Vector3]] = none(seq[Vector3]),
+        normalIndices: Option[seq[int]] = none(seq[int]),
         normals: Option[seq[Normal]] = none(seq[Normal]),
-        uvs: Option[seq[Vector2]] = none(seq[Vector2])
+        textureIndices: Option[seq[int]] = none(seq[int]),
+        uvs: Option[seq[Vector2]] = none(seq[Vector2]),
+        material: Material = newMaterial()
     ): TriangleMesh {.inline, injectProcName.}=
     var newpoints: seq[Point]
-    var newtangents: seq[Vector3]
     var newnormals: seq[Normal]
-
-    var resTangents: Option[seq[Vector3]]
     var resNormals: Option[seq[Normal]]
+
     for i in 0..nVertices-1:
         newpoints.add(transform * points[i])
-    if tangents.isSome:
-        for i in 0..nVertices-1:
-            newtangents[i] = transform * tangents.get()[i]
-        resTangents = some(newtangents)
-    else:
-        resTangents = none(seq[Vector3])
     if normals.isSome:
         for i in 0..nVertices-1:
-            newnormals[i] = transform * normals.get()[i]
+            newnormals.add(transform * normals.get()[i])
         resNormals = some(newnormals)
     else:
         resNormals = none(seq[Normal])
-    return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: nVertices, vertexIndices: vertexIndices, positions: newpoints, tangents: resTangents, normals: resNormals, uvs: uvs)
+    return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: nVertices, vertexIndices: vertexIndices, vertexPositions: newpoints, normals: resNormals, uvs: uvs)
 
-proc newTriangleMesh*(
+
+
+proc newTriangleMeshRAY*(
         transform: Transformation,
         rayFile: string
     ): TriangleMesh {.inline, injectProcName.}=
@@ -118,12 +118,16 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
         line.delete(0, spaceIndex)
         var items: seq[string] = line.split(" ")
         case key
+            # vertex position (x,y,z)
             of "v":
-                vertexPoints.add(newPoint(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
+                vertexPoints.add(transform * newPoint(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
+            # vertex normal (x,y,z)
             of "vn":
-                vertexNormals.add(newNormal(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
+                vertexNormals.add(transform * newNormal(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
+            # texture vertex (u,v)
             of "vt":
                 textureCoordinates.add(newVector2(parseFloat(items[0]), parseFloat(items[1])))
+            # face/vertices describing a face (v1/t1/vn1, ...)
             of "f":
                 if items.contains(""):
                     items.delete(items.find(""))
@@ -134,14 +138,15 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
                     tempv.add( parseInt(splititem[0])-1)
                     tempvn.add( parseInt(splititem[1])-1)
                     tempvt.add( parseInt(splititem[2])-1)
-
-                let polyV = TriangulatePolygon(tempv)
-                let polyVN = TriangulatePolygon(tempv)
-                let polyVT = TriangulatePolygon(tempv)
+                let polyV = TriangulatePolygon(tempv) # holds all vertices in the face line
+                let polyVN = TriangulatePolygon(tempv) # holds all normals in the face line
+                let polyVT = TriangulatePolygon(tempv) # holds all texture indices in the face line
                 nTriangles += int(len(polyV)/3)
                 vertexIndices.add(polyV)
-    return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints)
-                
+                vertexNormalIndices.add(polyVN)
+                vertexTextureIndices.add(polyVT)
+    #return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints, some(vertexNormalIndices), some(vertexNormals), some(vertexTextureIndices), some(textureCoordinates))
+    return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: len(vertexPoints), vertexIndices: vertexIndices, vertexPositions: vertexPoints, normalIndices: some(vertexNormalIndices), normals: some(vertexNormals), textureIndices: some(vertexTextureIndices), uvs: some(textureCoordinates), material:material)            
 
 
 #[
