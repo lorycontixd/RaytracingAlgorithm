@@ -16,6 +16,6 @@ func newScene*(): Scene=
     return Scene()
     
 func newScene*(w: var World, camera: var Camera, materials: Table[string, Material], fVars: Table[string, float32], orVars: HashSet[string]): Scene=
-    return Scene(world: w, camera: camera, materials: materials, float_variables: fVars, overriden_variables: orVars)
+    return Scene(world: w, camera: camera, materials: materials, float_variables: fVars, overridden_variables: orVars)
 
 

@@ -6,5 +6,11 @@ type
 
     ClearSky* = ref object of Skybox
 
-proc newClearSky(): ClearSky=
+proc newSkyBox*(filename: string): Skybox=
+    # open stream
+    # load hdrimage
+    # set to big sphere
+    return Skybox()
+
+proc newClearSky*(): ClearSky=
     return ClearSky()
