@@ -7,6 +7,7 @@ proc test_inputstream()=
     var stream: InputStream = newInputStream(strm, newSourceLocation(""))
     assert stream.location.lineNum == 1
     assert stream.location.colNum == 1
+    echo stream.ReadChar()
     assert stream.ReadChar() == 'a'
     assert stream.location.lineNum == 1
     assert stream.location.colNum == 2
@@ -37,4 +38,4 @@ proc test_inputstream()=
     assert stream.location.colNum == 3
     assert stream.ReadChar() == ' '
 
-test_inputstream()
+#test_inputstream()

@@ -1,4 +1,4 @@
-import geometry, color, exception, hdrimage, pcg, mathutils, ray
+import geometry, color, exception, hdrimage, pcg, mathutils, ray, utils
 import std/[math]
 
 type
@@ -13,6 +13,13 @@ type
 
     ImagePigment* = ref object of Pigment
         image*: HdrImage
+
+    GradientPigment* = ref object of Pigment
+        color1*: Color
+        color2*: Color
+        threshold*: float32
+        uCoefficient*: float32
+        vCoefficient*: float32
 
     BRDF* = ref object of RootObj
         pigment*: Pigment
@@ -46,6 +53,10 @@ type
 # ----------------------------  CONSTRUCTORS -------------------
 proc newUniformPigment*(color: Color = Color.black()): UniformPigment=
     return UniformPigment(color: color)
+
+proc newGradientPigment*(color1, color2: Color, threshold: float32, uCoefficient: float32 = 1.0, vCoefficient: float32 = 0.0): GradientPigment=
+    assert IsEqual(uCoefficient + vCoefficient, 1.0)
+    return GradientPigment(color1: color1, color2: color2, threshold: threshold, uCoefficient: uCoefficient, vCoefficient: vCoefficient)
 
 proc newCheckeredPigment*(color1, color2: Color, numberOfSteps: int = 10): CheckeredPigment=
     return CheckeredPigment(color1: color1, color2: color2, numberOfSteps: numberOfSteps)
@@ -86,6 +97,14 @@ method getColor*(self: CheckeredPigment, vec: Vector2): Color=
         return self.color1
     else:
         return self.color2
+
+method getColor*(self: GradientPigment, vec: Vector2): Color=
+    let 
+        ueff = self.uCoefficient * vec.u
+        veff = self.vCoefficient * vec.v
+    var t: float32 = (ueff + veff) / 2.0
+    let c = Color.Lerp(self.color1, self.color2, t)
+    return c
 
 method getColor*(self: ImagePigment, vec: Vector2): Color=
     var col = int(vec.u * float32(self.image.width))

@@ -6,6 +6,7 @@ import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/transformation.nim"
 import "../src/RaytracingAlgorithm/imagetracer.nim"
 import "../src/RaytracingAlgorithm/hdrimage.nim"
+import "../src/RaytracingAlgorithm/utils.nim"
 
 proc test_transform*()=
     var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))

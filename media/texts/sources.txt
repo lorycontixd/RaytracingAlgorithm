@@ -1,0 +1,15 @@
+- AABB intersection:
+    - doesnt work: https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html
+    - works: https://medium.com/@bromanz/another-view-on-the-classic-ray-aabb-intersection-algorithm-for-bvh-traversal-41125138b525
+- Rotation Matrix to Quaternion:   http://www.iri.upc.edu/files/scidoc/2068-Accurate-Computation-of-Quaternions-from-Rotation-Matrices.pdf
+- Phong Model:
+    - https://www.cs.princeton.edu/courses/archive/fall16/cos526/papers/importance.pdf 
+    - https://www.cs.princeton.edu/courses/archive/fall03/cs526/papers/lafortune94.pdf (lafortune article)
+    - http://www.cim.mcgill.ca/~derek/ecse689_a3.html
+- Cook Torrance Model:
+    - https://graphicscompendium.com/references/cook-torrance
+    - http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
+    - https://computergraphics.stackexchange.com/questions/10176/ray-tracing-why-does-the-ggx-make-my-rendering-result-darker-and-darker-for-eac
+    - https://agraphicsguy.wordpress.com/2015/11/01/sampling-microfacet-brdf/
+    - http://www.codinglabs.net/article_physically_based_rendering_cook_torrance.aspx
+    - https://computergraphics.stackexchange.com/questions/4979/what-is-importance-sampling
