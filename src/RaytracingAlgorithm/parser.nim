@@ -1,5 +1,5 @@
-import exception
-import std/[streams, sequtils, sugar, strutils, options]
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world
+import std/[streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets]
 
 type
     SourceLocation* = object
@@ -35,6 +35,8 @@ type
         ORTHOGONAL,
         PERSPECTIVE,
         FLOAT
+        WIDTH,
+        HEIGHT
 
     TokenKind = enum  # the different token types
         tkKeyword,          # 
@@ -174,4 +176,266 @@ proc UnreadToken*(self: var InputStream, token: Token): void=
     self.savedToken = some(token)
 
 
+
+
+
+proc ExpectSymbol*(file: var InputStream, symbol: char)=
+    let token = file.ReadToken()
+    if token.kind != TokenKind.tkSymbol or token.symbolVal != symbol:
+        raise TestError.newException("ciao")
+
+proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): KeywordType=
+    let token = file.ReadToken()
+    if not (token.kind == tkKeyword):
+        raise TestError.newException("ciao")
+
+    if not (token.keywordVal in keywords):
+        raise TestError.newException("ciao")
+    return token.keywordVal
+
+proc ExpectNumber*(file: var InputStream, scene: Scene): float32=
+    let token = file.ReadToken()
+    var variable_name: string
+    if (token.kind == tkNumber):
+        return token.numberVal
+    elif (token.kind == tkIdentifier):
+        variable_name = token.identifierVal
+        if not (scene.float_variables.hasKey(variable_name)):
+            raise TestError.newException("ciao")
+        return scene.float_variables[variable_name]
+    raise TestError.newException("ciao")
+
+
+proc ExpectString*(input_file: var InputStream): string=
+    let token = input_file.ReadToken()
+    if not (token.kind == tkString):
+        raise TestError.newException("ciao")
+
+    return token.stringVal
+
+
+proc ExpectIdentifier*(input_file: var InputStream):string=
+    let token = input_file.ReadToken()
+    if not (token.kind == tkIdentifier):
+        raise TestError.newException("ciao")
+
+    return token.identifierVal
+
+
+proc ParseVector*(input_file: var InputStream, scene: Scene): Vector3=
+    ExpectSymbol(input_file, '[')
+    let x = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let y = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let z = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ']')
+
+    return newVector3(x, y, z)
+
+
+proc ParseColor*(input_file: var InputStream, scene: Scene): Color=
+    ExpectSymbol(input_file, '<')
+    let red = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let green = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let blue = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, '>')
+
+    return newColor(red, green, blue)
+
+
+proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
+    let keyword = ExpectKeywords(input_file, @[KeywordType.UNIFORM, KeywordType.CHECKERED, KeywordType.IMAGE])
+
+    ExpectSymbol(input_file, '(')
+    if keyword == KeywordType.UNIFORM:
+        let color = ParseColor(input_file, scene)
+        result = newUniformPigment(color)
+    elif keyword == KeywordType.CHECKERED:
+        let color1 = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let color2 = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let num_of_steps = int(ExpectNumber(input_file, scene))
+        result = newCheckeredPigment(color1, color2, num_of_steps)
+    elif keyword == KeywordType.IMAGE:
+        let file_name = ExpectString(input_file)
+        let image_file = newFileStream(file_name, fmRead)
+        var image: HdrImage = newHdrImage()
+        image.read_pfm(image_file)
+        result = newImagePigment(image)
+    else:
+        raise TestError.newException("This line should be unreachable")
+    ExpectSymbol(input_file, ')')
+
+
+proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
+    let brdf_keyword = ExpectKeywords(input_file, @[KeywordType.DIFFUSE, KeywordType.SPECULAR])
+    ExpectSymbol(input_file, '(')
+    let pigment = ParsePigment(input_file, scene)
+    ExpectSymbol(input_file, ')')
+
+    if brdf_keyword == KeywordType.DIFFUSE:
+        return newDiffuseBRDF(pigment)
+    elif brdf_keyword == KeywordType.SPECULAR:
+        return newSpecularBRDF(pigment)
+    raise TestError.newException("This line should be unreachable")
+
+
+proc ParseMaterial*(input_file: var InputStream, scene: Scene): (string, Material)=
+    let name = ExpectIdentifier(input_file)
+
+    ExpectSymbol(input_file, '(')
+    let brdf = ParseBrdf(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let emitted_radiance = ParsePigment(input_file, scene)
+    ExpectSymbol(input_file, ')')
+
+    return (name, newMaterial(brdf, emitted_radiance))
+
+
+proc ParseTransformation*(input_file: var InputStream, scene: Scene): Transformation=
+    result = newTransformation()
+
+    while true:
+        let transformation_kw = ExpectKeywords(input_file, @[
+            KeywordType.IDENTITY,
+            KeywordType.TRANSLATION,
+            KeywordType.ROTATION_X,
+            KeywordType.ROTATION_Y,
+            KeywordType.ROTATION_Z,
+            KeywordType.SCALE,
+        ])
+
+        #if transformation_kw == KeywordType.IDENTITY:
+        if transformation_kw == KeywordType.TRANSLATION:
+            ExpectSymbol(input_file, '(')
+            result = result * Transformation.translation(ParseVector(input_file, scene))
+            ExpectSymbol(input_file, ')')
+        elif transformation_kw == KeywordType.ROTATION_X:
+            ExpectSymbol(input_file, '(')
+            result = result * Transformation.rotation_x(ExpectNumber(input_file, scene))
+            ExpectSymbol(input_file, ')')
+        elif transformation_kw == KeywordType.ROTATION_Y:
+            ExpectSymbol(input_file, '(')
+            result = result * Transformation.rotation_y(ExpectNumber(input_file, scene))
+            ExpectSymbol(input_file, ')')
+        elif transformation_kw == KeywordType.ROTATION_Z:
+            ExpectSymbol(input_file, '(')
+            result = result * Transformation.rotation_z(ExpectNumber(input_file, scene))
+            ExpectSymbol(input_file, ')')
+        elif transformation_kw == KeywordType.SCALE:
+            ExpectSymbol(input_file, '(')
+            result = result * Transformation.scale(ParseVector(input_file, scene))
+            ExpectSymbol(input_file, ')')
+
+        # We must peek the next token to check if there is another transformation that is being
+        # chained or if the sequence ends. Thus, this is a LL(1) parser.
+        let next_kw = input_file.ReadToken()
+        if (next_kw.kind != tkSymbol) or (next_kw.symbolVal != '*'):
+            # Pretend you never read this token and put it back!
+            input_file.UnreadChar(next_kw.symbolVal)
+            break
+
+
+proc ParseSphere*(input_file: var InputStream, scene: Scene): Sphere=
+    ExpectSymbol(input_file, '(')
+
+    let material_name = ExpectIdentifier(input_file)
+    if not scene.materials.hasKey(material_name):
+        # We raise the exception here because input_file is pointing to the end of the wrong identifier
+        raise TestError.newException(fmt"unknown material {material_name}")
+
+    ExpectSymbol(input_file, ',')
+    let transformation = ParseTransformation(input_file, scene)
+    ExpectSymbol(input_file, ')')
+
+    return newSphere(transform=transformation, material=scene.materials[material_name])
+
+
+proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
+    ExpectSymbol(input_file, '(')
+
+    let material_name = ExpectIdentifier(input_file)
+    if not (scene.materials.hasKey(material_name)):
+        # We raise the exception here because input_file is pointing to the end of the wrong identifier
+        raise TestError.newException(fmt"unknown material {material_name}")
+
+    ExpectSymbol(input_file, ',')
+    var transformation: Transformation = ParseTransformation(input_file, scene)
+    ExpectSymbol(input_file, ')')
+
+    return newPlane(transform=transformation, material=scene.materials[material_name])
+
+
+proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
+    ExpectSymbol(input_file, '(')
+    let type_kw = ExpectKeywords(input_file, @[KeywordType.PERSPECTIVE, KeywordType.ORTHOGONAL])
+    ExpectSymbol(input_file, ',')
+    let transformation = ParseTransformation(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let aspect_ratio = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let distance = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ')')
+
+    if type_kw == KeywordType.PERSPECTIVE:
+        result = newPerspectiveCamera(distance=distance, aspectratio=aspect_ratio, transform=transformation)
+    elif type_kw == KeywordType.ORTHOGONAL:
+        result = newOrthogonalCamera(aspectratio=aspect_ratio, transform=transformation)
+
+
+proc ParseScene(input_file: var InputStream, variables: Table[string, float32]): Scene=
+    var scene: Scene = newScene()
+    scene.float_variables.shallowCopy(variables)
+    var keyslist: seq[string] = @[]
+    for k in variables.keys:
+        keyslist.add(k)
+    scene.overridden_variables = toHashSet(keyslist)
+
+    while true:
+        let what = input_file.ReadToken()
+        if what.kind == tkStop:
+            break
+
+        if what.kind != tkKeyword:
+            raise TestError.newException(fmt"expected a keyword instead of '{what}'")
+
+        if what.keywordVal == KeywordType.FLOAT:
+            let variable_name = ExpectIdentifier(input_file)
+
+            # Save this for the error message
+            let variable_loc = input_file.location
+
+            ExpectSymbol(input_file, '(')
+            let variable_value = ExpectNumber(input_file, scene)
+            ExpectSymbol(input_file, ')')
+
+            if (variable_name in scene.float_variables) and not (variable_name in scene.overridden_variables):
+                #raise GrammarError(location=variable_loc, message=f"variable «{variable_name}» cannot be redefined")
+                raise TestError.newException("ciao")
+
+            if not (scene.overridden_variables.contains(variable_name)):
+                # Only define the variable if it was not defined by the user *outside* the scene file
+                # (e.g., from the command line)
+                scene.float_variables[variable_name] = variable_value
+
+        elif what.keywordVal == KeywordType.SPHERE:
+            scene.world.Add(ParseSphere(input_file, scene))
+        elif what.keywordVal == KeywordType.PLANE:
+            scene.world.Add(ParsePlane(input_file, scene))
+        elif what.keywordVal == KeywordType.CAMERA:
+            if not scene.camera.isNil:
+                #raise GrammarError(what.location, "You cannot define more than one camera")
+                raise TestError.newException(fmt"[] Cannot define more than one camera")
+
+            scene.camera = ParseCamera(input_file, scene)
+        elif what.keywordVal == KeywordType.MATERIAL:
+            var name: string
+            var mat: Material
+            (name, mat) = ParseMaterial(input_file, scene)
+            scene.materials[name] = mat
+    return scene
 
