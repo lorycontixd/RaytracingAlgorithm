@@ -77,57 +77,57 @@ proc UpdatePosition(self: var InputStream, c: Option[char])=
         else:
             self.location.colNum += 1
 
-proc ReadChar*(self: var InputStream): char=
-    #Read a new character from the stream
-    var c: char
+proc ReadChar*(self: var InputStream): Option[char]=
+    ## Read a new character from the stream
+    var c: Option[char]
     if self.savedChar != none(char):
-        c = self.savedChar.get()
+        c = self.savedChar
         self.savedChar = none(char)
     else:
-        c = self.stream.readChar()
+        c = some(self.stream.readChar())
     self.savedLocation.shallowCopy(self.location)
-    self.UpdatePosition(some(c))
+    self.UpdatePosition(c)
     return c
 
-proc UnreadChar*(self: var InputStream, c: Option[char]): void=
-    self.savedChar = c
+proc UnreadChar*(self: var InputStream, c: char): void=
+    self.savedChar = some(c)
     self.location.shallowCopy(self.savedLocation)
 
 proc SkipWhitespacesAndComments*(self: var InputStream): void=
     var WHITESPACE: string = " \t\n\r"
     let s = {'\r','\n'}
-    var c: char = self.stream.readChar()
-    while c in WHITESPACE or c == '#':
-        if c == '#':
+    var c: Option[char] = self.ReadChar()
+    var x: char = c.get()
+    while x in WHITESPACE or x == '#':
+        if x == '#':
             while not s.contains(self.stream.readChar()):
                 discard
-        c = self.stream.readChar()
-        if c == ' ':
+        c = self.ReadChar()
+        if not self.savedChar.isSome:
             return
-    self.UnreadChar(c)
+    self.UnreadChar(c.get())
 
 proc ParseStringToken(self: var InputStream, tokenLocation: SourceLocation): Token=
     var token: string = ""
     while true:
-        let c = self.stream.readChar()
-        echo c
-
-        if c == '"':
-            break
-        if c == '':
+        let c = self.ReadChar()
+        if not c.isSome:
             raise TestError.newException("")
-        token = token & c
+
+        if c.get() == '"':
+            break
+        
+        token = token & c.get()
     return Token(kind: tkString, location: tokenLocation, stringVal: token)
 
 proc ParseKeywordOrIdentifierToken(self: var InputStream, firstChar: char, tokenLocation: SourceLocation): Token=
     var token: string = cast[string](firstChar)
     while true:
-        let c = self.stream.readChar()
-        if not c.isAlphaNumeric() or c == '_':
-            self.UnreadChar(c)
+        let c = self.ReadChar()
+        if not c.get().isAlphaNumeric() or c.get() == '_':
+            self.UnreadChar(c.get())
             break
-        token = token & c
-    
+        token = token & c.get()
     try:
         return Token(kind: tkKeyword, location: tokenLocation, keywordVal: token)
     except:
@@ -136,11 +136,11 @@ proc ParseKeywordOrIdentifierToken(self: var InputStream, firstChar: char, token
 proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: SourceLocation): Token=
     var token: string = cast[string](firstChar)
     while true:
-        let c = self.stream.readChar()
-        if not Digits.contains(c) or c == '.' or {'e','E'}.contains(c):
-            self.UnreadChar(c)
+        let c = self.ReadChar()
+        if not Digits.contains(c.get()) or c.get() == '.' or {'e','E'}.contains(c.get()):
+            self.UnreadChar(c.get())
             break
-        token = token & c
+        token = token & c.get()
     var value: float32
     try:
         value = cast[float32](token)
@@ -148,27 +148,28 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
         raise TestError.newException("ciao")
     return Token(kind: tkNumber, location: tokenLocation, numberVal: value)
 
-proc ReadToken(self: var InputStream): Token=
+proc ReadToken*(self: var InputStream): Token=
     let SYMBOLS = "()[],*"
     self.SkipWhitespacesAndComments()
-    var c: char = self.stream.readChar()
-    if c == ' ':
+    var c: Option[char] = self.ReadChar()
+    if not c.isSome:
         return Token(kind: tkStop, location: self.location, stopVal: "")
     var tokenLocation: SourceLocation
     tokenLocation.shallowCopy(self.location)
 
-    if c in SYMBOLS:
-        return Token(kind: tkSymbol, location: tokenLocation, symbolVal: c)
-    elif c == '"':
+    var x: char = c.get()
+    if x in SYMBOLS:
+        return Token(kind: tkSymbol, location: tokenLocation, symbolVal: x)
+    elif x == '"':
         return self.ParseStringToken(tokenLocation)
-    elif Digits.contains(c) or {'+','-','.'}.contains(c):
-        return self.ParseFloatToken(c, tokenLocation)
-    elif c.isAlphaNumeric() or c == '_':
-        return self.ParseKeywordOrIdentifierToken(c, tokenLocation)
+    elif Digits.contains(x) or {'+','-','.'}.contains(x):
+        return self.ParseFloatToken(x, tokenLocation)
+    elif x.isAlphaNumeric() or x == '_':
+        return self.ParseKeywordOrIdentifierToken(x, tokenLocation)
     else:
         raise TestError.newException("ciao")
 
-proc UnreadToken(self: var InputStream, token: Token): void=
+proc UnreadToken*(self: var InputStream, token: Token): void=
     assert not self.savedToken.isSome
     self.savedToken = some(token)
 
