@@ -1,6 +1,7 @@
 import "../src/RaytracingAlgorithm/mathutils.nim"
 import "../src/RaytracingAlgorithm/pcg.nim"
 import "../src/RaytracingAlgorithm/geometry.nim"
+import "../src/RaytracingAlgorithm/utils.nim"
 
 
 proc test_onbCreation(): void= 

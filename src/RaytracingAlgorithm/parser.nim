@@ -10,7 +10,7 @@ type
     InputStream* = object
         stream*: Stream
         location*: SourceLocation
-        savedChar*: char
+        savedChar*: Option[char]
         savedLocation*: SourceLocation
         savedToken*: Option[Token]
         tabulations*: int
@@ -65,40 +65,37 @@ proc newInputStream*(strm: Stream, location: SourceLocation, tabulations: int = 
     return InputStream(stream: strm, location: location, tabulations: tabulations)
     
 
-proc UpdatePosition(self: var InputStream, c: char)=
+proc UpdatePosition(self: var InputStream, c: Option[char])=
         #Update `location` after having read `c` from the stream
-        echo "detected c: ",c
-        if c == ' ':
+        if c == none(char):
             return
-        elif c == '\n':
+        if c.get() == '\n':
             self.location.lineNum += 1
             self.location.colNum = 1
-        elif c == '\t':
+        elif c.get() == '\t':
             self.location.colNum += self.tabulations
         else:
             self.location.colNum += 1
-        echo "-> ",self.location.colNum
 
 proc ReadChar*(self: var InputStream): char=
     #Read a new character from the stream
     var c: char
-    if self.savedChar != ' ':
-        c = self.savedChar
-        self.savedChar = ' '
+    if self.savedChar != none(char):
+        c = self.savedChar.get()
+        self.savedChar = none(char)
     else:
-    c = self.stream.readChar()
-    echo "c. ",c
+        c = self.stream.readChar()
     self.savedLocation.shallowCopy(self.location)
-    self.UpdatePosition(c)
+    self.UpdatePosition(some(c))
     return c
 
-proc UnreadChar*(self: var InputStream, c: char): void=
+proc UnreadChar*(self: var InputStream, c: Option[char]): void=
     self.savedChar = c
     self.location.shallowCopy(self.savedLocation)
 
 proc SkipWhitespacesAndComments*(self: var InputStream): void=
     var WHITESPACE: string = " \t\n\r"
-    let s = {'\r','\n',' '}
+    let s = {'\r','\n'}
     var c: char = self.stream.readChar()
     while c in WHITESPACE or c == '#':
         if c == '#':
@@ -109,15 +106,15 @@ proc SkipWhitespacesAndComments*(self: var InputStream): void=
             return
     self.UnreadChar(c)
 
-
 proc ParseStringToken(self: var InputStream, tokenLocation: SourceLocation): Token=
     var token: string = ""
     while true:
         let c = self.stream.readChar()
+        echo c
 
         if c == '"':
             break
-        if c == ' ':
+        if c == '':
             raise TestError.newException("")
         token = token & c
     return Token(kind: tkString, location: tokenLocation, stringVal: token)

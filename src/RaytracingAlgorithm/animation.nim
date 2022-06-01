@@ -115,7 +115,7 @@ proc Play*(self: var Animation): void=
             transform = self.Interpolate(t, false)
             percentage = int(float32(i)/float32(self.nframes-1) * 100.0)
 
-        stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat i, if i > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
+        stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat percentage, if percentage > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
         var
             cam = newPerspectiveCamera(self.width, self.height, transform=transform)
             hdrImage: HdrImage = newHdrImage(self.width, self.height)

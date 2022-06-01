@@ -1,4 +1,4 @@
-import geometry, transformation, utils, material
+import geometry, transformation, utils, material, aabb
 import std/[options, streams, os, parseutils, strutils, sequtils, enumerate]
 
 ## 
@@ -18,6 +18,7 @@ type
 
         transform*: Transformation
         material*: Material
+        aabb*: AABB
 
 
 ## Constructors
@@ -145,8 +146,30 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
                 vertexIndices.add(polyV)
                 vertexNormalIndices.add(polyVN)
                 vertexTextureIndices.add(polyVT)
+    # set AABB
+    var
+        minX, maxX: float32 = vertexPoints[0].x
+        minY, maxY: float32 = vertexPoints[0].y
+        minZ, maxZ: float32 = vertexPoints[0].z
+    for vertex in vertexPoints:
+        if vertex.x < minX:
+            minX = vertex.x
+        if vertex.x > maxX:
+            maxX = vertex.x
+        if vertex.y < minY:
+            minY = vertex.y
+        if vertex.y > maxY:
+            maxY = vertex.y
+        if vertex.z < minZ:
+            minZ = vertex.z
+        if vertex.z > maxZ:
+            maxZ = vertex.z
+    var aabb: AABB = newAABB(
+        newPoint(minX, minY, minZ),
+        newPoint(maxX, maxY, maxZ)
+    )
     #return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints, some(vertexNormalIndices), some(vertexNormals), some(vertexTextureIndices), some(textureCoordinates))
-    return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: len(vertexPoints), vertexIndices: vertexIndices, vertexPositions: vertexPoints, normalIndices: some(vertexNormalIndices), normals: some(vertexNormals), textureIndices: some(vertexTextureIndices), uvs: some(textureCoordinates), material:material)            
+    return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: len(vertexPoints), vertexIndices: vertexIndices, vertexPositions: vertexPoints, normalIndices: some(vertexNormalIndices), normals: some(vertexNormals), textureIndices: some(vertexTextureIndices), uvs: some(textureCoordinates), material:material, aabb: aabb)            
 
 
 #[

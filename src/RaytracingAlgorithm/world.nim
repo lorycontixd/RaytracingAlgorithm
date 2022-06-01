@@ -80,6 +80,7 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.
             closest = intersection
     let endTime = now() - start
     mainStats.AddCall(procName, endTime, 2)
+    
     return closest
 
 func IsPointVisible*(self: World, point: Point, observer_position: Point): bool =
