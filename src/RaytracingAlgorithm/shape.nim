@@ -73,10 +73,10 @@ proc sphereNormal(p: Point, dir: Vector3): Normal=
     else:
         return n.neg()
 
-proc sphereWorldToLocal(p: Point): Vector2=
+proc sphereWorldToLocal(p: Point, radius: float32): Vector2=
     let
         u = arctan2(p.y, p.z) / (2.0 * PI)   #p.x not p.z ??
-        v = arccos(p.z) / PI ## divided by radius ??
+        v = arccos(p.z / radius) ## divided by radius ??
     if u >= 0.0:
         result = newVector2(u,v)
     else:
@@ -178,12 +178,11 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.i
         firsthit_t = tmax
     else:
         return none(RayHit)
-
     let hitpoint = inversed_ray[firsthit_t]
     hit.world_point = s.transform * hitpoint
     hit.t = firsthit_t
     hit.normal = s.transform * sphereNormal(hitpoint, inversed_ray.dir) 
-    hit.surface_point = sphereWorldToLocal(hitpoint)
+    hit.surface_point = sphereWorldToLocal(hitpoint, s.radius)
     hit.ray = r
     hit.material = s.material
     #hit.hitshape = s

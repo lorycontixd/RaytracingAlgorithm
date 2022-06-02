@@ -401,7 +401,7 @@ proc ParseScene(input_file: var InputStream, variables: Table[string, float32]):
             break
 
         if what.kind != tkKeyword:
-            raise TestError.newException(fmt"expected a keyword instead of '{what}'")
+            raise TestError.newException(fmt"expected a keyword instead of '{what.kind}'")
 
         if what.keywordVal == KeywordType.FLOAT:
             let variable_name = ExpectIdentifier(input_file)

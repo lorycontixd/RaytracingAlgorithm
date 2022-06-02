@@ -115,8 +115,8 @@ method getColor*(self: ImagePigment, vec: Vector2): Color=
 
     if row >= self.image.height:
         row = -1 + self.image.height
-    
-    return self.image.get_pixel(col, row)
+    let c = self.image.get_pixel(col, row)
+    return c
 
 method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
     return self.image
@@ -124,13 +124,11 @@ method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
 method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color {.base.}=
     raise newException(AbstractMethodError, "BRDF.eval is an abstract method and cannot be called.")
 
-
 method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_point: Point, normal: Normal, depth: int): Ray {.base.}=
     raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
 
 
 ## Lambertian Diffuse BRDF
-
 method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
     self.pigment.getColor(uv) * (self.reflectance / PI)
 
@@ -256,6 +254,9 @@ func NDF(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal): floa
         return a2 / (d * d * PI)
     elif self.ndf == CookTorranceNDF.Beckmann:
         return 1.0 / (PI * pow(self.roughness, 2.0) * pow( Dot(half_vector, normal.convert(Vector3)) , 4.0)) * exp( - pow( tan(Dot(half_vector, normal.convert(Vector3))),2.0) / pow(self.roughness, 2.0))
+
+
+method eval*(self: CookTorranceBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color = discard
 
 method ScatterRay*( 
         self: CookTorranceBRDF,

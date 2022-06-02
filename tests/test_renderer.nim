@@ -37,9 +37,6 @@ proc test_onoff_renderer2(): void=
     var renderer : Renderer = newOnOffRenderer(world2, Color.black, Color.white)
     tracer.fireAllRays(renderer.Get())
 
-    
-
-
     assert image.get_pixel(0,0) == Color.black
     assert image.get_pixel(1,0) == Color.black
     assert image.get_pixel(2,0) == Color.black
@@ -91,7 +88,7 @@ proc test_flat_renderer(): void=
     tracer.image.clamp_image()
     tracer.image.write_png("test.png", 1.0)
 
-
+proc test_pointlight_renderer(): void = discard
 
     
 
@@ -100,5 +97,4 @@ proc test_flat_renderer(): void=
 
 test_onoff_renderer()
 test_onoff_renderer2()
-
 test_flat_renderer()

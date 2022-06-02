@@ -8,7 +8,7 @@ import stats
 from utils import injectProcName
 from ray import Ray
 from exception import NotImplementedError, AbstractMethodError
-import std/[options, math, times]
+import std/[options, math, times, typetraits]
 
 type
     Renderer* = ref object of RootObj
@@ -90,10 +90,10 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
             return renderer.backgroundColor
         let material = hit.get().material
         #echo hit.get().GetSurfacePoint()
-        #echo "!! ",hit.get().GetSurfacePoint()
+        #echo "!! ",hit.get().GetSurfacePoint(
         var 
-            brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint()) 
-            emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
+            brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint())  
+        var emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
         let endTime = now() - start
         mainStats.AddCall(procName, endTime)
         return ( brdfColor + emittedRadianceColor )
