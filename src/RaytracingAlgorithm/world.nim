@@ -25,6 +25,9 @@ method Add*[T: Shape](self: var World, s: T): void {.base.}=
     ##      s (Shape): Shape to be added
     self.shapes.add(s)
 
+method AddLight*[T: Light](self: var World, l: T): void {.base.}=
+    self.pointLights.add(l)
+
 
 method Remove*(self: var World, s_id: string): void {.base.}=
     ## Remove a shape from the world scene by ID

@@ -8,3 +8,5 @@ src/*.mp4
 src/frames
 # ignore unused hidden files
 .DS_Store
+# large files
+media/skyboxes/hazy_afternoon.pfm

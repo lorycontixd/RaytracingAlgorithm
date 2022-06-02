@@ -32,7 +32,6 @@ proc fireAllRays*(self: var ImageTracer, f: proc): void {.injectProcName.}=
     var
         color: Color
         ray: Ray
-        
     for row in 0 ..< self.image.height:
         for col in 0 ..< self.image.width:
             ray = self.fireRay(col, row)
@@ -49,8 +48,9 @@ proc fireAllRays*(self: var AntiAliasing, f: proc): void {.injectProcName.}=
     var
         cumcolor: Color
         ray: Ray
-    for row in 0 ..< self.image.height:
-        for col in 0 ..< self.image.width:
+    echo "--> ",self.image.width,"      - ",self.image.height
+    for row in 0 .. self.image.height-1:
+        for col in 0 .. self.image.width-1:
             cumcolor = Color.black()
 
             if self.samplesPerSide > 0:
