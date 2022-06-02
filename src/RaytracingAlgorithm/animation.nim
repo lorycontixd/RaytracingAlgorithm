@@ -74,7 +74,6 @@ proc Interpolate*(self: var Animation, t: float32, debug: bool = false): Transfo
     if debug:
         echo "Translation:"
         echo $trans,"\n"
-
     # Interpolate rotation at _dt_
     var rotate: Quaternion = Slerp(self.rotations[0], self.rotations[1], dt)
     if debug:
@@ -95,8 +94,6 @@ proc Interpolate*(self: var Animation, t: float32, debug: bool = false): Transfo
         transTranform = Transformation.translation(trans)
         rotTransform = newTransformation(rotate.ToRotation())
         scaleTransform = newTransformation(scale)
-
-
     # Compute interpolated matrix as product of interpolated components
     return transTranform * rotTransform * scaleTransform
 

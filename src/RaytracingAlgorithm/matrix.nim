@@ -35,11 +35,16 @@ proc IdentityMatrix*(): Matrix=
 proc newMatrix*(): Matrix=
     return Zeros()
 
+proc newMatrix*(m: seq[seq[float32]]): Matrix=
+    result = Zeros()
+    for i in 0..m.high:
+        for j in 0..m[0].high:
+            result[i,j] = m[i][j]
+
 proc newMatrix*(m: Matrix): Matrix=
     return deepCopy(m)
 
 ## Methods
-
 proc Show*(m: Matrix): void=
     for i in countup(0, 3):
         var line: string = "["
@@ -299,10 +304,10 @@ proc `*`*(this, other: Matrix): Matrix=
             for k in 0 .. 3:
                 result[i,j] = result[i,j] + this[i,k] * other[k,j]
 
-proc are_matrix_close*(m1, m2 : Matrix): bool=
+proc are_matrix_close*(m1, m2 : Matrix, epsilon: float32 = 1e-5): bool=
     for i in 0 .. 3:
         for j in 0 .. 3:
-            if not IsEqual(m1[i,j], m2[i,j]):
+            if not IsEqual(m1[i,j], m2[i,j], epsilon):
                 return false
     return true
 

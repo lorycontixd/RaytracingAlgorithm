@@ -15,7 +15,6 @@ proc newTransformation*(m: Matrix): Transformation=
     result = Transformation(m: m, inverse: Inverse(m))
 
 
-
 proc Inverse*(t: Transformation): Transformation=
     result = Transformation(m:t.inverse, inverse:t.m)
 
@@ -64,7 +63,7 @@ proc `*`*(self: Transformation, b: Bounds3): Bounds3=
 ]#
 
 proc `==`*(self, other: Transformation): bool=
-    return are_matrix_close(self.m, other.m ) and are_matrix_close(self.inverse, other.inverse)
+    return are_matrix_close(self.m, other.m,1e-1) and are_matrix_close(self.inverse, other.inverse,1e-5)
 
 proc `!=`*(self, other: Transformation): bool=
     return not (self == other)
