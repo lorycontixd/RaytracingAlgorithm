@@ -323,7 +323,7 @@ proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
         qz = cos(phi/2) * cos(theta/2) * sin(psi/2) - sin(phi/2) * sin(theta/2) * cos(psi/2)
     return newQuaternion(qx, qy, qz, qw)
 
-
+#[
 proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
     ## Spherical linear interpolation between two quaternions.
     ## Interpolates a quaternion in between two quaternions based on the free parameter t.
@@ -345,10 +345,20 @@ proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
         return Normalize((1 - t) * a + t * b);  #linear interpolation
     else:
         var theta: float32 = arccos(Clamp(cosTheta, -1, 1))
+        echo "t: ",theta
         var thetap: float32 = theta * t
         var qperp: Quaternion = Normalize(b - a * cosTheta) #orthogonl to a
         return a * cos(thetap) + qperp * sin(thetap) #interpolation quaternion
-    
+]#
+proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
+    a = a.Normalize()
+    b = b.Normalize()
+    t = Clamp(t, 0.0, 1.0)
+    var dot: float32 = Dot(a,b)
+    let theta = arccos(Clamp(dot, -1.0, 1.0))
+    if theta.IsEqual(0.0):
+        return Normalize((1 - t) * a + t * b)
+    return a * ( sin((1-t)*theta)/(sin(theta)) ) + b * (sin(t*theta) / sin(theta))
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
     ##

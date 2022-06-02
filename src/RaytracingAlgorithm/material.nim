@@ -40,6 +40,8 @@ type
 
     
     CookTorranceBRDF* = ref object of BRDF 
+        diffuseCoefficient*: float32
+        specularCoefficient*: float32
         roughness*: float32
         albedo*: float32
         metallic*: float32
@@ -72,8 +74,9 @@ proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 
     assert (shininess >= 0.0) ## cannot have negative values of shininess 
     return PhongBRDF(pigment: pigment, shininess: shininess, diffuseReflectivity: diffuseReflectivity, specularReflectivity: specularReflectivity)
 
-proc newCookTorranceBRDF*(pigment: Pigment = newUniformPigment(), roughness: float32 = 0.5, albedo: float32 = 0.5, metallic: float32 = 0.5, ndf: CookTorranceNDF = CookTorranceNDF.GGX): CookTorranceBRDF =
-    return CookTorranceBRDF(pigment: pigment, roughness: roughness, albedo: albedo, metallic: metallic, ndf: ndf)
+proc newCookTorranceBRDF*(pigment: Pigment = newUniformPigment(), diffuseCoefficient: float32 = 0.3, specCoefficient: float32 = 0.7, roughness: float32 = 0.5, albedo: float32 = 0.5, metallic: float32 = 0.5, ndf: CookTorranceNDF = CookTorranceNDF.GGX): CookTorranceBRDF =
+    assert (diffuseCoefficient + specCoefficient <= 1.0)
+    return CookTorranceBRDF(pigment: pigment, diffuseCoefficient: diffuseCoefficient, specularCoefficient: specCoefficient, roughness: roughness, albedo: albedo, metallic: metallic, ndf: ndf)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, emitted_radiance: pigment)
@@ -130,7 +133,7 @@ method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_
 
 ## Lambertian Diffuse BRDF
 method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
-    self.pigment.getColor(uv) * (self.reflectance / PI)
+    return self.pigment.getColor(uv) * (self.reflectance / PI)
 
 method ScatterRay*(
         self: DiffuseBRDF,
@@ -236,7 +239,7 @@ func GeometryFunction(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: 
     else:
         return min( 1.0, min(  (2*Dot(normal.convert(Vector3), half_vector)*Dot(normal.convert(Vector3), in_dir))/(Dot(in_dir, half_vector))  ,   (2*Dot(normal.convert(Vector3), half_vector)*Dot(normal.convert(Vector3), out_dir))/(Dot(in_dir, half_vector))  ) )
 
-func FresnelSchlick(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal, n: int): float32=
+func FresnelSchlick(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal, n: float32): float32=
     let f0 = pow(float32(n-1), 2.0) / pow(float32(n+1), 2.0)
     let half_vector = in_dir + out_dir
     return f0 + (1-f0) * pow( 1.0 - Dot(out_dir, half_vector), 5.0)
@@ -256,7 +259,13 @@ func NDF(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal): floa
         return 1.0 / (PI * pow(self.roughness, 2.0) * pow( Dot(half_vector, normal.convert(Vector3)) , 4.0)) * exp( - pow( tan(Dot(half_vector, normal.convert(Vector3))),2.0) / pow(self.roughness, 2.0))
 
 
-method eval*(self: CookTorranceBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color = discard
+method eval*(self: CookTorranceBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color =
+    let 
+        f_lambert = 1 / PI
+        lambert = self.diffuseCoefficient * f_lambert
+        f_ct = (self.NDF(in_dir, out_dir, normal) * self.FresnelSchlick(in_dir, out_dir, normal, 1.5) * self.GeometryFunction(in_dir, out_dir, normal)) / (4.0 * Dot(normal.convert(Vector3), in_dir) * Dot(normal.convert(Vector3), out_dir))
+        ct = self.specularCoefficient * f_ct
+    return self.pigment.getColor(uv) * (lambert + ct)
 
 method ScatterRay*( 
         self: CookTorranceBRDF,
