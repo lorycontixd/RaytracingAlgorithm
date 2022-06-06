@@ -1,6 +1,6 @@
-import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix
+import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix, animator
 import std/[os, strformat, strutils, terminal]
-
+#[
 type
     Animation* = object
         start_transform*: Transformation
@@ -165,5 +165,81 @@ proc SetWorld*(self: var Animation, w: World): void=
     self.world = w
 
 proc Show*(self: Animation) = discard
+]#
 
+
+
+type
+    Animation* = object
+        width*: int
+        height*: int
+        camType*: CameraType
+        cameraTransform*: Transformation
+        render*: Renderer
+        world*: World
+        duration_sec*: int
+        framerate*: int
+        nframes: int
+
+        # internal
+        frames*: seq[ImageTracer]
+
+func newAnimation*(world: var World, width, height: int, renderer: Renderer, cameraTransform: Transformation, camType: CameraType, duration_sec, fps: int): Animation=
+    return Animation(world: world, width: width, height: height, render: renderer, cameraTransform: cameraTransform, camType: camType, duration_sec: duration_sec, framerate: fps, nframes: duration_sec*fps)
     
+proc SetTransforms*(self: var Animation, t: var float32): void=
+    for shape in self.world.shapes:
+        shape.transform = shape.animator.Play(t)
+
+proc Play*(self: var Animation): void=
+    for i in countup(0, self.nframes-1):
+        var
+            t: float32 = float32(i / (self.nframes - 1)) * float32(self.duration_sec)
+            percentage: int = int(float32(i)/float32(self.nframes-1) * 100.0)
+        stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat percentage, if percentage > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
+        self.SetTransforms(t)
+        var
+            cam = newPerspectiveCamera(self.width, self.height, transform=self.cameraTransform)
+            hdrImage: HdrImage = newHdrImage(self.width, self.height)
+            imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
+        imagetracer.fireAllRays(self.render.Get())
+        let lum = imagetracer.image.average_luminosity()
+        debug(fmt"Created frame {i+1}/{self.nframes} --> Average Luminosity: {lum}")
+        self.frames.add(imagetracer)
+        cursorUp 1
+        eraseLine()
+    stdout.resetAttributes()
+    echo self.frames.len()
+
+proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
+    info("Found ",len(self.frames)," frames to save")
+    var finaldirname: string = "frames"
+    var dirName: string = joinPath(getCurrentDir(), finaldirname)
+    if dirExists(dirName):
+        warn("Frames folder already found. Removing previous frames.")
+        let resultCode = execShellCmd(fmt"rm -f {dirName}/*")
+        if resultCode != 0:
+            error("Could not delete existing frames")
+    else:
+        createDir(dirName)
+    debug("Created temporary output folder: ",dirName)
+
+    var i: int = 0
+    for frame in self.frames:
+        var img = frame.image
+        img.normalize_image(1.0)
+        img.clamp_image()
+        let stringInt = fmt"{i:04}" # int, works
+        var savePath: string = joinPath(dirName, fmt"output_{stringInt}.png")
+        img.write_png(savePath, 1.0)
+        debug("Written temporary PNG: ",savePath)
+        i = i + 1
+    var cmd: string = fmt"ffmpeg -f image2 -r {self.framerate} -i '{dirName}/output_%04d.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
+    let res = execShellCmd(cmd)
+    debug("FFmpeg command called, return status: ",res)
+    if res == 0:
+        if not dontDeleteFrames:
+            let res2 = execShellCmd(fmt"rm -rf {dirName}/")
+            debug("Temporary folder deleted, return status: ",res2)
+    else:
+        error("FFmpeg image command failed with return code ", res)
