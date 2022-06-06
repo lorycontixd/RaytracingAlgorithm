@@ -38,7 +38,7 @@ type
         WIDTH,
         HEIGHT
 
-    TokenKind = enum  # the different token types
+    TokenKind* = enum  # the different token types
         tkKeyword,          # 
         tkIdentifier,        # 
         tkString,       # 
@@ -46,17 +46,17 @@ type
         tkSymbol,          # 
         tkStop            #
 
-    TokenObj = object
+    TokenObj* = object
         location*: SourceLocation
-        case kind: TokenKind
-        of tkKeyword: keywordVal: KeywordType
-        of tkIdentifier: identifierVal: string
-        of tkString: stringVal: string
-        of tkNumber: numberVal: float32
-        of tkSymbol: symbolVal: char
-        of tkStop: stopVal: string
+        case kind*: TokenKind
+        of tkKeyword: keywordVal*: KeywordType
+        of tkIdentifier: identifierVal*: string
+        of tkString: stringVal*: string
+        of tkNumber: numberVal*: float32
+        of tkSymbol: symbolVal*: char
+        of tkStop: stopVal*: string
 
-    Token = ref TokenObj
+    Token* = ref TokenObj
 
 converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s)
 
@@ -154,12 +154,15 @@ proc ReadToken*(self: var InputStream): Token=
     let SYMBOLS = "()[],*"
     self.SkipWhitespacesAndComments()
     var c: Option[char] = self.ReadChar()
+    echo "@@@@@@@", c
     if not c.isSome:
         return Token(kind: tkStop, location: self.location, stopVal: "")
     var tokenLocation: SourceLocation
     tokenLocation.shallowCopy(self.location)
+    echo "------", c
 
     var x: char = c.get()
+    echo "char is ", x
     if x in SYMBOLS:
         return Token(kind: tkSymbol, location: tokenLocation, symbolVal: x)
     elif x == '"':
@@ -169,7 +172,7 @@ proc ReadToken*(self: var InputStream): Token=
     elif x.isAlphaNumeric() or x == '_':
         return self.ParseKeywordOrIdentifierToken(x, tokenLocation)
     else:
-        raise TestError.newException("ciao")
+        raise TestError.newException("errore in lettura char")
 
 proc UnreadToken*(self: var InputStream, token: Token): void=
     assert not self.savedToken.isSome
