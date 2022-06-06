@@ -89,6 +89,7 @@ proc ReadChar*(self: var InputStream): Option[char]=
         c = some(self.stream.readChar())
     self.savedLocation.shallowCopy(self.location)
     self.UpdatePosition(c)
+    echo "c from readChar", c
     return c
 
 proc UnreadChar*(self: var InputStream, c: char): void=
