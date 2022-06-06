@@ -58,7 +58,7 @@ type
 
     Token* = ref TokenObj
 
-converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s)
+converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s.toUpperAscii())
 
 proc newSourceLocation*(filename: string, row: int = 1, col: int = 1): SourceLocation=
     return SourceLocation(fileName: filename, lineNum: row, colNum: col)
@@ -87,6 +87,7 @@ proc ReadChar*(self: var InputStream): Option[char]=
         self.savedChar = none(char)
     else:
         c = some(self.stream.readChar())
+    echo "cccc: ",c
     self.savedLocation.shallowCopy(self.location)
     self.UpdatePosition(c)
     return c
@@ -102,12 +103,12 @@ proc SkipWhitespacesAndComments*(self: var InputStream): void=
     var x: char = c.get()
     while x in WHITESPACE or x == '#':
         if x == '#':
-            while not s.contains(self.stream.readChar()):
+            while not s.contains(self.stream.readChar()) and not self.stream.atEnd():
                 discard
-        c = self.ReadChar()
-        if not self.savedChar.isSome:
+        x = self.ReadChar().get().char
+        if self.stream.atEnd() or x == '\x00':
             return
-    self.UnreadChar(c.get())
+    self.UnreadChar(x)
 
 proc ParseStringToken(self: var InputStream, tokenLocation: SourceLocation): Token=
     var token: string = ""
@@ -123,10 +124,12 @@ proc ParseStringToken(self: var InputStream, tokenLocation: SourceLocation): Tok
     return Token(kind: tkString, location: tokenLocation, stringVal: token)
 
 proc ParseKeywordOrIdentifierToken(self: var InputStream, firstChar: char, tokenLocation: SourceLocation): Token=
-    var token: string = cast[string](firstChar)
+    echo "parse kw or id, firstchar: ",firstChar
+    var token: string = $firstChar
+    echo "token: ",token
     while true:
         let c = self.ReadChar()
-        if not c.get().isAlphaNumeric() or c.get() == '_':
+        if not (c.get().isAlphaNumeric() or c.get() == '_'):
             self.UnreadChar(c.get())
             break
         token = token & c.get()
@@ -152,7 +155,9 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
 
 proc ReadToken*(self: var InputStream): Token=
     let SYMBOLS = "()[],*"
+    echo "hi"
     self.SkipWhitespacesAndComments()
+    echo "hi2"
     var c: Option[char] = self.ReadChar()
     echo "@@@@@@@", c
     if not c.isSome:
@@ -162,7 +167,6 @@ proc ReadToken*(self: var InputStream): Token=
     echo "------", c
 
     var x: char = c.get()
-    echo "char is ", x
     if x in SYMBOLS:
         return Token(kind: tkSymbol, location: tokenLocation, symbolVal: x)
     elif x == '"':
