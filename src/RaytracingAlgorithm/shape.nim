@@ -1,5 +1,5 @@
-import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils, triangles, mathutils, color
-import std/[math, options, strutils, times, strformat]
+import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils, triangles, mathutils, color, animator
+import std/[math, options, strutils, times, strformat, sequtils]
 
 
 type
@@ -9,6 +9,7 @@ type
         transform*: Transformation
         material*: Material
         aabb*: AABB
+        animator*: Animator
     
     Sphere* = ref object of Shape
         radius*: float32
@@ -22,8 +23,8 @@ type
     Triangle* = ref object of Shape
         mesh*: TriangleMesh
         vertices*: array[3, int]
-        normalIndices*: array[3, int]
-        textureIndices*: array[3, int]
+        normalIndices*: Option[array[3, int]]
+        textureIndices*: Option[array[3, int]]
 # -------------------------------- Constructors -------------------------------------
 
 proc newSphere*(id: string, origin: Point, radius: float32 ): Sphere =
@@ -56,14 +57,17 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
         raise ValueError.newException("Triangle id must contain CYLINDER keyword.")
     var
         v: array[3, int] = [mesh.vertexIndices[3 * triNumber], mesh.vertexIndices[3 * triNumber + 1], mesh.vertexIndices[3 * triNumber + 2]]
-        vn: array[3, int] = [mesh.normalIndices.get()[3 * triNumber], mesh.normalIndices.get()[3 * triNumber + 1], mesh.normalIndices.get()[3 * triNumber + 2]]
-        vt: array[3, int] = [mesh.textureIndices.get()[3 * triNumber], mesh.textureIndices.get()[3 * triNumber + 1], mesh.textureIndices.get()[3 * triNumber + 2]]
+        vn, vt: Option[array[3,int]] = none(array[3,int])
+    if mesh.normalIndices.isSome:
+        vn = some([mesh.normalIndices.get()[3 * triNumber], mesh.normalIndices.get()[3 * triNumber + 1], mesh.normalIndices.get()[3 * triNumber + 2]])
+    if mesh.textureIndices.isSome:
+        vt = some([mesh.textureIndices.get()[3 * triNumber], mesh.textureIndices.get()[3 * triNumber + 1], mesh.textureIndices.get()[3 * triNumber + 2]])
     var aabb: AABB = Union( newAABB(transform * mesh.vertexPositions[v[0]], transform * mesh.vertexPositions[v[1]]), mesh.vertexPositions[v[2]])
     result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb)
 
 proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
     for i in  0..mesh.nTriangles-1:
-        result.add(  newTriangle(transform=mesh.transform, mesh=mesh, triNumber=i, material= mesh.material))
+        result.add( newTriangle(id=fmt"TRIANGLE_{i}",transform=mesh.transform, mesh=mesh, triNumber=i, material= mesh.material))
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -94,53 +98,17 @@ proc cylinderWorldToLocal(p: Point): Vector2 =
 ###### --------------------------------------------- Methods --------------------------------------------
 
 #### Triangles
-func GetUV(self: Triangle): seq[Vector2]=
+proc GetUV(self: Triangle): seq[Vector2]=
     if (self.mesh.uvs.isSome):
         let
             uvs = self.mesh.uvs.get()
-            a = uvs[self.textureIndices[0]]
-            b = uvs[self.textureIndices[1]]
-            c = uvs[self.textureIndices[2]]
+            a = uvs[self.textureIndices.get()[0]]
+            b = uvs[self.textureIndices.get()[1]]
+            c = uvs[self.textureIndices.get()[2]]
+        #echo self.id," - ",@[a,b,c]
         return @[a,b,c]
     else:
         return @[newVector2(0.0, 0.0), newVector2(1.0, 0.0), newVector2(1.0, 1.0)]
-
-#[
-func PolygonToTriangles*(nFaces: int, faces: seq[int], vertexIndex: seq[int], vertices: seq[Point]): TriangleMesh=
-    var k, maxVertIndex, numTris: int = 0
-    # detect number of triangles
-    for i in 0..nFaces-1:
-        numTris += faces[i] - 2
-        for j in 0..faces[i]-1:
-            if vertexIndex[k + j] > maxVertIndex:
-                maxVertIndex = vertexIndex[k + j]
-        k += faces[i]
-    maxVertIndex += 1
-
-    var newVertices: seq[ Point]
-    for i in 0..maxVertIndex-1:
-        newVertices.add(vertices[i])
-
-    var triangleIndices: seq[int] # numtris * 3
-    var l, k2: int = 0
-    for i in 0..nFaces-1:
-        for j in 0..faces[i] - 3:
-            triangleIndices.add(vertexindex[k2])
-            triangleIndices.add(vertexindex[k2 + j + 1])
-            triangleIndices.add(vertexindex[k2 + j + 2])
-            l += 3
-        k2 += faces[i]
-
-    return newTriangleMesh(
-        transform=newTransformation(),
-        nTriangles=numTris,
-        nVertices=maxVertIndex,
-        vertexIndices=triangleIndices,
-        points=newVertices
-    )
-]#
-
-
 
 
 #####  ---- Ray Intersection
@@ -189,6 +157,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.i
     let endTime = now() - start
     mainStats.AddCall(procName, endTime, 2)
     return some(hit)
+
 
 method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit] =
     let inv_ray = ray.Transform(Inverse(self.transform))
@@ -262,11 +231,12 @@ method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayH
     mainStats.AddCall(procName, endTime, 2)
     return some(hit)
 
+
 method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] = 
     ## Moller-Trumbore Algorithm
     var
-        #invray: Ray = ray.Transform(self.transform.Inverse()) ## Inversed ray
-        invray = ray
+        invray: Ray = ray.Transform(self.transform.Inverse()) ## Inversed ray
+        #invray = ray
         vertex0: Vector3 = self.mesh.vertexPositions[self.vertices[0]].convert(Vector3)
         vertex1: Vector3 = self.mesh.vertexPositions[self.vertices[1]].convert(Vector3)
         vertex2: Vector3 = self.mesh.vertexPositions[self.vertices[2]].convert(Vector3)
@@ -294,17 +264,23 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         minv: float32 = min(uvs[0].v, min(uvs[1].v, uvs[2].v))
         maxu: float32 = max(uvs[0].u, max(uvs[1].u, uvs[2].u))
         maxv: float32 = max(uvs[0].v, max(uvs[1].v, uvs[2].v))
+        #minu: float32 = minIndex(self.mesh.)
     var t: float32 = f * edge2.Dot(q)
+    var
+        invu: float32 = 1.0 - u
+        invv: float32 = 1.0 - v
+    var res: Vector2 = newVector2(
+        Lerp(minu, maxu, invu),
+        Lerp(minv, maxv, invv)
+    )
+    #echo "res: ",res
     if t > 0.0:
         #echo "uv: ",u," - ",v
         var hit: RayHit = newRayHit(
             invray.origin + t * invray.dir,
             edge1.Cross(edge2).convert(Normal),
-            #newVector2(u,v),
-            newVector2(
-                Lerp(minu, maxu, u),
-                Lerp(minv, maxv, v)
-            ),
+            #newVector2(0.333, 0.87),
+            res,
             t,
             invray,
             self.mesh.material

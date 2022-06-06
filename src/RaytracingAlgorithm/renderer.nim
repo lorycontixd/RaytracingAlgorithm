@@ -93,6 +93,7 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
         #echo "!! ",hit.get().GetSurfacePoint(
         var 
             brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint())  
+        #echo "UV: ",hit.get().GetSurfacePoint(),"\t color: ",brdfColor
         var emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
         let endTime = now() - start
         mainStats.AddCall(procName, endTime)
@@ -155,7 +156,7 @@ method Get*(self: PointlightRenderer): (proc(ray: Ray): Color) {.injectProcName.
                     distance_vec = (hitrecord.world_point - light.position).convert(Vector3)
                     distance = distance_vec.norm()
                     in_dir = distance_vec * (1.0 / distance)
-                    costheta = max(0.0, Dot(ray.dir.normalize().neg(), hitrecord.normal.normalize()))
+                    costheta = max(0.0, Dot(ray.dir.normalize(), hitrecord.normal.normalize()))
                 var distance_factor: float32
                 if light.linearRadius > 0.0:
                     distance_factor = pow((light.linearRadius / distance), 2.0) 
@@ -169,6 +170,7 @@ method Get*(self: PointlightRenderer): (proc(ray: Ray): Color) {.injectProcName.
                         ray.dir,
                         hitrecord.GetSurfacePoint()
                     )
+                #echo emitted_color, " - ",brdf_color, " -- ",light.color, " - ",cos_theta, " - ",distance_factor
                 result_color = result_color + (emitted_color + brdf_color) * light.color * cos_theta * distance_factor
         let endTime = now() - start
         mainStats.AddCall(procName, endTime, 1)
