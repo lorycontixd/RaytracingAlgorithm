@@ -58,13 +58,13 @@ proc assert_isString(token: Token, s: string)=
     assert token.stringVal == s
 
 proc test_lexer()=
-   #[ var strm: StringStream = newStringStream("""# This is a comment
+    var strm: StringStream = newStringStream("""# This is a comment
         # This is another comment
         new material sky_material(
             diffuse(image("my file.pfm")),
             <5.0, 500.0, 300.0>
-        ) # Comment at the end of the line""")]#
-    var strm: StringStream = newStringStream("# This is a co")
+        ) # Comment at the end of the line""")
+    #var strm: StringStream = newStringStream("new material sky_material")
     var stream: InputStream = newInputStream(strm, newSourceLocation(""))
 
     assert_isKeyword(stream.ReadToken(), KeywordType.NEW)
