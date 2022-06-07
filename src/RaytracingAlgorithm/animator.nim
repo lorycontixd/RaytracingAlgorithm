@@ -1,7 +1,8 @@
 import transformation, matrix, geometry, quaternion, mathutils
-import std/[sequtils, tables, enumerate, algorithm, strformat]
+import std/[sequtils, tables, enumerate, algorithm, strformat, marshal]
 
 type
+    InterpolationFunction = proc(x: float32, a,b: float32): float32
     Animator* = object
         keyframes*: OrderedTable[float32, Transformation] # seq Transformation or Table[float, Transformation] ??
 
@@ -10,11 +11,14 @@ type
         scales*: OrderedTable[float32, Matrix]
         decomposed*: seq[float32] # whether the transformation at time t has been decomposed (performance)
 
+        interpolationFunction*: InterpolationFunction
+
 ## Constructors
 
-proc newAnimator*(initialKeyframes: var OrderedTable[float32, Transformation]): Animator=
+proc newAnimator*(initialKeyframes: var OrderedTable[float32, Transformation], f: InterpolationFunction): Animator=
     #initialKeyframes.sort(system.cmp)
     result = Animator()
+    result.interpolationFunction = f
     result.keyframes = initialKeyframes
     for i, key in enumerate(initialKeyframes.keys):
         result.translations[key] = newVector3()
@@ -125,6 +129,9 @@ func RemoveKeyframe*(self: var Animator, index: int): void=
 func RemoveKeyframe*(self: var Animator, time: float32): void=
     self.keyframes.del(time)
 
+func SetInterpolationFunction*(self: var Animator, f: InterpolationFunction): void=
+    self.interpolationFunction = f
+
 proc Play*(self: var Animator, t: float32): Transformation =
     let
         firstkey = self.FindKeyByIndex(0)
@@ -139,7 +146,8 @@ proc Play*(self: var Animator, t: float32): Transformation =
         b: float32 = self.GetNextKey(t)
     var dt: float32 = (t-a)/(b-a)
     #echo "t: ",t,"\ta: ",a,"\tb: ",b
-    return self.Interpolate(a,b,dt)
+    var f_dt: float32 = self.interpolationFunction(dt, 1.0, 1.0)
+    return self.Interpolate(a, b, f_dt)
     
 
 
