@@ -1,0 +1,9 @@
+total executions of each stack trace:
+Entry: 1/3 Calls: 3/5 = 60.00% [sum: 3; 3/5 = 60.00%]
+  color.nim: newColor 3/5 = 60.00%
+  hdrimage.nim: newHdrImage 3/5 = 60.00%
+  RaytracingAlgorithm.nim: demo 4/5 = 80.00%
+  cligen.nim: dispatchdemo 4/5 = 80.00%
+  cligen.nim: multi 4/5 = 80.00%
+  cligen.nim: multiSubs 4/5 = 80.00%
+  RaytracingAlgorithm.nim: RaytracingAlgorithm 4/5 = 80.00%
