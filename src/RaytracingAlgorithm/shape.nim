@@ -267,7 +267,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         #minu: float32 = minIndex(self.mesh.)
     var t: float32 = f * edge2.Dot(q)
     var
-        invu: float32 = 1.0 - u
+        invu: float32 = u
         invv: float32 = 1.0 - v
     var res: Vector2 = newVector2(
         Lerp(minu, maxu, invu),
