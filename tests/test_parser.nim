@@ -60,22 +60,18 @@ proc assert_isString(token: Token, s: string)=
 
 
 proc test_lexer()=
-   #[ var strm: StringStream = newStringStream("""# This is a comment
+    var strm: StringStream = newStringStream("""# This is a comment
         # This is another comment
         new material sky_material(
             diffuse(image("my file.pfm")),
             <5.0, 500.0, 300.0>
-        ) # Comment at the end of the line""")]#
-    var strm: StringStream = newStringStream("# This is a comment\nnew material sky_material(\n\tdiffuse(image(<0, 0, 0>)),\n\tuniform(<0.7, 0.5, 1>)\n)")
+        ) # Comment at the end of the line""")
+    #var strm: StringStream = newStringStream("# This is a comment\nnew material sky_material(\n\tdiffuse(image(<0, 0, 0>)),\n\tuniform(<0.7, 0.5, 1>)\n)")
     var stream: InputStream = newInputStream(strm, newSourceLocation(""))
-    echo "0"
     assert_isKeyword(stream.ReadToken(), KeywordType.NEW)
-    echo "1"
     assert_isKeyword(stream.ReadToken(), KeywordType.MATERIAL)
-    echo "2"
     assert_isIdentifier(stream.ReadToken(), "sky_material")
     assert_isSymbol(stream.ReadToken(), '(')
-    echo "3"
     assert_isKeyword(stream.ReadToken(), KeywordType.DIFFUSE)
     assert_isSymbol(stream.ReadToken(), '(')
     assert_isKeyword(stream.ReadToken(), KeywordType.IMAGE)
@@ -88,5 +84,4 @@ proc test_lexer()=
 
 
 test_inputstream()
-echo "------------------------------------------------------------------------------"
 test_lexer()
