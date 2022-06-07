@@ -25,6 +25,9 @@ method Add*[T: Shape](self: var World, s: T): void {.base.}=
     ##      s (Shape): Shape to be added
     self.shapes.add(s)
 
+method AddLight*[T: Light](self: var World, l: T): void {.base.}=
+    self.pointLights.add(l)
+
 
 method Remove*(self: var World, s_id: string): void {.base.}=
     ## Remove a shape from the world scene by ID
@@ -80,6 +83,7 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.
             closest = intersection
     let endTime = now() - start
     mainStats.AddCall(procName, endTime, 2)
+    
     return closest
 
 func IsPointVisible*(self: World, point: Point, observer_position: Point): bool =

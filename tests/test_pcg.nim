@@ -50,4 +50,4 @@ proc test_furnace =
 
 
 test_random()
-test_furnace()
+#test_furnace()
