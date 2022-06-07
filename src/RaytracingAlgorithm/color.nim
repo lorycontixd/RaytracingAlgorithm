@@ -1,6 +1,6 @@
 import std/[strutils, strformat]
 #import docstrings
-import exception
+import exception, mathutils
 from utils import IsEqual
 
 type
@@ -90,6 +90,9 @@ proc `!=`*(c1, c2: Color): bool {.inline.}=
     return not(c1==c2)
 
 # ------------- Static methods ---------------
+
+proc Lerp*(_: typedesc[Color], c1, c2: Color, t: var float32): Color=
+    return newColor(Lerp(c1.r, c2.r, t), Lerp(c1.g, c2.g, t), Lerp(c1.b, c2.b, t))
 
 proc black*(_: typedesc[Color]): Color {.inline.}=
     return newColor("black")

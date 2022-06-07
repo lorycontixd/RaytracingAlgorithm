@@ -114,7 +114,8 @@ proc set_pixel*(self: var HdrImage, x,y:int, new_color: Color) {.inline.} =
     ## -Parameters: HdrImage, coordinates x,y (int,int), Color
     ## 
     ## -Returns: no return, but set pixel of coordinates x,y to Color
-    assert self.valid_coordinates(x,y)
+    if not self.valid_coordinates(x,y):
+        raise ValueError.newException(fmt"Invalid coordinates: {x},{y}) for width,height: {self.width}x{self.height}")
     let offset = self.pixel_offset(x,y)
     self.pixels[offset] = new_color
 

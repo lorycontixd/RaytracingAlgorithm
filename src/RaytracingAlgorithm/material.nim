@@ -1,4 +1,4 @@
-import geometry, color, exception, hdrimage, pcg, mathutils, ray
+import geometry, color, exception, hdrimage, pcg, mathutils, ray, utils
 import std/[math]
 
 type
@@ -13,6 +13,13 @@ type
 
     ImagePigment* = ref object of Pigment
         image*: HdrImage
+
+    GradientPigment* = ref object of Pigment
+        color1*: Color
+        color2*: Color
+        threshold*: float32
+        uCoefficient*: float32
+        vCoefficient*: float32
 
     BRDF* = ref object of RootObj
         pigment*: Pigment
@@ -33,6 +40,8 @@ type
 
     
     CookTorranceBRDF* = ref object of BRDF 
+        diffuseCoefficient*: float32
+        specularCoefficient*: float32
         roughness*: float32
         albedo*: float32
         metallic*: float32
@@ -46,6 +55,10 @@ type
 # ----------------------------  CONSTRUCTORS -------------------
 proc newUniformPigment*(color: Color = Color.black()): UniformPigment=
     return UniformPigment(color: color)
+
+proc newGradientPigment*(color1, color2: Color, threshold: float32, uCoefficient: float32 = 1.0, vCoefficient: float32 = 0.0): GradientPigment=
+    assert IsEqual(uCoefficient + vCoefficient, 1.0)
+    return GradientPigment(color1: color1, color2: color2, threshold: threshold, uCoefficient: uCoefficient, vCoefficient: vCoefficient)
 
 proc newCheckeredPigment*(color1, color2: Color, numberOfSteps: int = 10): CheckeredPigment=
     return CheckeredPigment(color1: color1, color2: color2, numberOfSteps: numberOfSteps)
@@ -61,8 +74,9 @@ proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 
     assert (shininess >= 0.0) ## cannot have negative values of shininess 
     return PhongBRDF(pigment: pigment, shininess: shininess, diffuseReflectivity: diffuseReflectivity, specularReflectivity: specularReflectivity)
 
-proc newCookTorranceBRDF*(pigment: Pigment = newUniformPigment(), roughness: float32 = 0.5, albedo: float32 = 0.5, metallic: float32 = 0.5, ndf: CookTorranceNDF = CookTorranceNDF.GGX): CookTorranceBRDF =
-    return CookTorranceBRDF(pigment: pigment, roughness: roughness, albedo: albedo, metallic: metallic, ndf: ndf)
+proc newCookTorranceBRDF*(pigment: Pigment = newUniformPigment(), diffuseCoefficient: float32 = 0.3, specCoefficient: float32 = 0.7, roughness: float32 = 0.5, albedo: float32 = 0.5, metallic: float32 = 0.5, ndf: CookTorranceNDF = CookTorranceNDF.GGX): CookTorranceBRDF =
+    assert (diffuseCoefficient + specCoefficient <= 1.0)
+    return CookTorranceBRDF(pigment: pigment, diffuseCoefficient: diffuseCoefficient, specularCoefficient: specCoefficient, roughness: roughness, albedo: albedo, metallic: metallic, ndf: ndf)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
     return Material(brdf: brdf, emitted_radiance: pigment)
@@ -87,6 +101,14 @@ method getColor*(self: CheckeredPigment, vec: Vector2): Color=
     else:
         return self.color2
 
+method getColor*(self: GradientPigment, vec: Vector2): Color=
+    let 
+        ueff = self.uCoefficient * vec.u
+        veff = self.vCoefficient * vec.v
+    var t: float32 = (ueff + veff) / 2.0
+    let c = Color.Lerp(self.color1, self.color2, t)
+    return c
+
 method getColor*(self: ImagePigment, vec: Vector2): Color=
     var col = int(vec.u * float32(self.image.width))
     var row = int(vec.v * float32(self.image.height))
@@ -96,8 +118,8 @@ method getColor*(self: ImagePigment, vec: Vector2): Color=
 
     if row >= self.image.height:
         row = -1 + self.image.height
-    
-    return self.image.get_pixel(col, row)
+    let c = self.image.get_pixel(col, row)
+    return c
 
 method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
     return self.image
@@ -105,15 +127,13 @@ method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
 method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color {.base.}=
     raise newException(AbstractMethodError, "BRDF.eval is an abstract method and cannot be called.")
 
-
 method ScatterRay*(self: BRDF, pcg: var PCG, incoming_dir: Vector3, interaction_point: Point, normal: Normal, depth: int): Ray {.base.}=
     raise AbstractMethodError.newException("BRDF.ScatterRay is an abstract method and cannot be called.")
 
 
 ## Lambertian Diffuse BRDF
-
 method eval*(self: DiffuseBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
-    self.pigment.getColor(uv) * (self.reflectance / PI)
+    return self.pigment.getColor(uv) * (self.reflectance / PI)
 
 method ScatterRay*(
         self: DiffuseBRDF,
@@ -219,7 +239,7 @@ func GeometryFunction(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: 
     else:
         return min( 1.0, min(  (2*Dot(normal.convert(Vector3), half_vector)*Dot(normal.convert(Vector3), in_dir))/(Dot(in_dir, half_vector))  ,   (2*Dot(normal.convert(Vector3), half_vector)*Dot(normal.convert(Vector3), out_dir))/(Dot(in_dir, half_vector))  ) )
 
-func FresnelSchlick(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal, n: int): float32=
+func FresnelSchlick(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal, n: float32): float32=
     let f0 = pow(float32(n-1), 2.0) / pow(float32(n+1), 2.0)
     let half_vector = in_dir + out_dir
     return f0 + (1-f0) * pow( 1.0 - Dot(out_dir, half_vector), 5.0)
@@ -237,6 +257,15 @@ func NDF(self: CookTorranceBRDF, in_dir, out_dir: Vector3, normal: Normal): floa
         return a2 / (d * d * PI)
     elif self.ndf == CookTorranceNDF.Beckmann:
         return 1.0 / (PI * pow(self.roughness, 2.0) * pow( Dot(half_vector, normal.convert(Vector3)) , 4.0)) * exp( - pow( tan(Dot(half_vector, normal.convert(Vector3))),2.0) / pow(self.roughness, 2.0))
+
+
+method eval*(self: CookTorranceBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color =
+    let 
+        f_lambert = 1 / PI
+        lambert = self.diffuseCoefficient * f_lambert
+        f_ct = (self.NDF(in_dir, out_dir, normal) * self.FresnelSchlick(in_dir, out_dir, normal, 1.5) * self.GeometryFunction(in_dir, out_dir, normal)) / (4.0 * Dot(normal.convert(Vector3), in_dir) * Dot(normal.convert(Vector3), out_dir))
+        ct = self.specularCoefficient * f_ct
+    return self.pigment.getColor(uv) * (lambert + ct)
 
 method ScatterRay*( 
         self: CookTorranceBRDF,
