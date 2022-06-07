@@ -126,7 +126,7 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
                 vertexNormals.add(transform * newNormal(parseFloat(items[0]), parseFloat(items[1]), parseFloat(items[2])))
             # texture vertex (u,v)
             of "vt":
-                textureCoordinates.add(newVector2(parseFloat(items[0]), parseFloat(items[1])))
+                textureCoordinates.add(newVector2(parseFloat(items[1]), parseFloat(items[0])))
             # face/vertices describing a face (v1/t1/vn1, ...)
             of "f":
                 if items.contains(""):

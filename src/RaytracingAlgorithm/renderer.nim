@@ -89,7 +89,7 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
         if hit == none(RayHit):
             return renderer.backgroundColor
         let material = hit.get().material
-        echo hit.get().GetSurfacePoint()
+        #echo hit.get().GetSurfacePoint()
         var
             brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint()) 
             emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
