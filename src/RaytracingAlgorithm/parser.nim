@@ -38,15 +38,16 @@ type
         WIDTH,
         HEIGHT
 
-    TokenKind* = enum  # the different token types
-        tkKeyword,          # 
-        tkIdentifier,        # 
-        tkString,       # 
-        tkNumber,          # 
-        tkSymbol,          # 
+    TokenKind* = enum  # the different token types (tags)
+        tkKeyword,          # keywords of our language
+        tkIdentifier,        # variable/function/type name
+        tkString,       # string of characters
+        tkNumber,          # literal number
+        tkSymbol,          # a non-alphanumeric character
         tkStop            #
 
     TokenObj* = object
+    # class used when parsing a scene file, to decompose source code into simple elements to be read
         location*: SourceLocation
         case kind*: TokenKind
         of tkKeyword: keywordVal*: KeywordType
@@ -87,7 +88,6 @@ proc ReadChar*(self: var InputStream): Option[char]=
         self.savedChar = none(char)
     else:
         c = some(self.stream.readChar())
-    echo "cccc: ",c
     self.savedLocation.shallowCopy(self.location)
     self.UpdatePosition(c)
     return c
@@ -155,16 +155,12 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
 
 proc ReadToken*(self: var InputStream): Token=
     let SYMBOLS = "()[],*"
-    echo "hi"
     self.SkipWhitespacesAndComments()
-    echo "hi2"
     var c: Option[char] = self.ReadChar()
-    echo "@@@@@@@", c
     if not c.isSome:
         return Token(kind: tkStop, location: self.location, stopVal: "")
     var tokenLocation: SourceLocation
     tokenLocation.shallowCopy(self.location)
-    echo "------", c
 
     var x: char = c.get()
     if x in SYMBOLS:
