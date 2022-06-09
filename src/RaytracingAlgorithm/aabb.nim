@@ -1,3 +1,18 @@
+#[
+    - AABB stands for axis-aligned bounding boxes. 
+    - AABB consists of a non-rotating box around the object in order to quickly determine
+    eventual intersections with rays or overlaps with other objects.
+    - The object's box can be used to quickly check if a ray could intersect the object.
+    In case the ray intersects the object's bounding box, then it might also intersect
+    the object itself, while if the ray misses the bounding box, it surely will not
+    intersect the object.
+    - The box is defined by two points, the minimum point and the maximum point,
+    respectively defined by the minimum/maximum values for each coordinate of the object.
+    - The advantage of using AABB is to gain computational performance by not calculating object-ray
+    intersections using rays that can miss the object. Therefore, if AABB checks pass,
+    more checks are performed for intersection/collision.
+]#
+
 import geometry, exception, mathutils, ray
 import std/[bitops, strformat]
 
@@ -11,12 +26,26 @@ func newAABB*(p: Point): AABB {.inline.}=
     return AABB(pMin: p, pMax: p)
 
 func newAABB*(p1, p2: Point): AABB {.inline.}=
+    ## Creates a new AABB object starting from two points (bottom & top)
+    ## Parameters
+    ##      p1 (Point): minimum point for the bounding box
+    ##      p2 (Point): maximum point for the bounding box
+    ## Returns
+    ##      The bounding box defined by the two points
     let pmin = newPoint(min(p1.x, p2.x), min(p1.y, p2.y), min(p1.z, p2.z))
     let pmax = newPoint(max(p1.x, p2.x), max(p1.y, p2.y), max(p1.z, p2.z))
     return AABB(pMin: pmin, pMax: pmax)
 
 # -----------------  Operators  ---------------------
 func `[]`*(self: AABB, index: int): Point {.inline.}=
+    ## Access operator for a bounding box. Gets the equivalent point of `index`.
+    ## Parameters
+    ##      self (AABB): The bounding box to be accessed.
+    ##      index (int): The index of the queried point (0 or 1)
+    ## Returns
+    ##      The minimum/maximum point of the bounding box based on `index`
+    ## Raises
+    ##      IndexError: The index is too small/large
     if index==0:
         return self.pMin
     elif index==1:
@@ -25,18 +54,34 @@ func `[]`*(self: AABB, index: int): Point {.inline.}=
         raise newException(exception.IndexError, "Invalid indexing value for AABB")
 
 func `==`*(lhs, rhs: AABB): bool {.inline.}=
+    ## Equality operator for two AABBs. Two bounding boxes are equivalent if
+    ## the minimum and maximum point of both AABBs overlap.
+    ## Parameters
+    ##      lhs (AABB): left-hand side AABB
+    ##      rhs (AABB): right-hand side AABB
+    ## Returns
+    ##      Whether the two AABBS are equivalent
     return lhs.pMin.isClose(rhs.pMin) and lhs.pMax.isClose(rhs.pMax)
 
 func `!=`*(lhs, rhs: AABB): bool {.inline.}=
+    ## Inequality operator for two AABBs. Opposite of equality operator.
     return not (lhs == rhs)
 
 func `$`*(self: AABB): string {.inline.}=
+    ## String operator for AABB. Formattedly prints AABB info to string.
+    ## Parameters
+    ##      self (AABB): bounding box to be converted to string
+    ## Returns
+    ##      Formatted string with AABB information.
     return fmt"AABB( pMin: {$self.pMin}, pMax: {$self.pMax} )"
 
 # --------------------  Methods  ------------------------
 
 func Corner*(self: AABB, corner: int): Point {.inline.}=
-    ##
+    ## Returns the coordinates of one of the eight corners of the box.
+    ## Parameters
+    ##      self (AABB): Bounding box
+    ##      corner (int): index of the corner to be fetched
     return newPoint(
         self[bitand(corner,1)].x,
         self[bitand(corner,2)].y,
@@ -44,9 +89,20 @@ func Corner*(self: AABB, corner: int): Point {.inline.}=
     )
 
 func Diagonal*(self: AABB): Vector3=
+    ## Returns the vector along the box diagonal (from min point to max point)
+    ## Parameters
+    ##      self (AABB): Bounding box
+    ## Returns
+    ##      The vector diagonal of the box
     return (self.pMax - self.pMin).convert(Vector3)
 
 func Expand*(self: var AABB, delta: float32): void=
+    ## Expands the box by a scalar factor along all directions.
+    ## This means the minimum & maximum points are shifted by `delta`
+    ## in all directions.
+    ## Parameters
+    ##      self (var AABB): Bounding box to be expanded
+    ##      delta (float32): factor of box expansion
     self.pMin = self.pMin - newVector3(delta, delta, delta)
     self.pMax = self.pMax + newVector3(delta, delta, delta)
 
