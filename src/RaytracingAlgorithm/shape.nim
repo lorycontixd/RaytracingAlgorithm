@@ -61,7 +61,7 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
     if mesh.normalIndices.isSome:
         vn = some([mesh.normalIndices.get()[3 * triNumber], mesh.normalIndices.get()[3 * triNumber + 1], mesh.normalIndices.get()[3 * triNumber + 2]])
     if mesh.textureIndices.isSome:
-        vt = some([mesh.textureIndices.get()[3 * triNumber], mesh.textureIndices.get()[3 * triNumber + 1], mesh.textureIndices.get()[3 * triNumber + 2]])
+        vt = some([mesh.textureIndices.get()[3 * triNumber ], mesh.textureIndices.get()[3 * triNumber + 1], mesh.textureIndices.get()[3 * triNumber + 2]])
     var aabb: AABB = Union( newAABB(transform * mesh.vertexPositions[v[0]], transform * mesh.vertexPositions[v[1]]), mesh.vertexPositions[v[2]])
     result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb)
 
@@ -258,6 +258,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
     v = f * invray.dir.Dot(q)
     if (v < 0.0 or u + v > 1.0):
         return none(RayHit)
+    #echo "intersectUVs: ",u, " - ",v
     let uvs = self.GetUV()
     var
         minu: float32 = min(uvs[0].u, min(uvs[1].u, uvs[2].u))
@@ -279,8 +280,8 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         var hit: RayHit = newRayHit(
             invray.origin + t * invray.dir,
             edge1.Cross(edge2).convert(Normal),
-            #newVector2(0.333, 0.87),
-            res,
+            newVector2(invu, invv),
+            #res,
             t,
             invray,
             self.mesh.material
