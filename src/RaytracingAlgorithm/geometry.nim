@@ -2,7 +2,7 @@ import std/[math, macros, typetraits, strformat, strutils]
 from utils import IsEqual
 
 type
-    Vector3* = object
+    Vector3* = object   #to represent the ray-light direction
         x*, y*, z*: float32
     
     Vector2* = object
@@ -11,7 +11,7 @@ type
     Point* = object
         x*, y*, z*: float32
     
-    Normal* = object
+    Normal* = object   #to represent the surface inclination in a point
         x*, y*, z*: float32
 
 ## --------------------------------  CONSTRUCTORS  ------------------------------------------
