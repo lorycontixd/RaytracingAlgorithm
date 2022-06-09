@@ -112,11 +112,12 @@ macro injectProcName*(procDef: untyped): untyped =
   return procDef
 
 
-func TriangulatePolygon*(vertices: seq[int]): seq[int]=
+proc TriangulatePolygon*(vertices: seq[int]): seq[int]=
     if len(vertices) == 0:
         return @[]
     var newVertices: seq[int]
     var pivot: int = vertices[0]
+    echo "Pivot: ",pivot
     for i in 1..len(vertices)-2:
         newVertices.add(pivot)
         newVertices.add(vertices[i])
