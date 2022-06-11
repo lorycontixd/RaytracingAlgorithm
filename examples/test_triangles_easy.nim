@@ -36,7 +36,7 @@ var
     w: World = newWorld()
     img: HdrImage = newHdrImage(width, height)
     tracer: ImageTracer = newImageTracer(img, cam)
-    render: FlatRenderer = newFlatRenderer(w, Color.yellow())
+    render: FlatRenderer = newFlatRenderer(w, Color.white())
     #render: PathTracer = newPathTracer(w, Color.black() )
 #w.Add(newSphere("SPHERE_0", Transformation.scale(200.0, 200.0, 200.0) * Transformation.translation(0.0, 0.0, 0.4), sky_material))
 #w.Add(newPlane("PLANE_0", Transformation.translation(0.0, 0.0, -1.0), ground_material))
