@@ -280,7 +280,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         var hit: RayHit = newRayHit(
             invray.origin + t * invray.dir,
             edge1.Cross(edge2).convert(Normal),
-            newVector2(invu, invv),
+            newVector2(0.9, 0.1),
             #res,
             t,
             invray,

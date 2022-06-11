@@ -351,6 +351,12 @@ proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
         return a * cos(thetap) + qperp * sin(thetap) #interpolation quaternion
 ]#
 proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
+    ## Returns the interpolation between two rotations (a,b quaternions) at time t
+    ## Parameters
+    ##      a,b (Quaternion): initial and final quaternion
+    ##      t (float): time at which interpolate
+    ## Returns
+    ##      (Quaternion): quaterion interpolated at time t
     a = a.Normalize()
     b = b.Normalize()
     t = Clamp(t, 0.0, 1.0)

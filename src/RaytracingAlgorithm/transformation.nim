@@ -241,18 +241,29 @@ proc scale*(_: typedesc[Transformation], x,y,z: float32): Transformation =
 proc rotationX*(_: typedesc[Transformation], angle_deg: float32): Transformation =
     ## Returns a Transformation object encoding a rotation around axisX
     ## 
-    ## Input: angle in degrees (float), which specifies the rotation angle
+    ## Input: angle in degrees (float), which specifies the rotation angle.
+    ##         The positive sign is given by the right-hand rule
     ## Output: Transformation object
     result = newTransformation()
     result.m = RotationX_Matrix(angle_deg)
     result.inverse = RotationX_InverseMatrix(angle_deg)
 
 proc rotationY*(_: typedesc[Transformation], angle_deg: float32): Transformation =
+    ## Returns a Transformation object encoding a rotation around axisY
+    ## 
+    ## Input: angle in degrees (float), which specifies the rotation angle.
+    ##         The positive sign is given by the right-hand rule
+    ## Output: Transformation object
     result = newTransformation()
     result.m = RotationY_Matrix(angle_deg)
     result.inverse = RotationY_InverseMatrix(angle_deg)
 
 proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation =
+    ## Returns a Transformation object encoding a rotation around axisZ
+    ## 
+    ## Input: angle in degrees (float), which specifies the rotation angle.
+    ##         The positive sign is given by the right-hand rule
+    ## Output: Transformation object
     result = newTransformation()
     result.m = RotationZ_Matrix(angle_deg)
     result.inverse = RotationZ_InverseMatrix(angle_deg)
