@@ -28,7 +28,7 @@ var
     gradient_mat: Material = newMaterial(newDiffuseBRDF(pigment=newGradientPigment(Color.blue(), Color.red(), 1.0, 0.5, 0.5)))
 
 #var mesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(0.0, 0.0, 0.0) * Transformation.rotationZ(40.0) * Transformation.rotationY(20.0), "cube.obj", newMaterial(newPhongBRDF(newUniformPigment(Color.blue())), newGradientPigment(Color.yellow(), Color.blue(), 1.0, 0.0, 1.0)))
-var mesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(0.0, 0.0, 0.0),  "polygon.obj", img_mat)
+var mesh: TriangleMesh = newTriangleMeshOBJ(Transformation.translation(0.0, 0.0, 0.0),  "newpolygon.obj", img_mat)
 var tr: seq[Triangle] = CreateTriangleMesh(mesh)
 var sphere: Sphere = newSphere("SPHERE_0", Transformation.rotationY(90.0), gradient_mat)
 
