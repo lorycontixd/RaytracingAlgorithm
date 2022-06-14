@@ -2,30 +2,74 @@ import geometry, exception, quaternion, stats, utils
 import std/[math, times]
 
 type
-    Matrix* = array[16, float32]
+    ##class for 4x4 matrix
+    Matrix* = array[16, float32] 
 
 
 proc GetOffset*(row, col: int): int =
+    ## Gets the array index corresponding to the matrix element specified
+    ## Parameters
+    ##      row (int): row of matrix element
+    ##      col (int): column of matrix element
+    ## Returns
+    ##      (int) : index of the array-element representing the matrix-element
     return col + 4 * row
 
 proc GetValue*(self: Matrix, row, col: int): float32=
+    ## Gets the value of the element of the matrix
+    ## Parameters
+    ##      self (Matrix): matrix which the element belongs to
+    ##      row (int): row of matrix element
+    ##      col (int): column of matrix element
+    ## Returns
+    ##      (float) : value of the element 
     return self[GetOffset(row, col)] 
 
 proc `[]`*(m: Matrix, i, j: int): float32 =
-  m.GetValue(i,j)
+    ## Gets the value of the (i,j) element of the matrix
+    ## Parameters
+    ##      self (Matrix): matrix which the element belongs to
+    ##      i (int): row of matrix element
+    ##      j (int): column of matrix element
+    ## Returns
+    ##      (float) : value of the element 
+    m.GetValue(i,j)
 
 proc `[]=`*(m: var Matrix, i, j: int, value: float32): void =
-  m[GetOffset(i,j)] = value
+    ## Sets the value of the (i,j) element of the matrix to 'value'
+    ## Parameters
+    ##      self (Matrix): matrix which the element belongs to
+    ##      i (int): row of matrix element
+    ##      j (int): column of matrix element
+    ##      value (float): value to be assigned
+    ## Returns
+    ##      no returns, just sets the element value
+    m[GetOffset(i,j)] = value
 
 
 proc Zeros*(): Matrix =
+    ## Creates a zeros-Matrix
+    ## Parameters
+    ##      no params
+    ## Returns
+    ##      a zeros-Matrix (4x4, float elements)
     result = [0.0.float32, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 
 proc Ones*(): Matrix=
+    ## Creates a ones-Matrix
+    ## Parameters
+    ##      no params
+    ## Returns
+    ##      a ones-Matrix (4x4, float elements)
     result = [1.0.float32, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
 proc IdentityMatrix*(): Matrix=
+    ## Creates an Identity-Matrix
+    ## Parameters
+    ##      no params
+    ## Returns
+    ##      Identity Matrix (4x4, float elements)
     result = Zeros()
     result[0,0] = 1.0
     result[1,1] = 1.0
@@ -33,22 +77,43 @@ proc IdentityMatrix*(): Matrix=
     result[3,3] = 1.0
 
 proc newMatrix*(): Matrix=
+    ## Creates an empty Matrix
+    ## Parameters
+    ##      no params
+    ## Returns
+    ##      zeros-Matrix (4x4, float elements)
     return Zeros()
 
 proc newMatrix*(m: seq[seq[float32]]): Matrix=
+    ## Creates a Matrix object from a sequence of sequnce of floats
+    ## Parameters
+    ##      m (sequence[sequnence[float]) : sequence to be converted into matirx
+    ## Returns
+    ##      Matrix
     result = Zeros()
     for i in 0..m.high:
         for j in 0..m[0].high:
             result[i,j] = m[i][j]
 
 proc newMatrix*(m: Matrix): Matrix=
+    ## Creates a deep copy of a Matrix
+    ## Parameters
+    ##      m (Matrix): matrix to be copied
+    ## Returns
+    ##      Matrix : copy of the input matrix
     return deepCopy(m)
 
 ## Methods
 ## 
 ## NB: we are using homogenous coordinates: matrix 3x3 becomes 4x4 where line_4 and row_4 a
 ## are all zeros with element[4,4] equal to 0 for vectors and to 1 for points
+
 proc Show*(m: Matrix): void=
+    ## Prints the matrix
+    ## Parameters
+    ##      m (Matrix): matrix to be printed
+    ## Returns
+    ##      no returns, just a print
     for i in countup(0, 3):
         var line: string = "["
         for j in countup(0, 3):
@@ -60,6 +125,11 @@ proc Show*(m: Matrix): void=
         echo line
 
 proc TranslationMatrix*(v: Vector3): Matrix=
+    ## Returns the Matrix object encoding a rigid translation
+    ## Parameters
+    ##       v (Vector3): specifies the amount of shift to be applied along the three axes
+    ## Returns
+    ##       translation matrix
     result = [
         float32(1.0), float32(0.0), float32(0.0), float32(v.x),
         float32(0.0), float32(1.0), float32(0.0), float32(v.y),
@@ -68,6 +138,11 @@ proc TranslationMatrix*(v: Vector3): Matrix=
     ]
 
 proc TranslationInverseMatrix*(v: Vector3): Matrix=
+    ## Returns the Matrix object encoding the Inverse matrix for a rigid translation
+    ## Parameters
+    ##       v (Vector3): specifies the amount of shift to be applied along the three axes
+    ## Returns
+    ##       translation Inverse matrix
     result = [
         float32(1.0), float32(0.0), float32(0.0), float32(-v.x),
         float32(0.0), float32(1.0), float32(0.0), float32(-v.y),
@@ -76,6 +151,12 @@ proc TranslationInverseMatrix*(v: Vector3): Matrix=
     ]
 
 proc ScaleMatrix*(v: Vector3): Matrix=
+    ## Returns the Matrix object encoding a scale transformation
+    ## 
+    ## Parameters
+    ##        v (Vector3): specifies the amount of scaling to be applied along the three axes
+    ## Returns
+    ##       scale matrix
     result = [
         float32(v.x), float32(0.0), float32(0.0), float32(0.0),
         float32(0.0), float32(v.y), float32(0.0), float32(0.0),
@@ -84,6 +165,12 @@ proc ScaleMatrix*(v: Vector3): Matrix=
     ]
 
 proc ScaleInverseMatrix*(v: Vector3): Matrix=
+    ## Returns the Matrix object encoding the Inverse matrix for a scale transformation
+    ## 
+    ## Parameters
+    ##        v (Vector3): specifies the amount of scaling to be applied along the three axes
+    ## Returns
+    ##       scale Inverse matrix
     result = [
         float32(1/v.x), float32(0.0), float32(0.0), float32(0.0),
         float32(0.0), float32(1/v.y), float32(0.0), float32(0.0),
@@ -92,6 +179,13 @@ proc ScaleInverseMatrix*(v: Vector3): Matrix=
     ]
 
 proc RotationX_Matrix*(angle_deg: float32): Matrix=
+    ## Returns a Matrix object encoding a rotation around axisX
+    ## 
+    ## Parameters
+    ##         angle in degrees (float), which specifies the rotation angle.
+    ##                              The positive sign is given by the right-hand rule
+    ## Returns
+    ##         Rotation aroud X-axis matrix
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
@@ -104,6 +198,13 @@ proc RotationX_Matrix*(angle_deg: float32): Matrix=
     ]
 
 proc RotationX_InverseMatrix*(angle_deg: float32): Matrix=
+    ## Returns a Matrix object encoding the Inverse matrix for a rotation around axisX
+    ## 
+    ## Parameters
+    ##       angle in degrees (float), which specifies the rotation angle.
+    ##                          The positive sign is given by the right-hand rule
+    ## Returns
+    ##       Rotation aroud X-axis Inverse matrix
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
@@ -117,6 +218,13 @@ proc RotationX_InverseMatrix*(angle_deg: float32): Matrix=
 
 
 proc RotationY_Matrix*(angle_deg: float32): Matrix=
+    ## Returns a Matrix object encoding a rotation around axisY
+    ## 
+    ## Parameters
+    ##         angle in degrees (float), which specifies the rotation angle.
+    ##                              The positive sign is given by the right-hand rule
+    ## Returns
+    ##         Rotation aroud Y-axis matrix
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
@@ -129,6 +237,13 @@ proc RotationY_Matrix*(angle_deg: float32): Matrix=
     ]
 
 proc RotationY_InverseMatrix*(angle_deg: float32): Matrix=
+    ## Returns a Matrix object encoding the Inverse matrix for a rotation around axisY
+    ## 
+    ## Parameters
+    ##       angle in degrees (float), which specifies the rotation angle.
+    ##                          The positive sign is given by the right-hand rule
+    ## Returns
+    ##       Rotation aroud Y-axis Inverse matrix
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
@@ -141,6 +256,13 @@ proc RotationY_InverseMatrix*(angle_deg: float32): Matrix=
     ]
 
 proc RotationZ_Matrix*(angle_deg: float32): Matrix=
+    ## Returns a Matrix object encoding a rotation around axisZ
+    ## 
+    ## Parameters
+    ##         angle in degrees (float), which specifies the rotation angle.
+    ##                              The positive sign is given by the right-hand rule
+    ## Returns
+    ##         Rotation aroud Z-axis matrix
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
@@ -153,6 +275,13 @@ proc RotationZ_Matrix*(angle_deg: float32): Matrix=
     ]
 
 proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
+    ## Returns a Matrix object encoding the Inverse matrix for a rotation around axisZ
+    ## 
+    ## Parameters
+    ##       angle in degrees (float), which specifies the rotation angle.
+    ##                          The positive sign is given by the right-hand rule
+    ## Returns
+    ##       Rotation aroud Z-axis Inverse matrix
     let
         sinang = sin(degToRad(angle_deg))
         cosang = cos(degToRad(angle_deg))
@@ -191,6 +320,10 @@ proc Determinant*(m: Matrix): float32 {.inline, injectProcName.}=
 
 proc Inverse*(m: Matrix): Matrix {.inline, injectProcName.}=
     ## Calculates the inverse matrix of a 4x4 matrix
+    ## Parameters
+    ##      m (Matrix): matrix from which compute the Inverse 
+    ## Returns
+    ##      array[float] : array representing the inverse matrix of m
     let start = now()
     var A2323 = m[2,2] * m[3,3] - m[2,3] * m[3,2]
     var A1323 = m[2,1] * m[3,3] - m[2,3] * m[3,1]
@@ -246,6 +379,11 @@ proc Inverse*(m: Matrix): Matrix {.inline, injectProcName.}=
     ]
 
 proc TransposeInplace*(m1: var Matrix): Matrix=
+    ## Sets a matrix equal to its transpose
+    ## Parameters
+    ##      m1 (Matrix): matrix of which compute the transpose
+    ## Returns
+    ##      no returns, just sets m1 equal to its transpose
     for i in 0..3:
         for j in 0..3:
             let temp = m1[j,i]
@@ -253,6 +391,11 @@ proc TransposeInplace*(m1: var Matrix): Matrix=
             m1[i,j] = temp
 
 proc Transpose*(m1: Matrix): Matrix=
+    ## Returns the transpose of a matrix
+    ## Parameters
+    ##      m1 (Matrix): matrix of which compute the transpose
+    ## Returns
+    ##      array[float]: transpose matrix of m1
     result = [
         float32(m1[0,0]), float32(m1[1,0]), float32(m1[2,0]), float32(m1[3,0]),
         float32(m1[0,1]), float32(m1[1,1]), float32(m1[2,1]), float32(m1[3,1]),
@@ -261,12 +404,23 @@ proc Transpose*(m1: Matrix): Matrix=
     ]
 
 proc Trace*(m: Matrix): float32=
+    ## Returns the trace of a matrix
+    ## Parameters
+    ##      m (Matrix): matrix of which compute the trace
+    ## Returns
+    ##      float: trace of m
     return m[0,0] + m[1,1] + m[2,2]
 
 
+## ----- Quaternions --------
+## quaternions are useful to codify rotations in 3D-space
+
 proc ToQuaternion*(m: Matrix): Quaternion=
-    ##
-    ##   
+    ## Returns the quaternion which corresponds to a given matrix
+    ## Parameters
+    ##      m (Matrix): matrix of which calculate the corresponding quaternion 
+    ## Returns
+    ##      (Quaternion): corresponding quaternion
     result = newQuaternion()
     let
         trace = m.Trace()
@@ -295,6 +449,11 @@ proc ToQuaternion*(m: Matrix): Quaternion=
 
 
 proc ToRotation*(q: var Quaternion): Matrix {.inline.}=
+    ## Returns the rotation matrix from a given quaternion
+    ## Parameters
+    ##      q (Quaternion): quaternion from which derive the rotation matrix
+    ## Returns
+    ##      m (Matrix): rotation matrix
     q = q.Normalize()
     var
         xx: float32 = q.x * q.x
@@ -321,10 +480,14 @@ proc ToRotation*(q: var Quaternion): Matrix {.inline.}=
     return m
 
 
-
+## --------------------------------------------------
 
 proc `*`*(this, other: Matrix): Matrix=
     ## Matrix4 - Matrix4 product
+    ## Parameters
+    ##      this, other (Matrix): matrixes 4x4
+    ## Returns
+    ##      product matrix 4x4
     result = Zeros()
     for i in 0 .. 3:
         for j in 0 .. 3:
@@ -332,6 +495,13 @@ proc `*`*(this, other: Matrix): Matrix=
                 result[i,j] = result[i,j] + this[i,k] * other[k,j]
 
 proc are_matrix_close*(m1, m2 : Matrix, epsilon: float32 = 1e-5): bool=
+    ## Verifies if two matrixes are equal
+    ## Parameters
+    ##      m1, m2 (Matrix): matrixes to be verified
+    ##      epsilon (float): threshold for equality --> m1 - m2 must be < epsilon
+    ##                          default-value: 1e-5
+    ## Returns
+    ##      (Bool): True (matrixes are equal) or False (else)
     for i in 0 .. 3:
         for j in 0 .. 3:
             if not IsEqual(m1[i,j], m2[i,j], epsilon):
@@ -339,14 +509,29 @@ proc are_matrix_close*(m1, m2 : Matrix, epsilon: float32 = 1e-5): bool=
     return true
 
 proc `==`*(m1, m2: Matrix): bool=
+    ## Verifies if two matrixes are equal
+    ## Parameters
+    ##      m1, m2 (Matrix): matrixes to be verified -->  m1 - m2 must be < 1e-5
+    ## Returns
+    ##      (Bool): True (matrixes are equal) or False (else)
     return are_matrix_close(m1,m2)
 
 
 ## -------- Matrix decomposition ----------
 func ExtractTranslation*(m: Matrix): Vector3=
+    ## Returns the vector representing the amount of shift from the transformed matrix
+    ## Parameters
+    ##      m (Matrix): transformed matrix from which extract the translation-vector 
+    ## Returns
+    ##      (Vector3): vector representing the translation
     result = newVector3(m[0,3], m[1,3], m[2,3])
 
 func RemoveTranslationFromMatrix(m: Matrix): Matrix=
+    ## Returns the initial matrix, removing the translation applied
+    ## Parameters
+    ##       m (Matrix): transformed matrix from which extract the initial matrix
+    ## Returns
+    ##      (Matrix): the initial matrix
     result = newMatrix(m)
     for i in 0..3:
         result[i,3] = float32(0.0)
@@ -354,6 +539,12 @@ func RemoveTranslationFromMatrix(m: Matrix): Matrix=
     result[3,3] = float32(1.0)
 
 proc ExtractRotationMatrix*(m: Matrix): Matrix=
+    ## Returns the rotation-matrix, representing the transformation applied to the matrix
+    ## Parameters
+    ##      m (Matrix): transformed matrix from which extract the rotation-matrix 
+    ## Returns
+    ##      (Matrix): rotation matrix
+    
     var M: Matrix = RemoveTranslationFromMatrix(m)
     #- Extract rotation from transform matrix
     var 
@@ -380,18 +571,40 @@ proc ExtractRotationMatrix*(m: Matrix): Matrix=
     result = x
 
 proc ExtractRotation*(m: Matrix): Quaternion=
+    ## Returns the rotation-matrix as a quaternion, representing the transformation applied to the matrix
+    ## Parameters
+    ##      m (Matrix): transformed matrix from which extract the quaternion
+    ## Returns
+    ##      (Matrix): quaternion (representing the rotation matrix)
     var R: Matrix = ExtractRotationMatrix(m)
     result = ToQuaternion(R).Normalize()
 
 proc ExtractScale*(R: Matrix, M: Matrix): Matrix=
+    ## Returns the scale matrix, from a matrix transformed with both scale and rotation
+    ## Parameters
+    ##       R (Matrix): Rotation matrix
+    ##       M (Matrix): transformed matrix from which extract the scale matrix
+    ## Returns
+    ##      (Matrix): scale matrix
     result = matrix.Inverse(R) * M
 
 proc ExtractScale*(m: Matrix): Matrix=
+    ## Returns the scale matrix, representing the transformation applied to the matrix
+    ## Parameters
+    ##       m (Matrix): transformed matrix from which extract the scale matrix
+    ## Returns
+    ##      (Matrix): scale matrix
     result = ExtractScale(ExtractRotationMatrix(m), RemoveTranslationFromMatrix(m))
 
 proc Decompose*(m: Matrix, T: var Vector3, Rquat: var Quaternion, S: var Matrix): void {.inline.}=
-    ##
-    ##
+    ## Decomposes a matrix into its transformation components
+    ## Parameters
+    ##      m (Matrix): transformed matrix
+    ##      T (Vector3): translation vectors
+    ##      Rquat (Quaternion): quaternion representing the rotation
+    ##      S (Matrix): scale matrix
+    ## Returns
+    ##      no returns, just decomposes
 
     #- Extract translation components from transform matrix
     T = ExtractTranslation(m)

@@ -107,10 +107,22 @@ func Expand*(self: var AABB, delta: float32): void=
     self.pMax = self.pMax + newVector3(delta, delta, delta)
 
 func IsPointInside*(self: AABB, p: Point): bool {.inline.}=
+    ## Checks if a point is inside the given bounding box.
+    ## Parameters
+    ##      self (AABB): Bounding box
+    ##      p (Point): point to be checked
+    ## Returns
+    ##      Boolean that states if the given point is inside the bounding box.
     return (p.x >= self.pMin.x and p.x <= self.pMax.x) and (p.y >= self.pMin.y and p.y <= self.pMax.y) and (p.z >= self.pMin.z and p.z <= self.pMax.z)
 
 func Intersect*(self, other: AABB): AABB=
-    ##
+    ## Checks if two bounding boxes intersect and returns the intersecting box.
+    ## This function is typically used for physical colliders.
+    ## Parameters
+    ##      self (AABB): Instance of a bounding box.
+    ##      other (AABB): Other bounding box.
+    ## Returns
+    ##      The intersecting bounding box between two bounding boxes.
     return newAABB(
         newPoint(
             min(self.pMin.x, other.pMin.x),
@@ -125,7 +137,12 @@ func Intersect*(self, other: AABB): AABB=
     )
 
 func Lerp*(self: AABB, p: var Point): Point {.inline.}=
-    ##
+    ## Linearly interpolates a point inside of a bounding box.
+    ## Parameters
+    ##      self (AABB): Bounding box
+    ##      p (var Point): The interpolation parameter inside the box.
+    ## Returns
+    ##      The interpolated point
     return newPoint(
         Lerp(self.pMin.x, self.pMax.x, p.x),
         Lerp(self.pMin.y, self.pMax.y, p.y),
@@ -133,13 +150,26 @@ func Lerp*(self: AABB, p: var Point): Point {.inline.}=
     )
 
 func Overlaps*(self: AABB, other: AABB): bool=
+    ## Checks if two bounding boxes are overlapping.
+    ## This function is useful for checking physical collisions.
+    ## Parameters
+    ##      self (AABB): Instance of a bounding box.
+    ##      other (AABB): Other bounding box.
+    ## Returns
+    ##      Boolean that encodes whether the two bounding boxes are overlapping.
     let
         x = (self.pMax.x >= other.pMin.x) and (self.pMin.x <= other.pMax.x)
         y = (self.pMax.y >= other.pMin.y) and (self.pMin.y <= other.pMax.y)
         z = (self.pMax.z >= other.pMin.z) and (self.pMin.z <= other.pMax.z)
     return x and y and z
 
-func RayIntersect*(self: AABB, inversed_ray: Ray, debug: bool = false): bool=
+func RayIntersect*(self: AABB, inversed_ray: Ray): bool=
+    ## Calculate whether the ray intersects the bounding box.
+    ## Parameters
+    ##      self (AABB): Bounding box
+    ##      inversed_ray (Ray): Ray to calculate intersection of. The ray must already have all transformations applied to it.
+    ## Returns
+    ##      Boolean that states whether the ray and the bounding box intersect.
     var origin: Point = inversed_ray.origin
 
     var
@@ -165,13 +195,20 @@ func RayIntersect*(self: AABB, inversed_ray: Ray, debug: bool = false): bool=
     return true;
 
 proc Show*(self: AABB): void=
+    ## Prints a formatted string of the bounding box.
     echo fmt"AABB(pMin: {$self.pMin}, pMax: {$self.pMax})"
 
 func SurfaceArea*(self: AABB): float32=
+    ## Calculates the surface area of a bounding box.
+    ## Parameters
+    ##      self (AABB): Bounding box
+    ## Returns
+    ##      The surface area of the box.
     let d = self.Diagonal()
     return 2 * (d.x * d.y + d.x * d.z + d.y * d.z)
 
 func Union*(self: AABB, p: Point): AABB=
+    ## 
     return newAABB(
         newPoint(
             min(self.pMin.x, p.x),
@@ -201,6 +238,7 @@ func Union*(self: AABB, other: AABB): AABB=
     )
 
 func Volume*(self: AABB): float32=
+    ##
     let d = self.Diagonal()
     return d.x * d.y * d.z
 
