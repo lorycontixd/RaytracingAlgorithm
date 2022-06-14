@@ -110,6 +110,12 @@ proc GetUV(self: Triangle): seq[Vector2]=
     else:
         return @[newVector2(0.0, 0.0), newVector2(1.0, 0.0), newVector2(1.0, 1.0)]
 
+proc Area*(self: Triangle): float32=
+    let
+        v0 = self.mesh.vertexPositions[self.vertices[0]].convert(Vector3)
+        v1 = self.mesh.vertexPositions[self.vertices[1]].convert(Vector3)
+        v2 = self.mesh.vertexPositions[self.vertices[2]].convert(Vector3)
+    return 0.5 * Cross(v1 - v0, v2 - v0).norm()
 
 #####  ---- Ray Intersection
 method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.base.}=
@@ -231,7 +237,7 @@ method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayH
     mainStats.AddCall(procName, endTime, 2)
     return some(hit)
 
-
+#[
 method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] = 
     ## Moller-Trumbore Algorithm
     var
@@ -256,7 +262,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         return none(RayHit)
     q = s.Cross(edge1)
     v = f * invray.dir.Dot(q)
-    if (v < 0.0 or u + v > 1.0):
+    if (v <= 0.0 or u + v > 1.0):
         return none(RayHit)
     #echo "intersectUVs: ",u, " - ",v
     let uvs = self.GetUV()
@@ -289,4 +295,24 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         return some(hit)
     else:
         return none(RayHit)
+]#
+
+method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] =
+    let start = now()
+    var hit: RayHit = newRayHit()
+    var
+        firsthit_t: float32
+        inversed_ray: Ray = ray.Transform(self.transform.Inverse())
+        origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
+        a: Point = self.mesh.vertexPositions[self.vertices[0]]
+        b: Point = self.mesh.vertexPositions[self.vertices[1]]
+        c: Point = self.mesh.vertexPositions[self.vertices[2]]
+
+    let det = newMatrix(@[
+        @[(b.x - a.x).float32, c.x - a.x, inversed_ray.dir.x, 0.0],
+        @[(b.y - a.y).float32, c.y - a.y, inversed_ray.dir.y, 0.0],
+        @[(b.z - a.z).float32, c.z - a.z, inversed_ray.dir.z, 0.0],
+        @[0.0'f32, 0.0, 0.0, 1.0]
+    ])
+        
 
