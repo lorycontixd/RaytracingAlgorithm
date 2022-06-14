@@ -1,13 +1,19 @@
 import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world
 import std/[streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets]
 
+## ------------- PARSER ---------------
+## used to analyze a sequnce of tokens in order to understand the syntactic and semantic strucuture
+## 
+## before the parser we have the lexer, which reads from a stream and returns a list of token, classified
+## by type (TokenKind)
+
 type
-    SourceLocation* = object
+    SourceLocation* = object  # A specific position in a source file
         fileName*: string
         lineNum*: int
         colNum*: int
     
-    InputStream* = object
+    InputStream* = object # A wrapper around a stream
         stream*: Stream
         location*: SourceLocation
         savedChar*: Option[char]
@@ -44,7 +50,7 @@ type
         tkString,       # string of characters
         tkNumber,          # literal number
         tkSymbol,          # a non-alphanumeric character
-        tkStop            #
+        tkStop            # token indicating the end of file
 
     TokenObj* = object
     # class used when parsing a scene file, to decompose source code into simple elements to be read
@@ -60,28 +66,51 @@ type
     Token* = ref TokenObj
 
 converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s.toUpperAscii())
+## Enumeration for all the possible keywords recognized by the lexer
 
 proc newSourceLocation*(filename: string, row: int = 1, col: int = 1): SourceLocation=
+    ## Constructor for SourceLocation
+    ## Parameters
+    ##      filename (string): name of file to be read
+    ##      row, col (int): index of row and column _ Default value: 1, 1
+    ## Returns
+    ##      (SourceLocation)
     return SourceLocation(fileName: filename, lineNum: row, colNum: col)
 
 proc newInputStream*(strm: Stream, location: SourceLocation, tabulations: int = 4): InputStream=
+    ## Constructor for InputStream
+    ## Parameters
+    ##      strm (Stream): stream to be read
+    ##      location(SourceLocation): location in the stream
+    ##      tabulations(int): number of whitespaces to be considered as a tab _ Default value : 4
+    ## Returns
+    ##      (InputStream)
     return InputStream(stream: strm, location: location, tabulations: tabulations)
     
 
 proc UpdatePosition(self: var InputStream, c: Option[char])=
-        #Update `location` after having read `c` from the stream
-        if c == none(char):
-            return
-        if c.get() == '\n':
-            self.location.lineNum += 1
-            self.location.colNum = 1
-        elif c.get() == '\t':
-            self.location.colNum += self.tabulations
-        else:
-            self.location.colNum += 1
+    ## Updates `location` after having read `c` from the stream
+    ## Parameters
+    ##      self (InputStream) : stream
+    ##      c (char): char read
+    ## Returns
+    ##      no returns, just updates 'location'
+    if c == none(char):
+        return
+    if c.get() == '\n':
+        self.location.lineNum += 1
+        self.location.colNum = 1
+    elif c.get() == '\t':
+        self.location.colNum += self.tabulations
+    else:
+        self.location.colNum += 1
 
 proc ReadChar*(self: var InputStream): Option[char]=
-    ## Read a new character from the stream
+    ## Reads a new character from the stream
+    ## Parameters
+    ##      self (InputStream) : stream
+    ## Returns
+    ##      c (Char): the read character
     var c: Option[char]
     if self.savedChar != none(char):
         c = self.savedChar
@@ -93,10 +122,21 @@ proc ReadChar*(self: var InputStream): Option[char]=
     return c
 
 proc UnreadChar*(self: var InputStream, c: char): void=
+    ## Pushes a character back to the stream
+    ## Parameters
+    ##      self (InputStream): stream
+    ##      c (Char): the character to be 'unread'
+    ## Returns
+    ##       no returns, just pushes back
     self.savedChar = some(c)
     self.location.shallowCopy(self.savedLocation)
 
 proc SkipWhitespacesAndComments*(self: var InputStream): void=
+    ## Keeps reading characters until a 'non-whitespace' or 'non-comment' character is found
+    ## Parameters
+    ##      self (InputStream): stream 
+    ## Returns
+    ##      no returns
     var WHITESPACE: string = " \t\n\r"
     let s = {'\r','\n'}
     var c: Option[char] = self.ReadChar()
@@ -111,6 +151,12 @@ proc SkipWhitespacesAndComments*(self: var InputStream): void=
     self.UnreadChar(x)
 
 proc ParseStringToken(self: var InputStream, tokenLocation: SourceLocation): Token=
+    ## Returns a Token of kind 'tkString' from the read characters 
+    ## Parameters
+    ##      self (InputStream): stream
+    ##      tokenLocation (SourceLocation): postion in the stream
+    ## Returns
+    ##      Token of kind 'tkString'
     var token: string = ""
     while true:
         let c = self.ReadChar()
@@ -124,6 +170,12 @@ proc ParseStringToken(self: var InputStream, tokenLocation: SourceLocation): Tok
     return Token(kind: tkString, location: tokenLocation, stringVal: token)
 
 proc ParseKeywordOrIdentifierToken(self: var InputStream, firstChar: char, tokenLocation: SourceLocation): Token=
+    ## Returns a Token of kind 'tkKeyword' or 'tkIdentifier' from the read characters 
+    ## Parameters
+    ##      self (InputStream): stream
+    ##      tokenLocation (SourceLocation): postion in the stream
+    ## Returns
+    ##      Token of kind 'tkKeyword' or 'tkIdentifier'
     echo "parse kw or id, firstchar: ",firstChar
     var token: string = $firstChar
     echo "token: ",token
@@ -134,11 +186,19 @@ proc ParseKeywordOrIdentifierToken(self: var InputStream, firstChar: char, token
             break
         token = token & c.get()
     try:
+        # if it is a Keyword, it must be listed in the KEYWORDS dictionary
         return Token(kind: tkKeyword, location: tokenLocation, keywordVal: token)
     except:
+        # if we got 'exception', it is not a keyword and thus it must be an identifier
         return Token(kind: tkIdentifier, location: tokenLocation, identifierVal: token)
 
 proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: SourceLocation): Token=
+    ## Returns a Token of kind 'tkNumber' from the read characters 
+    ## Parameters
+    ##      self (InputStream): stream
+    ##      tokenLocation (SourceLocation): postion in the stream
+    ## Returns
+    ##      Token of kind 'tkNumber'
     var token: string = cast[string](firstChar)
     while true:
         let c = self.ReadChar()
@@ -154,14 +214,22 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
     return Token(kind: tkNumber, location: tokenLocation, numberVal: value)
 
 proc ReadToken*(self: var InputStream): Token=
+    ## Reads a token from a stream
+    ## Parameters
+    ##      self(InputStream): stream
+    ## Returns
+    ##      (Token): read token
     let SYMBOLS = "()[],*"
     self.SkipWhitespacesAndComments()
     var c: Option[char] = self.ReadChar()
     if not c.isSome:
+        # no more character in the file, return the StopToken
         return Token(kind: tkStop, location: self.location, stopVal: "")
+   
     var tokenLocation: SourceLocation
     tokenLocation.shallowCopy(self.location)
-
+     
+     # check what kind of token begins with 'c' character
     var x: char = c.get()
     if x in SYMBOLS:
         return Token(kind: tkSymbol, location: tokenLocation, symbolVal: x)
@@ -175,6 +243,12 @@ proc ReadToken*(self: var InputStream): Token=
         raise TestError.newException("errore in lettura char")
 
 proc UnreadToken*(self: var InputStream, token: Token): void=
+    ## Makes as if `token` has never been read from the stream
+    ## Parameters
+    ##      self (InputStream): stream
+    ##      token (Token): token to be 'unread'
+    ## Returns
+    ##      no returns, just 'unreads'
     assert not self.savedToken.isSome
     self.savedToken = some(token)
 
@@ -183,11 +257,23 @@ proc UnreadToken*(self: var InputStream, token: Token): void=
 
 
 proc ExpectSymbol*(file: var InputStream, symbol: char)=
+    ## Reads a token from 'input-file' and check that it matches `symbol`
+    ## Parameters
+    ##      file (InputStream): stream
+    ##      symbol (char): symbol to be matched
+    ## Returns
+    ##      no returns, it's just a control    
     let token = file.ReadToken()
     if token.kind != TokenKind.tkSymbol or token.symbolVal != symbol:
         raise TestError.newException("ciao")
 
 proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): KeywordType=
+    ## Reads a token from 'input-file' and check that it is one of KEYWORDTYPE
+    ## Parameters
+    ##      file (InputStream): stream
+    ##      keywords (seq[KeyWordType]): symbol to be matched
+    ## Returns
+    ##      (KeywordType): the keyword as a '.KeywordType' object
     let token = file.ReadToken()
     if not (token.kind == tkKeyword):
         raise TestError.newException("ciao")
@@ -197,6 +283,12 @@ proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): Keyword
     return token.keywordVal
 
 proc ExpectNumber*(file: var InputStream, scene: Scene): float32=
+    ## Reads a token from 'input-file' and check that it is a literal number or a variable of 'scene'
+    ## Parameters
+    ##      file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      scene.float_variables (flaot): number 
     let token = file.ReadToken()
     var variable_name: string
     if (token.kind == tkNumber):
@@ -210,6 +302,12 @@ proc ExpectNumber*(file: var InputStream, scene: Scene): float32=
 
 
 proc ExpectString*(input_file: var InputStream): string=
+    ## Reads a token from 'input-file' and check that it matches `symbol`
+    ## Parameters
+    ##      file (InputStream): stream
+    ##      symbol (char): symbol to be matched
+    ## Returns
+    ##      no returns, it's just a control  
     let token = input_file.ReadToken()
     if not (token.kind == tkString):
         raise TestError.newException("ciao")
@@ -218,6 +316,11 @@ proc ExpectString*(input_file: var InputStream): string=
 
 
 proc ExpectIdentifier*(input_file: var InputStream):string=
+    ## Reads a token from 'input-file' and check that it is an identifier
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ## Returns
+    ##      token.identifierVal (string): name of the identifier
     let token = input_file.ReadToken()
     if not (token.kind == tkIdentifier):
         raise TestError.newException("ciao")
@@ -226,6 +329,12 @@ proc ExpectIdentifier*(input_file: var InputStream):string=
 
 
 proc ParseVector*(input_file: var InputStream, scene: Scene): Vector3=
+    ## Interpretates tokens of input-file and returns the corresponding vector
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Vector3)
     ExpectSymbol(input_file, '[')
     let x = ExpectNumber(input_file, scene)
     ExpectSymbol(input_file, ',')
@@ -238,6 +347,12 @@ proc ParseVector*(input_file: var InputStream, scene: Scene): Vector3=
 
 
 proc ParseColor*(input_file: var InputStream, scene: Scene): Color=
+    ## Interpretates tokens of input-file and returns the corresponding color
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Color)
     ExpectSymbol(input_file, '<')
     let red = ExpectNumber(input_file, scene)
     ExpectSymbol(input_file, ',')
@@ -250,6 +365,12 @@ proc ParseColor*(input_file: var InputStream, scene: Scene): Color=
 
 
 proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
+    ## Interpretates tokens of input-file and returns the corresponding pigment
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Pigment)
     let keyword = ExpectKeywords(input_file, @[KeywordType.UNIFORM, KeywordType.CHECKERED, KeywordType.IMAGE])
 
     ExpectSymbol(input_file, '(')
@@ -275,6 +396,12 @@ proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
 
 
 proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
+    ## Interpretates tokens of input-file and returns the corresponding BRDF
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (BRDF)
     let brdf_keyword = ExpectKeywords(input_file, @[KeywordType.DIFFUSE, KeywordType.SPECULAR])
     ExpectSymbol(input_file, '(')
     let pigment = ParsePigment(input_file, scene)
@@ -288,6 +415,12 @@ proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
 
 
 proc ParseMaterial*(input_file: var InputStream, scene: Scene): (string, Material)=
+    ## Interpretates tokens of input-file and returns the corresponding material
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (string, Material): identifier, material
     let name = ExpectIdentifier(input_file)
 
     ExpectSymbol(input_file, '(')
@@ -300,6 +433,12 @@ proc ParseMaterial*(input_file: var InputStream, scene: Scene): (string, Materia
 
 
 proc ParseTransformation*(input_file: var InputStream, scene: Scene): Transformation=
+    ## Interpretates tokens of input-file and returns the corresponding transformation
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Transformation)
     result = newTransformation()
 
     while true:
@@ -344,6 +483,12 @@ proc ParseTransformation*(input_file: var InputStream, scene: Scene): Transforma
 
 
 proc ParseSphere*(input_file: var InputStream, scene: Scene): Sphere=
+    ## Interpretates tokens of input-file and returns the corresponding sphere
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Sphere)
     ExpectSymbol(input_file, '(')
 
     let material_name = ExpectIdentifier(input_file)
@@ -359,6 +504,12 @@ proc ParseSphere*(input_file: var InputStream, scene: Scene): Sphere=
 
 
 proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
+    ## Interpretates tokens of input-file and returns the corresponding plane
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Plane)
     ExpectSymbol(input_file, '(')
 
     let material_name = ExpectIdentifier(input_file)
@@ -374,6 +525,12 @@ proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
 
 
 proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
+    ## Interpretates tokens of input-file and returns the corresponding camera
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Camera)
     ExpectSymbol(input_file, '(')
     let type_kw = ExpectKeywords(input_file, @[KeywordType.PERSPECTIVE, KeywordType.ORTHOGONAL])
     ExpectSymbol(input_file, ',')
@@ -391,6 +548,12 @@ proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
 
 
 proc ParseScene(input_file: var InputStream, variables: Table[string, float32]): Scene=
+    ## Interpretates tokens of input-file and returns the corresponding scene
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      variables (Table[string, float]): characters to be interpretated
+    ## Returns
+    ##      (Scene)
     var scene: Scene = newScene()
     scene.float_variables.shallowCopy(variables)
     var keyslist: seq[string] = @[]
