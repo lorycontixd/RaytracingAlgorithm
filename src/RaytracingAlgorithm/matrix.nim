@@ -294,7 +294,11 @@ proc RotationZ_InverseMatrix*(angle_deg: float32): Matrix=
 
     
 proc Determinant*(m: Matrix): float32 {.inline, injectProcName.}=
-    ## Calculates the inverse matrix of a 4x4 matrix
+    ## Calculates the determinant of a 4x4 matrix
+    ## Parameters
+    ##      m (Matrix)
+    ## Returns
+    ##      det (float): determinant
     let start = now()
     var A2323 = m[2,2] * m[3,3] - m[2,3] * m[3,2]
     var A1323 = m[2,1] * m[3,3] - m[2,3] * m[3,1]
