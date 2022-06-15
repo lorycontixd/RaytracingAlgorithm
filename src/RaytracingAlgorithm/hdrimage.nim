@@ -4,11 +4,11 @@ import simplepng
 
 
 type
-    HdrImage* = object
-        width*: int
-        height*: int
-        pixels*: seq[Color]
-        endianness*: Endianness
+    HdrImage* = object # class used to implement an HDR Image from a color matrix
+        width*: int # number of columns of 2D color-matrix
+        height*: int # number of rows of 2D color-matrix
+        pixels*: seq[Color] # 2D color-matrix, represented as a 1D array
+        endianness*: Endianness # kind of byte/bit endianness
 
     Endianness* = enum
         littleEndian = "<f"
@@ -18,6 +18,11 @@ converter toEndianness*(s: string): Endianness = parseEnum[Endianness](s)
 
 
 proc newHdrImage*(): HdrImage {.inline.} =
+    ## constructor for HDR Image
+    ## Parameters
+    ##      /
+    ## Returns
+    ##      (HdrImage) : a black image with little endianness
     result = HdrImage(
         width:0,
         height:0,
@@ -26,33 +31,45 @@ proc newHdrImage*(): HdrImage {.inline.} =
     )
 
 proc newHdrImage*(width, height: int): HdrImage {.inline.} =
-    ##
-    ## -Parameters: width , height (int, int)
+    ## constructor for HDR Image
+    ## Parameters: 
+    ##      width , height (int, int)
     ## 
-    ## -Returns: HdrImage with little endianness
+    ## Returns:  
+    ##      (HdrImage): black HdrImage with little endianness
     result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
     for i in 0..width*height-1:
         result.pixels[i] = newColor(0,0,0)
     result.endianness = Endianness.littleEndian
 
 proc newHdrImage*(width, height: int, endianness:Endianness): HdrImage {.inline.} =
-    ##
-    ## -Parameters: width, height (int, int), endianness
+    ## constructor for HDR Image
+    ## Parameters: 
+    ##      width, height (int, int), 
+    ##      endianness (Endianness)
     ## 
-    ## -Returns: HdrImage
+    ## Returns: 
+    ##      (HdrImage): black HdrImage with the endianness requested
     result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
     for i in 0..width*height-1:
         result.pixels[i] = newColor(0,0,0)
     result.endianness = endianness
 
 proc newHdrImage*(other:HdrImage): HdrImage {.inline.} =
+    ## constructor for HDR Image
+    ## Parameters:
+    ##      other (HdrImage)
+    ## Returns:
+    ##      (HdrImage): an image equal to 'other' HdrImage
     result = HdrImage(width:other.width, height:other.height, pixels:other.pixels, endianness:other.endianness)
 
 proc parse_endianess*(self: HdrImage, line:string): string = # Remove public on release
-    ##
-    ## -Parameters: HdrImage, line (string)
-    ## 
-    ## -Returns: Endianness read in line
+    ## Assign endianness 
+    ## Parameters: 
+    ##      self (HdrImage)
+    ##      line (string) : value specifying the endianness
+    ## Returns: 
+    ##      (string) :Endianness read in line
     var flt: float32
     try:
         flt = parseFloat(line)
@@ -66,10 +83,13 @@ proc parse_endianess*(self: HdrImage, line:string): string = # Remove public on 
         raise newException(ValueError, "Invalid endianness specification")
 
 proc parse_img_size*(self: HdrImage, line:string): (int,int) = # Remove public on release
-    ##
-    ## -Parameters: HdrImage, line (string)
+    ## Assign values to 'width' and 'height'
+    ## Parameters: 
+    ##      self (HdrImage)
+    ##      line (string): values for width and height
     ## 
-    ## -Returns: width, height (int, int)
+    ## Returns: 
+    ##      width, height (int, int)
     let elements = line.split(" ")
     if len(elements) != 2:
         raise newException(ValueError, "Invalid image size specification")
@@ -84,46 +104,68 @@ proc parse_img_size*(self: HdrImage, line:string): (int,int) = # Remove public o
     except ValueError:
         raise newException(ValueError, "Invalid width/height") # Convert to custom exception
     return (width, height)
-##new branch
+
 
 proc valid_coordinates*(self: HdrImage, x,y:int): bool=
-    ##
-    ## -Parameters: HdrImage, x,y coordinates (int,int)
+    ## Verifies if (x, y) are coordinates within the 2D matrix
+    ## Parameters: 
+    ##      self (HdrImage)
+    ##      x,y (int,int): coordinates
     ## 
-    ## -Returns: True (if valid coordinates) else False
+    ## Returns: 
+    ##      True (if valid coordinates), False (else)
     result = ((x>=0) and (x<self.width) and (y>=0) and (y<self.height))
 
 proc pixel_offset*(self: var HdrImage, x,y:int): int {.inline.} =
-    ## computes index position of pixel (x,y) in the array 
+    ## Computes the index position of pixel (x,y) in the array 
+    ## The pixel at the top-left corner has coordinates (0, 0)
     ## 
-    ## -Parameters: HdrImage, coordinates x,y (int,int)
+    ## -Parameters: 
+    ##      self (HdrImage)
+    ##      x,y (int,int) : coordinates
     ## 
-    ## -Returns: result (int)
+    ## -Returns: 
+    ##      result (int)
     result = y * self.width + x
 
 proc get_pixel*(self: var HdrImage, x,y:int): Color {.inline.} =
+    ## Returns the `Color` value for a pixel in the image
+    ## The pixel at the top-left corner has coordinates (0, 0)
     ##
-    ## -Parameters: HdrImage, coordinates x,y (int,int)
+    ## -Parameters: 
+    ##      self (HdrImage)
+    ##      x,y (int,int) : coordinates
     ## 
-    ## -Returns: pixel of Color with coordinates x,y
+    ## -Returns: 
+    ##      (Color) : pixel of Color with coordinates x,y
     assert self.valid_coordinates(x,y)
     result = self.pixels[self.pixel_offset(x,y)]
 
 proc set_pixel*(self: var HdrImage, x,y:int, new_color: Color) {.inline.} = 
-    ##
-    ## -Parameters: HdrImage, coordinates x,y (int,int), Color
+    ## Sets the new color for a pixel in the image
+    ## The pixel at the top-left corner has coordinates (0, 0)
+    ## -Parameters: 
+    ##      HdrImage 
+    ##      x,y (int,int): coordinates
+    ##      new_color (Color): color to be assigned 
     ## 
-    ## -Returns: no return, but set pixel of coordinates x,y to Color
+    ## -Returns: 
+    ##      no return, but set pixel of coordinates x,y to Color
     if not self.valid_coordinates(x,y):
         raise ValueError.newException(fmt"Invalid coordinates: {x},{y}) for width,height: {self.width}x{self.height}")
     let offset = self.pixel_offset(x,y)
     self.pixels[offset] = new_color
 
 proc average_luminosity*(self: var HdrImage, delta: float = 1e-10): float32 {.inline.} =
+    ## Returns the average luminosity of the image
+    ## `delta` parameter is used to prevent  numerical problems for underilluminated pixels
     ##
-    ## -Parameters: HdrImage, delta (float, default: 1e-10)
+    ## -Parameters: 
+    ##      self (HdrImage)
+    ##      delta (float) :  default_value:  1e-10
     ## 
-    ## -Returns: average luminosity (float)
+    ## -Returns: 
+    ##      average luminosity (float)
     var cumsum: float = 0.0
     for pix in self.pixels:
         cumsum += log10(delta + pix.luminosity())
@@ -131,12 +173,16 @@ proc average_luminosity*(self: var HdrImage, delta: float = 1e-10): float32 {.in
 
 
 proc normalize_image*(self: var HdrImage, factor: float32, luminosity: Option[float32] = none(float32), delta: float32 = 1e-10)=
-    ##
     ## NORMALIZE IMAGE:  updates R,G,B values of the Image by normalization (factor * pixel / average_luminosity)
     ## 
-    ## -Parameters: HdrImage, factor (float), luminosity (float): optional, delta(float, default: 1e-10))
+    ## -Parameters: 
+    ##      self (HdrImage)
+    ##      factor (float) 
+    ##      luminosity (float): optional
+    ##      delta(float):  default_value: 1e-10)
     ## 
-    ## -Returns: no returns, just update of pixels  
+    ## -Returns: 
+    ##      no returns, just update of pixels  
     var l: float32
     if not luminosity.isSome():
         l = self.average_luminosity()
@@ -147,12 +193,13 @@ proc normalize_image*(self: var HdrImage, factor: float32, luminosity: Option[fl
 
 
 proc clamp_image*(self: var HdrImage)=
-    ##
     ## applies corrections for luminous sources to R,G,B components of pixels
     ## 
-    ## -Parameters: HdrImage
+    ## -Parameters: 
+    ##      self (HdrImage)
     ## 
-    ## -Returns: no returns, only applies corrections
+    ## -Returns: 
+    ##      no returns, only applies corrections
     for i in 0..size(self.pixels)-1:
         self.pixels[i].r = clampFloat(self.pixels[i].r)
         self.pixels[i].g = clampFloat(self.pixels[i].g)
@@ -163,25 +210,32 @@ proc clamp_image*(self: var HdrImage)=
 
 ## ------------------ FILLERS -------------------------
 proc fill_pixels*(self: var HdrImage, color: Color) {.inline.}=
+    ## Colors the image with 'color'
     for i in 0..size(self.pixels)-1:
         self.pixels[i] = color
 
 proc fill_black*(self: var HdrImage)=
+    ## Colors the image with 'black'
     self.fill_pixels(newColor("black"))
 
 proc fill_white*(self: var HdrImage)=
+    ## Colors the image with 'white'
     self.fill_pixels(newColor("white"))
 
 proc fill_red*(self: var HdrImage)=
+    ## Colors the image with 'red'
     self.fill_pixels(newColor("red"))
 
 proc fill_green*(self: var HdrImage)=
+    ## Colors the image with 'green'
     self.fill_pixels(newColor("green"))
 
 proc fill_blue*(self: var HdrImage)=
+    ## Colors the image with 'blue'
     self.fill_pixels(newColor("blue"))
 
 proc fill_random*(self: var HdrImage)=
+    ## Colors the image with a random color
     for i in 0..self.width-1:
         for j in 0..self.height-1:
             self.set_pixel(i,j, newColor(
@@ -191,6 +245,7 @@ proc fill_random*(self: var HdrImage)=
             ))
 
 proc fill_gradient*(self: var HdrImage)=
+    ## Colors the image with a gradient
     for i in 0..self.width-1:
         for j in 0..self.height-1:
             self.set_pixel(i,j, newColor(
@@ -262,11 +317,11 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
     ##    If stream is of type FileStream, the image is instantly written to file.
     ##    If stream is of type StringStream, the image is stored in the stream as a string.
     ## 
-    ## -Parameters:
-    ##        - stream: Stream to write bytes into.
+    ## Parameters:
+    ##         stream: Stream to write bytes into.
     ##    
-    ##    Returns:
-    ##        - No returns, output is saved in the argument stream.
+    ## Returns:
+    ##         No returns, output is saved in the argument stream.
 
     debug("Write_pfm called from HdrImage")
     # Magic
@@ -308,9 +363,13 @@ proc write_pfm*(self: var HdrImage, stream: Stream) {.inline.}=
 proc write_png*(self: var HdrImage, output_file: string, gamma:float =1.0){.inline.}= 
     ## saves a PNG file with pixels in [0,255] set to byte
     ## 
-    ## -Parameters: HdrImage, output_file (title of file, string), gamma (float, default: 1.0)
+    ## Parameters:
+    ##      self (HdrImage)
+    ##      output_file (string): title of file
+    ##      gamma (float) : default_value = 1.0
     ## 
-    ## -Returns: output_file PNG format
+    ## Returns: 
+    ##      output_file PNG format
     var p = initPixels(self.width, self.height)
     var i: int = 0
     for pixel in p.mitems:
