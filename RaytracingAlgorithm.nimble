@@ -10,7 +10,6 @@ bin           = @["RaytracingAlgorithm"]
 # Dependencies
 requires "nim >= 1.6.4"
 requires "SimplePNG"
-requires "neo"
 requires "cligen"
 
 task mytest, "Run the packages tests!":
