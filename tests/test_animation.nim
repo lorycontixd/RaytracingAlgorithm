@@ -1,3 +1,4 @@
+#[
 import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/transformation.nim"
 import "../src/RaytracingAlgorithm/animation.nim"
@@ -13,14 +14,13 @@ proc test_animation1(): void=
     var world: World = newWorld()
     world.Add( newSphere("SPHERE_0", Transformation.translation(newVector3(1.0, 1.0, 1.0)) * Transformation.scale(newVector3(0.5, 0.5, 0.5))) )
 
-    var animation: Animation = newAnimation( 
-        Transformation.translation(newVector3(2.0, 2.0, 2.0)),
-        Transformation.translation(newVector3(2.0, 2.0, 2.0)),
-        CameraType.Perspective,
-        newOnOffRenderer(world, Color.black(), Color.white()),
+    var animation: Animation = newAnimation(
+        world,
         500,
         200,
-        world,
+        newOnOffRenderer(world, Color.black(), Color.white()),
+        newTransformation(),
+        CameraType.Perspective,
         2,
         2
     )
@@ -140,3 +140,4 @@ proc test_animation3()=
 test_animation1()
 test_animation2()
 test_animation3()
+]#
