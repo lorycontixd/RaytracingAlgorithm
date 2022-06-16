@@ -2,14 +2,16 @@ import shape, rayhit, ray, exception, lights, geometry, utils, stats
 import std/[sugar, macros, typetraits, strutils, options, locks, times]
 
 type
-    World* = ref object
+    World* = ref object # holds a list of shapes
         shapes*: seq[Shape]
         pointLights*: seq[Light]
 
 func newWorld*(): World =
+    ## constructor for world
     return World(shapes: @[])
 
 func newWorld*(list: seq[Shape]): World=
+    ## constructor for world
     return World(shapes: list)
 
 func GetIndex*(self: World, s_id: string): int {.raises: [ShapeIDNotFoundError, ValueError].}=
@@ -26,6 +28,7 @@ method Add*[T: Shape](self: var World, s: T): void {.base.}=
     self.shapes.add(s)
 
 method AddLight*[T: Light](self: var World, l: T): void {.base.}=
+    ## Adds point lights to world
     self.pointLights.add(l)
 
 
@@ -87,6 +90,13 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.
     return closest
 
 func IsPointVisible*(self: World, point: Point, observer_position: Point): bool =
+    ## Verifies if the Point hit by ray is visibile from the observer
+    ## Parameters
+    ##      self (World)
+    ##      point (Point): point which would be hit by ray
+    ##      observer_position (Point)
+    ## Returns
+    ##      bool
     let 
         dir = (point - observer_position).normalize().convert(Vector3)
         ray = newRay(observer_position, dir, 1e-2, Inf)
