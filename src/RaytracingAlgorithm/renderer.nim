@@ -154,7 +154,7 @@ method Get*(self: PointlightRenderer): (proc(ray: Ray): Color) {.injectProcName.
                     distance_vec = (hitrecord.world_point - light.position).convert(Vector3)
                     distance = distance_vec.norm()
                     in_dir = distance_vec * (1.0 / distance)
-                    costheta = max(0.0, Dot(ray.dir.normalize(), hitrecord.normal.normalize()))
+                    costheta = max(0.0, -Dot(ray.dir.normalize(), hitrecord.normal.normalize()))
                 var distance_factor: float32
                 if light.linearRadius > 0.0:
                     distance_factor = pow((light.linearRadius / distance), 2.0) 
@@ -168,8 +168,8 @@ method Get*(self: PointlightRenderer): (proc(ray: Ray): Color) {.injectProcName.
                         ray.dir,
                         hitrecord.GetSurfacePoint()
                     )
-                #echo emitted_color, " - ",brdf_color, " -- ",light.color, " - ",cos_theta, " - ",distance_factor
-                result_color = result_color + (emitted_color + brdf_color) * light.color * cos_theta * distance_factor
+                #echo emitted_color, " - ",brdf_color, " -- ",light.color, " - ",costheta, " - ",distance_factor
+                result_color = result_color + (emitted_color + brdf_color) * light.color * costheta * distance_factor
         let endTime = now() - start
         mainStats.AddCall(procName, endTime, 1)
         return result_color

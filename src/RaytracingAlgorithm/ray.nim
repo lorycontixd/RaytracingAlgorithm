@@ -151,23 +151,36 @@ proc `[]`*(self:Ray, t: float32): Point=
     return self.at(t)
 
 proc `==`*(self, other: Ray): bool =
-    ## Verifies whether two rays are equal or not
+    ## Verifies whether two rays are the same or not
     ## Parameters
     ##      self, other (Ray): rays to be checked
     ## Returns
-    ##      (bool): True (if self and other are equals) , False (else)
+    ##      (bool): True (if self and other are equal) , False (else)
     return self.origin == other.origin and self.dir == other.dir and self.tmin == other.tmin and self.tmax == other.tmax and self.depth == other.depth
 
 proc `$`*(self: Ray): string=
+    ## Prints the ray's features
     return fmt"Ray(origin:{$self.origin}, dir:{$self.dir}, tmin: {$self.tmin}, tmax: {$self.tmax}, depth: {$self.depth})"
 
 proc `isClose`*(self, other: Ray, epsilon: float32 = 1e-4): bool=
+    ## Verifies whether two rays are the equal or not
+    ## Parameters
+    ##      self, other (Ray): rays to be checked
+    ##      epsilon (float32): maximum difference between two ray's tp be considered equals, Default_value: 10^(-4)
+    ## Returns
+    ##      (bool): True (if self and other are equal) , False (else)
     if self.tmax != Inf and other.tmax != Inf:
         return self.origin.isClose(other.origin, epsilon) and self.dir.isClose(other.dir, epsilon) and self.tmin.IsEqual(other.tmin, epsilon) and self.tmax.IsEqual(other.tmax, epsilon) and self.depth == other.depth
     else:
         return self.origin.isClose(other.origin, epsilon) and self.dir.isClose(other.dir, epsilon) and self.tmin.IsEqual(other.tmin, epsilon) and self.depth == other.depth
 
 proc Transform*(self: Ray, transformation: Transformation): Ray =
+    ## Applies a transformation to a ray, giving as result the transformed ray
+    ## Parameters
+    ##      self (Ray): ray to be transformed
+    ##      transformation (Transformation): transormation to be applied
+    ## Results
+    ##      (Ray): transformed ray
     result = Ray(
         origin : transformation * self.origin,
         dir :  transformation * self.dir,
