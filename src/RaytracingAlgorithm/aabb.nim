@@ -23,6 +23,11 @@ type
 func newAABB*(): AABB= discard
 
 func newAABB*(p: Point): AABB {.inline.}=
+    ## constructor for a new AABB from a point
+    ## Parameters
+    ##      p (Point) : point for the bounding box
+    ## Returns
+    ##      The bounding box defined by the point, assumed as minimum and maximum
     return AABB(pMin: p, pMax: p)
 
 func newAABB*(p1, p2: Point): AABB {.inline.}=
@@ -82,6 +87,8 @@ func Corner*(self: AABB, corner: int): Point {.inline.}=
     ## Parameters
     ##      self (AABB): Bounding box
     ##      corner (int): index of the corner to be fetched
+    ## Returns
+    ##      (Point)
     return newPoint(
         self[bitand(corner,1)].x,
         self[bitand(corner,2)].y,
@@ -93,7 +100,7 @@ func Diagonal*(self: AABB): Vector3=
     ## Parameters
     ##      self (AABB): Bounding box
     ## Returns
-    ##      The vector diagonal of the box
+    ##      The vector (Vector3) diagonal of the box
     return (self.pMax - self.pMin).convert(Vector3)
 
 func Expand*(self: var AABB, delta: float32): void=
@@ -167,7 +174,7 @@ func RayIntersect*(self: AABB, inversed_ray: Ray): bool=
     ## Calculate whether the ray intersects the bounding box.
     ## Parameters
     ##      self (AABB): Bounding box
-    ##      inversed_ray (Ray): Ray to calculate intersection of. The ray must already have all transformations applied to it.
+    ##      inversed_ray (Ray): Ray to calculate intersection of. The ray must already have all transformations applied.
     ## Returns
     ##      Boolean that states whether the ray and the bounding box intersect.
     var origin: Point = inversed_ray.origin
@@ -208,7 +215,13 @@ func SurfaceArea*(self: AABB): float32=
     return 2 * (d.x * d.y + d.x * d.z + d.y * d.z)
 
 func Union*(self: AABB, p: Point): AABB=
-    ## 
+    ## Returns the union between a bounding box and a point
+    ## ex: minPoint.x = minimun (boundingbox.minimumPoint.x, point.x)
+    ## Parameters:
+    ##      self (AABB) : bounding box
+    ##      p (Point)
+    ## Returns
+    ##      newAABB : new bounding box, resulting from the union
     return newAABB(
         newPoint(
             min(self.pMin.x, p.x),
@@ -223,6 +236,13 @@ func Union*(self: AABB, p: Point): AABB=
     )
 
 func Union*(self: AABB, other: AABB): AABB=
+    ## Returns the union between two bounding boxes
+    ## ex: minPoint.x = minimun (boundingbox1.minimumPoint.x, boundingbox2.minimumPoint.x)
+    ## Parameters:
+    ##      self (AABB) : first bounding box
+    ##      other (AABB) : second bounding box
+    ## Returns
+    ##      newAABB : new bounding box, resulting from the union
     ##
     return newAABB(
         newPoint(
@@ -238,13 +258,24 @@ func Union*(self: AABB, other: AABB): AABB=
     )
 
 func Volume*(self: AABB): float32=
-    ##
+    ## Returns the volume of the bounding box
+    ## Parameters
+    ##      self (AABB)
+    ## Returns
+    ##      (float32) : volume
     let d = self.Diagonal()
     return d.x * d.y * d.z
 
 ## Funcs that depend on other funcs
 
 func BoundToSphere*(self: AABB, center: var Point, radius: var float32): void {.inline.}=
+    ## Creates a sphere from a bounding box
+    ## Parameters
+    ##      self (AABB) : bounding box
+    ##      center (var Point) : center of the sphere
+    ##      radius (var float) : radius of the sphere
+    ## Returns
+    ##      computes the center e the radius of the sphere
     center = (self.pMin + self.pMax) / 2.0
     if self.IsPointInside(center):
         radius = Distance(center, self.pMax)
@@ -254,16 +285,21 @@ func BoundToSphere*(self: AABB, center: var Point, radius: var float32): void {.
 ## ---------------------------------------  STATIC METHODS  -----------------------------------------
 
 func Expand*(_: typedesc[AABB], b: AABB, delta: float32): AABB=
+    ## static method for 'Expand' function
     return b.Expand(delta)
 
 func Diagonal*(_: typedesc[AABB], b: AABB): Vector3=
+    ## static method for 'Diagonal' function
     return b.Diagonal()
 
 func Intersect*(_: typedesc[AABB], b1, b2: AABB): AABB=
+    ## static method for 'Intersect' function
     return b1.Intersect(b2)
 
 func Union*(_: typedesc[AABB], b: AABB, point: Point): AABB=
+    ## static method for 'Union' function
     return b.Union(point)
 
 func Union*(_: typedesc[AABB], b1, b2: AABB): AABB=
+    ## static method for 'Union' function
     return b1.Union(b2)

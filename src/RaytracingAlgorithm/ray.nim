@@ -176,6 +176,8 @@ proc `isClose`*(self, other: Ray, epsilon: float32 = 1e-4): bool=
 
 proc Transform*(self: Ray, transformation: Transformation): Ray =
     ## Applies a transformation to a ray, giving as result the transformed ray
+    ## This function is ueseful when we want to compute ray's direction in 'FireRay', because it doesn't
+    ## influence the observer
     ## Parameters
     ##      self (Ray): ray to be transformed
     ##      transformation (Transformation): transormation to be applied
