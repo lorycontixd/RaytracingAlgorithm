@@ -136,6 +136,7 @@ proc animate(width: int = 800, height: int = 600, camera: string = "perspective"
     info(fmt"Animation executed in {endTime}")
 
 
+
  
 proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string, output_filename:string){.inline.} =
     if not input_filename.endsWith(".pfm"):
