@@ -359,6 +359,54 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         @[(b.y - a.y).float32, c.y - a.y, inversed_ray.dir.y, 0.0],
         @[(b.z - a.z).float32, c.z - a.z, inversed_ray.dir.z, 0.0],
         @[0.0'f32, 0.0, 0.0, 1.0]
-    ])
+    ]).Determinant()
+    if det == 0.0:
+        # Ray is parallel to triangle's plane
+        return none(RayHit)
+
+    var
+        dBeta: float32 = newMatrix(@[
+            @[origin_vec.x - a.x, c.x - a.x, inversed_ray.dir.x, 0.0],
+            @[origin_vec.y - a.y, c.y - a.y, inversed_ray.dir.y, 0.0],
+            @[origin_vec.z - a.z, c.z - a.z, inversed_ray.dir.z, 0.0],
+            @[0.0'f32, 0.0, 0.0, 1.0]
+        ]).Determinant()
+
+        dGamma: float32 = newMatrix(@[
+            @[b.x - a.x, origin_vec.x - a.x, inversed_ray.dir.x, 0.0],
+            @[b.y - a.y, origin_vec.y - a.y, inversed_ray.dir.y, 0.0],
+            @[b.z - a.z, origin_vec.z - a.z, inversed_ray.dir.z, 0.0],
+            @[0.0'f32, 0.0, 0.0, 1.0]
+        ]).Determinant()
         
+        dT: float32 = newMatrix(@[
+            @[b.x - a.x, c.x - a.x, origin_vec.x - a.x, 0.0],
+            @[b.y - a.y, c.y - a.y, origin_vec.y - a.y, 0.0],
+            @[b.z - a.z, c.z - a.z, origin_vec.z - a.z, 0.0],
+            @[0.0'f32, 0.0, 0.0, 1.0]
+        ]).Determinant()
+
+    let
+        beta = dBeta / det
+        gamma = dGamma / det
+        t = -dT / det
+    if t < inversed_ray.tmin or t > inversed_ray.tmax:
+        return none(RayHit)
+    if beta < 0 or beta > 1:
+        return none(RayHit)
+    if gamma < 0 or gamma > 1:
+        return none(RayHit)
+    let w = 1 - beta - gamma
+
+    hit.world_point = newPoint(
+        beta * a.x + gamma * b.x + w * c.x,
+        beta * a.y + gamma * b.y + w * c.y,
+        beta * a.z + gamma * b.z + w * c.z
+    )
+    hit.normal = (b-a).convert(Vector3).Cross((c-a).convert(Vector3)).convert(Normal)
+    hit.surface_point = newVector2(beta, gamma)
+    hit.t = t
+    hit.ray = inversed_ray
+    hit.material = self.mesh.material
+    return some(hit)
 
