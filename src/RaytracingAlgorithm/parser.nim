@@ -401,7 +401,6 @@ proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
         let color = ParseColor(input_file, scene)
         ExpectSymbol(input_file, ')')
         result = newUniformPigment(color)
-        echo "result: ",$$result, " ---> "
     elif keyword == KeywordType.CHECKERED:
         let color1 = ParseColor(input_file, scene)
         ExpectSymbol(input_file, ',')
@@ -412,7 +411,9 @@ proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
         result = newCheckeredPigment(color1, color2, num_of_steps)
     elif keyword == KeywordType.IMAGE:
         let file_name = ExpectString(input_file)
-        let image_file = newFileStream(file_name, fmRead)
+        var image_file: FileStream = newFileStream(file_name, fmRead)
+        if image_file.isNil:
+            raise TestError.newException(fmt"File {file_name} does not exist.")
         var image: HdrImage = newHdrImage()
         image.read_pfm(image_file)
         ExpectSymbol(input_file, ')')
@@ -442,7 +443,6 @@ proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
     let brdf_keyword = ExpectKeywords(input_file, @[KeywordType.DIFFUSE, KeywordType.SPECULAR, KeywordType.PHONG, KeywordType.COOKTORRANCE])
     ExpectSymbol(input_file, '(')
     let pigment = ParsePigment(input_file, scene)
-    echo "pig: ",$$pigment
     ExpectSymbol(input_file, ',')
     if brdf_keyword == KeywordType.DIFFUSE:
         # pigment, reflectance
@@ -693,7 +693,7 @@ proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
         result[name] = newvalue
 
 
-proc ParseScene*(input_file: var InputStream, variables: Table[string, float32]): Scene=
+proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] = initTable[string, float32]()): Scene=
     ## Interpretates tokens of input-file and returns the corresponding scene
     ## Parameters
     ##      input_file (InputStream): stream
