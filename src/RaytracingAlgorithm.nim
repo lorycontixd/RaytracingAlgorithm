@@ -1,5 +1,5 @@
 
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene]
 import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
 import cligen
 
@@ -157,8 +157,29 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
 
 
 
-proc render(width: int = 800, height: int = 600, camera: string = "perspective", output_filename = "output", pfm_output=true, png_output=false): auto = discard
+proc render(filename: string, width: int = 800, height: int = 600, output_filename = "output", pfm_output=true, png_output=false): auto =
+    let start = cpuTime()
+    info("Starting rendering scene from file: " & filename)
+    var strm: FileStream = newFileStream(filename, fmRead)
+    if strm.isNil:
+        echo getCurrentDir()
+        raise TestError.newException(fmt"File {filename} does not exist.")
 
+    var
+        inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
+        scene: Scene = ParseScene(inputstrm)
+        img: HdrImage = newHdrImage(width, height)
+        imagetracer: ImageTracer = newImageTracer(img, scene.camera)
+
+    ### Save image!!
+    imagetracer.fireAllRays(scene.renderer.Get())
+    var strmWrite = newFileStream("output.pfm", fmWrite)
+    imagetracer.image.write_pfm(strmWrite)
+    imagetracer.image.normalize_image(0.7)
+    imagetracer.image.clamp_image()
+    imagetracer.image.write_png("output.png", 1.1)
+    let endTime = cpuTime() - start
+    mainStats.closeStats()
 
 
 #######  --
@@ -233,9 +254,9 @@ when isMainModule:
 
         }],
         [render, help = {
+            "filename" : "Scene text file to be parsed",
             "width" : "Screen width in pixels",
             "height" : "Screen height in pixels",
-            "camera": "Select the viewer camera for scene rendering [orthogonal/perspective]",
             "output_filename": "Name of the rendered output image",
             "pfm_output": "Save a PFM image",
             "png_output": "Save a PNG"
