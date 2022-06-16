@@ -1,5 +1,5 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world
-import std/[streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets]
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights
+import std/[streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
 
 ## ------------- PARSER ---------------
 ## used to analyze a sequnce of tokens in order to understand the syntactic and semantic strucuture
@@ -24,23 +24,49 @@ type
     KeywordType* = enum
         NEW,
         MATERIAL,
+        RENDERER,
+        # SHAPES
         PLANE,
         SPHERE,
+        MESH,
+        # BRDF
         DIFFUSE,
         SPECULAR,
+        PHONG,
+        COOKTORRANCE,
+        # PIGMENT
         UNIFORM,
         CHECKERED,
         IMAGE,
+        GRADIENT,
+        # NDFs
+        GGX,
+        BECKMANN,
+        BLINN,
+        # TRANSFORMS
         IDENTITY,
         TRANSLATION,
         ROTATIONX,
         ROTATIONY,
         ROTATIONZ,
         SCALE,
+        # CAMERAAS
         CAMERA,
         ORTHOGONAL,
         PERSPECTIVE,
-        FLOAT
+        # LIGHTS
+        LIGHT,
+        # RENDERERS
+        POINTLIGHT
+        ONOFF, #pointlight is also a renderer keyword  --->  renderer(pointlight, ...) or renderer(pathtracer, ...)
+        PATHTRACER,
+        FLAT,
+        # TYPES
+        FLOAT,
+        BOOL
+        INT,
+        STRING,
+        # OTHERS
         WIDTH,
         HEIGHT
 
@@ -176,9 +202,7 @@ proc ParseKeywordOrIdentifierToken(self: var InputStream, firstChar: char, token
     ##      tokenLocation (SourceLocation): postion in the stream
     ## Returns
     ##      Token of kind 'tkKeyword' or 'tkIdentifier'
-    echo "parse kw or id, firstchar: ",firstChar
     var token: string = $firstChar
-    echo "token: ",token
     while true:
         let c = self.ReadChar()
         if not (c.get().isAlphaNumeric() or c.get() == '_'):
@@ -199,16 +223,16 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
     ##      tokenLocation (SourceLocation): postion in the stream
     ## Returns
     ##      Token of kind 'tkNumber'
-    var token: string = cast[string](firstChar)
+    var token: string = $firstChar
     while true:
         let c = self.ReadChar()
-        if not Digits.contains(c.get()) or c.get() == '.' or {'e','E'}.contains(c.get()):
+        if not (Digits.contains(c.get()) or c.get() == '.' or {'e','E'}.contains(c.get())):
             self.UnreadChar(c.get())
             break
         token = token & c.get()
     var value: float32
     try:
-        value = cast[float32](token)
+        value = parseFloat(token)
     except:
         raise TestError.newException("ciao")
     return Token(kind: tkNumber, location: tokenLocation, numberVal: value)
@@ -219,16 +243,14 @@ proc ReadToken*(self: var InputStream): Token=
     ##      self(InputStream): stream
     ## Returns
     ##      (Token): read token
-    let SYMBOLS = "()[],*"
+    let SYMBOLS = "()[],*<>"
     self.SkipWhitespacesAndComments()
     var c: Option[char] = self.ReadChar()
-    if not c.isSome:
+    if not (c.isSome) or c.get() == '\x00':
         # no more character in the file, return the StopToken
         return Token(kind: tkStop, location: self.location, stopVal: "")
-   
     var tokenLocation: SourceLocation
     tokenLocation.shallowCopy(self.location)
-     
      # check what kind of token begins with 'c' character
     var x: char = c.get()
     if x in SYMBOLS:
@@ -240,6 +262,7 @@ proc ReadToken*(self: var InputStream): Token=
     elif x.isAlphaNumeric() or x == '_':
         return self.ParseKeywordOrIdentifierToken(x, tokenLocation)
     else:
+        echo "Char is not valid: ",x
         raise TestError.newException("errore in lettura char")
 
 proc UnreadToken*(self: var InputStream, token: Token): void=
@@ -265,6 +288,7 @@ proc ExpectSymbol*(file: var InputStream, symbol: char)=
     ##      no returns, it's just a control    
     let token = file.ReadToken()
     if token.kind != TokenKind.tkSymbol or token.symbolVal != symbol:
+        echo "Expected symbol `",symbol,"` but got token: ",$$token
         raise TestError.newException("ciao")
 
 proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): KeywordType=
@@ -276,6 +300,7 @@ proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): Keyword
     ##      (KeywordType): the keyword as a '.KeywordType' object
     let token = file.ReadToken()
     if not (token.kind == tkKeyword):
+        echo "expected keyword token but got: ",$$token
         raise TestError.newException("ciao")
 
     if not (token.keywordVal in keywords):
@@ -360,7 +385,6 @@ proc ParseColor*(input_file: var InputStream, scene: Scene): Color=
     ExpectSymbol(input_file, ',')
     let blue = ExpectNumber(input_file, scene)
     ExpectSymbol(input_file, '>')
-
     return newColor(red, green, blue)
 
 
@@ -371,11 +395,11 @@ proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
     ##      scene (Scene)
     ## Returns
     ##      (Pigment)
-    let keyword = ExpectKeywords(input_file, @[KeywordType.UNIFORM, KeywordType.CHECKERED, KeywordType.IMAGE])
-
+    let keyword = ExpectKeywords(input_file, @[KeywordType.UNIFORM, KeywordType.CHECKERED, KeywordType.IMAGE, KeywordType.GRADIENT])
     ExpectSymbol(input_file, '(')
     if keyword == KeywordType.UNIFORM:
         let color = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ')')
         result = newUniformPigment(color)
     elif keyword == KeywordType.CHECKERED:
         let color1 = ParseColor(input_file, scene)
@@ -383,16 +407,30 @@ proc ParsePigment*(input_file: var InputStream, scene: Scene): Pigment=
         let color2 = ParseColor(input_file, scene)
         ExpectSymbol(input_file, ',')
         let num_of_steps = int(ExpectNumber(input_file, scene))
+        ExpectSymbol(input_file, ')')
         result = newCheckeredPigment(color1, color2, num_of_steps)
     elif keyword == KeywordType.IMAGE:
         let file_name = ExpectString(input_file)
-        let image_file = newFileStream(file_name, fmRead)
+        var image_file: FileStream = newFileStream(file_name, fmRead)
+        if image_file.isNil:
+            raise TestError.newException(fmt"File {file_name} does not exist.")
         var image: HdrImage = newHdrImage()
         image.read_pfm(image_file)
+        ExpectSymbol(input_file, ')')
         result = newImagePigment(image)
+    elif keyword == KeywordType.GRADIENT:
+        let c1 = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let c2 = ParseColor(input_file, scene)
+        ExpectSymbol(input_file,',')
+        let uCoefficient = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let vCoefficient = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        result = newGradientPigment(c1, c2, 1.0, uCoefficient, vCoefficient)
     else:
         raise TestError.newException("This line should be unreachable")
-    ExpectSymbol(input_file, ')')
+
 
 
 proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
@@ -402,15 +440,50 @@ proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
     ##      scene (Scene)
     ## Returns
     ##      (BRDF)
-    let brdf_keyword = ExpectKeywords(input_file, @[KeywordType.DIFFUSE, KeywordType.SPECULAR])
+    let brdf_keyword = ExpectKeywords(input_file, @[KeywordType.DIFFUSE, KeywordType.SPECULAR, KeywordType.PHONG, KeywordType.COOKTORRANCE])
     ExpectSymbol(input_file, '(')
     let pigment = ParsePigment(input_file, scene)
-    ExpectSymbol(input_file, ')')
-
+    ExpectSymbol(input_file, ',')
     if brdf_keyword == KeywordType.DIFFUSE:
-        return newDiffuseBRDF(pigment)
+        # pigment, reflectance
+        let reflectance = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        return newDiffuseBRDF(pigment, reflectance)
     elif brdf_keyword == KeywordType.SPECULAR:
-        return newSpecularBRDF(pigment)
+        let thresholdangle = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        return newSpecularBRDF(pigment, thresholdangle)
+    elif brdf_keyword == KeywordType.PHONG:
+        let shininess = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file,',')
+        let diffuseCoefficient = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file,',')
+        let specularCoefficient = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        return newPhongBRDF(pigment, shininess, diffuseCoefficient, specularCoefficient)
+    elif brdf_keyword == KeywordType.COOKTORRANCE:
+        let diffuseCoefficient = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file,',')
+        let specularCoefficient = ExpectNumber(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let roughness = ExpectNumber(input_file, scene)
+        let
+            albedo = 1.0
+            metallic = 1.0
+        ExpectSymbol(input_file, ',')
+        let ndf_keyword = ExpectKeywords(input_file, @[KeywordType.GGX, KeywordType.BECKMANN, KeywordType.BLINN])
+        var ndf_var: CookTorranceNDF
+        if ndf_keyword == KeywordType.GGX:
+            ndf_var = CookTorranceNDF.GGX
+        elif ndf_keyword == KeywordType.BECKMANN:
+            ndf_var = CookTorranceNDF.Beckmann
+        elif ndf_keyword == KeywordType.BLINN:
+            ndf_var = CookTorranceNDF.Blinn
+        else:
+            raise TestError.newException("invalid ndf keyword")
+        ExpectSymbol(input_file, ')')
+        return newCookTorranceBRDF(pigment, diffuseCoefficient, specularCoefficient, roughness, albedo, metallic, ndf_var)
+    
     raise TestError.newException("This line should be unreachable")
 
 
@@ -422,13 +495,11 @@ proc ParseMaterial*(input_file: var InputStream, scene: Scene): (string, Materia
     ## Returns
     ##      (string, Material): identifier, material
     let name = ExpectIdentifier(input_file)
-
     ExpectSymbol(input_file, '(')
     let brdf = ParseBrdf(input_file, scene)
     ExpectSymbol(input_file, ',')
     let emitted_radiance = ParsePigment(input_file, scene)
     ExpectSymbol(input_file, ')')
-
     return (name, newMaterial(brdf, emitted_radiance))
 
 
@@ -481,6 +552,49 @@ proc ParseTransformation*(input_file: var InputStream, scene: Scene): Transforma
             input_file.UnreadChar(next_kw.symbolVal)
             break
 
+proc ParseRenderer*(input_file: var InputStream, scene: Scene): Renderer=
+    ##
+    ExpectSymbol(input_file, '(')
+    let renderer_keyword = ExpectKeywords(input_file, @[KeywordType.POINTLIGHT, KeywordType.ONOFF, KeywordType.FLAT, KeywordType.PATHTRACER])
+    ExpectSymbol(input_file, ',')
+    if renderer_keyword == KeywordType.POINTLIGHT:
+        let backgroundColor = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let ambientColor = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        return newPointlightRenderer(scene.world, backgroundColor, ambientColor)
+    elif renderer_keyword == KeywordType.ONOFF:
+        let backgroundColor = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let color = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        return newOnOffRenderer(scene.world, backgroundColor, color)
+    elif renderer_keyword == KeywordType.FLAT:
+        let backgroundColor = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ')')
+        return newFlatRenderer(scene.world, backgroundColor)
+    elif renderer_keyword == KeywordType.PATHTRACER:
+        let backgroundColor = ParseColor(input_file, scene)
+        ExpectSymbol(input_file, ',')
+        let numrays = int(ExpectNumber(input_file, scene))
+        ExpectSymbol(input_file, ',')
+        let maxRayDepth = int(ExpectNumber(input_file, scene))
+        ExpectSymbol(input_file, ',')
+        let russianRouletteLimit = int(ExpectNumber(input_file, scene))
+        ExpectSymbol(input_file, ')')
+        return newPathTracer(scene.world, backgroundColor, newPCG(), numrays, maxRayDepth, russianRouletteLimit)
+    else:
+        raise TestError.newException("Invalid keyworld for renderer.")
+
+proc ParsePointlight(input_file: var InputStream, scene: Scene): Pointlight=
+    ExpectSymbol(input_file, '(')
+    let position = ParseVector(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let color = ParseColor(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let linearRadius = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ')')
+    return newPointlight(position.convert(Point), color, linearRadius)
 
 proc ParseSphere*(input_file: var InputStream, scene: Scene): Sphere=
     ## Interpretates tokens of input-file and returns the corresponding sphere
@@ -520,9 +634,20 @@ proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
     ExpectSymbol(input_file, ',')
     var transformation: Transformation = ParseTransformation(input_file, scene)
     ExpectSymbol(input_file, ')')
-
     return newPlane(transform=transformation, material=scene.materials[material_name])
 
+proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
+    ExpectSymbol(input_file, '(')
+    let filenameOBJ = ExpectString(input_file)
+    ExpectSymbol(input_file, ',')
+    let transformation: Transformation = ParseTransformation(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let material_name = ExpectIdentifier(input_file)
+    ExpectSymbol(input_file, ')')
+    if not (scene.materials.hasKey(material_name)):
+        # We raise the exception here because input_file is pointing to the end of the wrong identifier
+        raise TestError.newException(fmt"unknown material {material_name}")
+    return newTriangleMeshOBJ(transformation, filenameOBJ, scene.materials[material_name])
 
 proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
     ## Interpretates tokens of input-file and returns the corresponding camera
@@ -546,8 +671,29 @@ proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
     elif type_kw == KeywordType.ORTHOGONAL:
         result = newOrthogonalCamera(aspectratio=aspect_ratio, transform=transformation)
 
+proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
+    ## Parse the list of `-d` switches and return a dictionary associating variable names with their values"""
 
-proc ParseScene(input_file: var InputStream, variables: Table[string, float32]): Scene=
+    result = initTable[string, float32]()
+    for declaration in definitions:
+        let parts = declaration.split(":")
+        if len(parts) != 2:
+            echo(fmt"error, the definition «{declaration}» does not follow the pattern NAME:VALUE")
+            raise TestError.newException("ciao")
+
+        var
+            name: string = parts[0]
+            value: string = parts[1]
+            newvalue: float32
+        try:
+            newvalue = cast[float32](value)
+        except ValueError:
+            echo(fmt"invalid floating-point value «{value}» in definition «{declaration}»")
+
+        result[name] = newvalue
+
+
+proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] = initTable[string, float32]()): Scene=
     ## Interpretates tokens of input-file and returns the corresponding scene
     ## Parameters
     ##      input_file (InputStream): stream
@@ -565,10 +711,10 @@ proc ParseScene(input_file: var InputStream, variables: Table[string, float32]):
         let what = input_file.ReadToken()
         if what.kind == tkStop:
             break
-
+        
         if what.kind != tkKeyword:
-            raise TestError.newException(fmt"expected a keyword instead of '{what.kind}'")
-
+            raise TestError.newException(fmt"expected a keyword instead of '{what.kind}' at {what.location}")
+        
         if what.keywordVal == KeywordType.FLOAT:
             let variable_name = ExpectIdentifier(input_file)
 
@@ -592,16 +738,24 @@ proc ParseScene(input_file: var InputStream, variables: Table[string, float32]):
             scene.world.Add(ParseSphere(input_file, scene))
         elif what.keywordVal == KeywordType.PLANE:
             scene.world.Add(ParsePlane(input_file, scene))
+        elif what.keywordVal == KeywordType.MESH:
+            var mesh_triangles: seq[Triangle] = CreateTriangleMesh(ParseMesh(input_file, scene))
+            for mesh_triangle in mesh_triangles:
+                scene.world.Add(mesh_triangle)
         elif what.keywordVal == KeywordType.CAMERA:
             if not scene.camera.isNil:
                 #raise GrammarError(what.location, "You cannot define more than one camera")
                 raise TestError.newException(fmt"[] Cannot define more than one camera")
-
             scene.camera = ParseCamera(input_file, scene)
         elif what.keywordVal == KeywordType.MATERIAL:
             var name: string
             var mat: Material
             (name, mat) = ParseMaterial(input_file, scene)
             scene.materials[name] = mat
+        elif what.keywordVal == KeywordType.RENDERER:
+            scene.renderer = ParseRenderer(input_file, scene)
+        elif what.keywordVal == KeywordType.LIGHT:
+            let pointLight = ParsePointlight(input_file, scene)
+            scene.world.AddLight(pointLight)
     return scene
 
