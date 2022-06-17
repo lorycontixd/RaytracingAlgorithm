@@ -3,18 +3,18 @@ import std/[math, options, strutils, times, strformat, sequtils]
 
 
 type
-    Shape* = ref object of RootObj
-        id*: string
+    Shape* = ref object of RootObj # abstract class for generic 3D shapes
+        id*: string # name 
         origin*: Point
         transform*: Transformation
         material*: Material
         aabb*: AABB
         animator*: Animator
     
-    Sphere* = ref object of Shape
+    Sphere* = ref object of Shape # 3D unit sphere centered on the origin of the axes
         radius*: float32
     
-    Plane* = ref object of Shape
+    Plane* = ref object of Shape # 3D infinite plane parallel to the x and y axis and passing through the origin
 
     Cylinder* = ref object of Shape
         radius*: float32
@@ -28,11 +28,13 @@ type
 # -------------------------------- Constructors -------------------------------------
 
 proc newSphere*(id: string, origin: Point, radius: float32 ): Sphere =
+    ## constructor for sphere
     if not id.contains("SPHERE"):
         raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     result = Sphere(id: id, origin: origin, radius: radius)
 
 proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Sphere =
+    ## constructor for sphere
     if not id.contains("SPHERE"):
         raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     let o = ExtractTranslation(transform.m).convert(Point)
@@ -43,16 +45,19 @@ proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransfor
     result = Sphere(id: id, transform: transform, material: material, origin: o, radius: radius, aabb: newAABB(newPoint(o.x-radius, o.y-radius, o.z-radius), newPoint( o.x+radius, o.y+radius, o.z+radius)))
     
 proc newPlane*(id: string = "PLANE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Plane =
+    ## constructor for Plane
     if not id.contains("PLANE"):
         raise ValueError.newException("Plane id must contain PLANE keyword.")
     result = Plane(id: id, transform: transform, material: material, origin: ExtractTranslation(transform.m).convert(Point))
 
 proc newCylinder*(id: string = "CYLINDER_0", transform: Transformation, material: Material = newMaterial()): Cylinder=
+    ## constructor for cylinder
     if not id.contains("CYLINDER"):
         raise ValueError.newException("Cylinder id must contain CYLINDER keyword.")
     result = Cylinder(id: id, transform: transform, material: material, aabb: newAABB(newPoint(), newPoint()))
 
 proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTransformation(), mesh: TriangleMesh, triNumber: int = 0, material: Material = newMaterial()): Triangle=
+    ## constructor for triangke
     if not id.contains("TRIANGLE"):
         raise ValueError.newException("Triangle id must contain CYLINDER keyword.")
     var
@@ -66,11 +71,18 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
     result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb)
 
 proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
+    ## Creates a mesh of triangles
     for i in  0..mesh.nTriangles-1:
         result.add( newTriangle(id=fmt"TRIANGLE_{i}",transform=mesh.transform, mesh=mesh, triNumber=i, material= mesh.material))
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
+    ## Returns the normal to a sphere
+    ## Parameters
+    ##      p (Point): point on the sphere where the Normal is origonated
+    ##      dir (Vector3): direction of observation
+    ## Returns
+    ##      (Normal)
     var n: Normal = newNormal(p.x, p.y, p.z)
     if p.convert(Vector3).Dot(dir) < 0.0:
         return n
@@ -99,6 +111,11 @@ proc cylinderWorldToLocal(p: Point): Vector2 =
 
 #### Triangles
 proc GetUV(self: Triangle): seq[Vector2]=
+    ## Returns (u,v) coordinates of the triangle's vertexes
+    ## Parameters
+    ##      self (Triangle)
+    ## Returns
+    ##      (seq[Vector2])
     if (self.mesh.uvs.isSome):
         let
             uvs = self.mesh.uvs.get()
@@ -111,6 +128,11 @@ proc GetUV(self: Triangle): seq[Vector2]=
         return @[newVector2(0.0, 0.0), newVector2(1.0, 0.0), newVector2(1.0, 1.0)]
 
 proc Area*(self: Triangle): float32=
+    ## Returns the area of a triangle
+    ## Parameters
+    ##      self (Triangle)
+    ## Returns
+    ##      (float32)
     let
         v0 = self.mesh.vertexPositions[self.vertices[0]].convert(Vector3)
         v1 = self.mesh.vertexPositions[self.vertices[1]].convert(Vector3)
@@ -124,6 +146,12 @@ method rayIntersect*(s: Shape, r: Ray, debug: bool = false): Option[RayHit] {.ba
     raise AbstractMethodError.newException("Shape.ray_intersection is an abstract method and cannot be called.")
 
 method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.injectProcName.} =
+    ## Checks if a ray intersects the sphere
+    ## Parameters
+    ##      s (Sphere)
+    ##      r (Ray)
+    ## Returns   
+    ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
     let start = now()
     var hit: RayHit = newRayHit()
     var
@@ -166,6 +194,12 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.i
 
 
 method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit] =
+    ## Checks if a ray intersects the plane
+    ## Parameters
+    ##      self (Plane)
+    ##      r (Ray)
+    ## Returns   
+    ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
     let inv_ray = ray.Transform(Inverse(self.transform))
     if abs(inv_ray.dir.z) < 1e-5:
         return none(RayHit)
@@ -194,6 +228,12 @@ method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit]
 
 
 method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit] {.injectProcName.}=
+    ## Checks if a ray intersects the cylinder
+    ## Parameters
+    ##      self (Cylinder)
+    ##      r (Ray)
+    ## Returns   
+    ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
     let start = now()
     var hit: RayHit = newRayHit()
     var
@@ -298,6 +338,12 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
 ]#
 
 method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] =
+    ## Checks if a ray intersects the triangle
+    ## Parameters
+    ##      self (Triangle)
+    ##      r (Ray)
+    ## Returns   
+    ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
     let start = now()
     var hit: RayHit = newRayHit()
     var

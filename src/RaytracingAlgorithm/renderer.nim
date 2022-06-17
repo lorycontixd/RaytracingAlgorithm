@@ -11,43 +11,49 @@ from exception import NotImplementedError, AbstractMethodError
 import std/[options, math, times, typetraits]
 
 type
-    Renderer* = ref object of RootObj
+    Renderer* = ref object of RootObj # abstract class to solve rendering equation
         world*: World
         backgroundColor*: Color
         raysShot*: int
 
     DebugRenderer* = ref object of Renderer
 
-    OnOffRenderer* = ref object of Renderer
+    OnOffRenderer* = ref object of Renderer # useful for debugs
         color*: Color
 
-    FlatRenderer* = ref object of Renderer
+    FlatRenderer* = ref object of Renderer # estimates the solution of the rendering equation by the light contribution.
+                # uses the pigment of each surface to determine the final radiance
 
-    PathTracer* = ref object of Renderer
+    PathTracer* = ref object of Renderer # path-tracing renderer
         pcg*: PCG
         numRays*: int
         maxRayDepth*: int
-        russianRouletteLimit*: int
+        russianRouletteLimit*: int # to reduce number of recursive calls
 
-    PointlightRenderer* = ref object of Renderer
+    PointlightRenderer* = ref object of Renderer # point light renderer
         ambientColor*: Color
 
         
 
 # ----------- Constructors -----------
 func newOnOffRenderer*(world: World, backgroundColor, color: Color): OnOffRenderer {.inline.}=
+    ## constructor for OnOffRenderer
     return OnOffRenderer(world:world, backgroundColor:backgroundColor, color:color)
 
 func newDebugRenderer*(world: World, backgroundColor: Color): DebugRenderer {.inline.}=
+    ## constructor for DebugRenderer
     return DebugRenderer(world:world, backgroundColor: backgroundColor)
 
 func newFlatRenderer*(world: World, backgroundColor: Color): FlatRenderer{.inline.}=
+    ## constructor for FlatRenderer
     return FlatRenderer(world: world, backgroundColor: backgroundColor)
 
 func newPathTracer*(world: World, backgroundColor: Color = Color.black(), pcg: PCG = newPCG(), numRays: int = 10, maxRayDepth: int = 2, russianRouletteLimit: int = 3): PathTracer {.inline.}=
+    ## constructor for PathTracer (backgroundColor_default: black)
     return PathTracer(world: world, backgroundColor: backgroundColor, pcg: pcg, numRays: numRays, maxRayDepth: maxRayDepth, russianRouletteLimit: russianRouletteLimit)
 
 func newPointlightRenderer*(world: World, backgroundColor: Color, ambientColor: Color): PointlightRenderer {.inline.}=
+    ## constructor for PointlightRenderer
     return PointlightRenderer(world: world, backgroundColor: backgroundColor, ambientColor: ambientColor)
 
 # ------------ Operators --------------
@@ -68,13 +74,24 @@ func `$`*(renderer: PointlightRenderer): string=
 
 # ----------- Methods -----------
 method Get*(renderer: Renderer): (proc(r: Ray): Color) {.base, raises:[AbstractMethodError].}=
+    ## abstract method
     raise AbstractMethodError.newException("Renderer.Get is an abstract method and cannot be called.")
 
 method Get*(renderer: DebugRenderer): (proc(r: Ray): Color) =
+    ## Returns the color of the renderer hit by ray
+    ## Parameters
+    ##      renderer (DebuRenderer)
+    ## Returns
+    ##      (Color): background color
     return proc(r: Ray): Color=
         return renderer.backgroundColor
 
 method Get*(renderer: OnOffRenderer): (proc(r: Ray): Color) =
+    ## Returns the color of the renderer hit by ray
+    ## Parameters
+    ##      renderer (OnOffRenderer)
+    ## Returns
+    ##      (Color): color (if there is intersection), background color (else)
     return proc(r: Ray): Color=
         let intersection = rayIntersect(renderer.world,r)
         if intersection.isSome:
@@ -83,6 +100,11 @@ method Get*(renderer: OnOffRenderer): (proc(r: Ray): Color) =
             return renderer.backgroundColor
 
 method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
+    ## Returns the color of the renderer hit by ray
+    ## Parameters
+    ##      renderer (FlatRenderer)
+    ## Returns
+    ##      (Color): color computed from the BRDF and emitted radiance
     return proc(r: Ray): Color =
         let start = now()
         var hit: Option[RayHit] = renderer.world.rayIntersect(r)
@@ -99,6 +121,11 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray): Color) {.injectProcName.}=
 
 
 method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe, injectProcName.} =
+    ## Returns the color of the renderer hit by ray
+    ## Parameters
+    ##      renderer (PathTracer)
+    ## Returns
+    ##      (Color)
     return proc(ray: Ray): Color=
         let start = now()
         if ray.depth > renderer.maxRayDepth:
@@ -139,6 +166,11 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe, injectProcN
         return emitted_radiance + cum_radiance * (1.0 / float32(renderer.numRays))
 
 method Get*(self: PointlightRenderer): (proc(ray: Ray): Color) {.injectProcName.}=
+    ## Returns the color of the renderer hit by ray
+    ## Parameters
+    ##      renderer (PointlightRenderer)
+    ## Returns
+    ##      (Color)
     return proc(ray: Ray): Color=
         let start = now()
         let hit = self.world.rayIntersect(ray)

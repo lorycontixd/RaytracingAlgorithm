@@ -5,7 +5,7 @@ type
     RayHit* = object # class for intersections between a ray and a shape
         world_point*: Point # point of world hit by ray
         normal*: Normal # normal of the surface hit
-        surface_point*: Vector2 # position of the hit point on the surface of the object
+        surface_point*: Vector2 # position of the hit point on the surface of the object (u,v)
         t*: float32 # distance of the hit from the origin of the ray
         ray*: Ray # ray hitting the surface
         material*: Material # surface material
