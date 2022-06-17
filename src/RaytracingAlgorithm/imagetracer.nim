@@ -23,6 +23,7 @@ proc fireRay*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pi
     var
         u:float32 = (float32(col) + u_pixel) / float32(self.image.width)
         v:float32 = 1.0 - (float32(row) + v_pixel) / float32(self.image.height)
+    
     let endTime = now() - start
     mainStats.AddCall(procName, endTime, 0)
     return self.camera.fireRay(u, v)
@@ -43,6 +44,16 @@ proc fireAllRays*(self: var ImageTracer, f: proc): void {.injectProcName.}=
 func newAntiAliasing*(image: var HdrImage, camera: Camera, samples: int, pcg: PCG): AntiAliasing=
     return AntiAliasing(image: image, camera: camera, samplesPerSide: samples, pcg: pcg)
 
+proc fireRay*(self: var AntiAliasing, col, row: int, u_pixel: float32 = 0.5, v_pixel: float32 = 0.5): Ray {.injectProcName.}=
+    let start = now()
+    var
+        u:float32 = (float32(col) + u_pixel) / float32(self.image.width)
+        v:float32 = 1.0 - (float32(row) + v_pixel) / float32(self.image.height)
+    
+    let endTime = now() - start
+    mainStats.AddCall(procName, endTime, 0)
+    return self.camera.fireRay(u, v)
+
 proc fireAllRays*(self: var AntiAliasing, f: proc): void {.injectProcName.}=
     let start = now()
     var
@@ -54,16 +65,14 @@ proc fireAllRays*(self: var AntiAliasing, f: proc): void {.injectProcName.}=
             cumcolor = Color.black()
 
             if self.samplesPerSide > 0:
-                #countup(0, self.samplesPerSide-1)
-                for inter_pixel_row in 0 || self.samplesPerSide-1:
-                    for inter_pixel_col in 0 || self.samplesPerSide-1:
+                for inter_pixel_row in 0..<self.samplesPerSide:
+                    for inter_pixel_col in 0..<self.samplesPerSide:
                         let
                             u_pixel = (inter_pixel_col.float32 + self.pcg.random_float()) / self.samplesPerSide.float32
                             v_pixel = (inter_pixel_row.float32 + self.pcg.random_float()) / self.samplesPerSide.float32
-                            
-                            ray = cast[var ImageTracer](self).fireRay(col, row, u_pixel, v_pixel)
-                            cumcolor = cum_color + f(ray)
-                self.image.set_pixel(col, row, cumcolor * (1.0 / pow(self.samplesPerSide.float32, 2.0)))
+                        ray = self.fireRay(col=col, row=row, u_pixel=u_pixel, v_pixel=v_pixel)
+                        cum_color = cum_color + f(ray)
+                self.image.set_pixel(col, row, cum_color * (1.0 / (self.samplesPerSide.float32 * self.samplesPerSide.float32)))
             else:
                 ray = cast[var ImageTracer](self).fire_ray(col, row)
                 self.image.set_pixel(col, row, f(ray))
