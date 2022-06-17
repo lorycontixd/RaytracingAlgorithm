@@ -173,9 +173,9 @@ proc LookAt*(pos: Point, look: Point, up: Vector3): Transformation=
     ## The returned transformation is a transformation between object(camera)-space to world-space.
     ## 
     ## Parameters:
-    ##      position (Point): 
-    ##      look (Point):
-    ##      up (Vector3):
+    ##      position (Point): position of the object
+    ##      look (Point): point to look at
+    ##      up (Vector3): vector for object orientation
     ## Returns:
     ##      Transformation object    
     
