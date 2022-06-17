@@ -68,7 +68,12 @@ type
         STRING,
         # OTHERS
         WIDTH,
-        HEIGHT
+        HEIGHT,
+        # SETTINGS
+        SET,
+        LOGGER,
+        ANTIALIASING,
+        STATS
 
     TokenKind* = enum  # the different token types (tags)
         tkKeyword,          # keywords of our language
