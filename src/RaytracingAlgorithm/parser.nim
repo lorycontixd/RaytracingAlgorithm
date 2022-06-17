@@ -749,7 +749,6 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
                 scene.world.Add(mesh_triangle)
         elif what.keywordVal == KeywordType.CAMERA:
             if not scene.camera.isNil:
-                #raise GrammarError(what.location, "You cannot define more than one camera")
                 raise TestError.newException(fmt"[] Cannot define more than one camera")
             scene.camera = ParseCamera(input_file, scene)
         elif what.keywordVal == KeywordType.MATERIAL:
@@ -758,9 +757,15 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
             (name, mat) = ParseMaterial(input_file, scene)
             scene.materials[name] = mat
         elif what.keywordVal == KeywordType.RENDERER:
+            if not scene.renderer.isNil:
+                    raise TestError.newException(fmt"[] Cannot define more than one renderer")
             scene.renderer = ParseRenderer(input_file, scene)
         elif what.keywordVal == KeywordType.LIGHT:
             let pointLight = ParsePointlight(input_file, scene)
             scene.world.AddLight(pointLight)
+    if scene.camera.isNil:
+        raise TestError.newException("Scene must contain at least one camera.")
+    if scene.renderer.isNil:
+        raise TestError.newException("Scene must contain at least one renderer.")
     return scene
 
