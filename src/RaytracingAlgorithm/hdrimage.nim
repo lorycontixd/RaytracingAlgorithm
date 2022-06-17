@@ -11,8 +11,8 @@ type
         endianness*: Endianness # kind of byte/bit endianness
 
     Endianness* = enum
-        littleEndian = "<f"
-        bigEndian = ">f"
+        littleEndian = "<f" # crescent pows in reading bytes
+        bigEndian = ">f" # decrescent pows in reading bytes
 
 converter toEndianness*(s: string): Endianness = parseEnum[Endianness](s)
 

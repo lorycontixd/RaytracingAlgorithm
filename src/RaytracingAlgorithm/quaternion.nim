@@ -10,12 +10,15 @@ type
 
 # --------------- Constructors -----------------
 proc newQuaternion*(): Quaternion=
+    ## constructor for quaternion, sets to 0 all parameters
     result = Quaternion(x:0, y:0, z:0, w:0)
 
 proc newQuaternion*(x,y,z,w: float32): Quaternion=
+    ## constructor for quaternion
     result = Quaternion(x:x, y:y, z:z, w:w)
 
 proc newQuaternion*(v: Vector3, w: float32): Quaternion=
+    ## constructor for quaternion (normalized)
     result = newQuaternion(v[0], v[1], v[2], w)
     let dot = result.x * result.x + result.y * result.y + result.z * result.z + result.w * result.w
     let magn = sqrt(dot)
@@ -65,6 +68,7 @@ proc newQuaternion*(m: Matrix): Quaternion=
 ]#
 
 proc newQuaternion*(other: Quaternion): Quaternion=
+    ## returns a quaternion euqal to another
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)
 
 # ----------------- Operators -------------------
@@ -116,15 +120,27 @@ proc `$`*(self: Quaternion): string =
     result = fmt"Quaternion({self.x},{self.y},{self.z},{self.w})"
 
 proc `+`(lhs, rhs: Quaternion): Quaternion=
-    ##
+    ## Sum between two quaternions
+    ## Parameters
+    ##      lhs, rhs (Quaternion): quaternions to be summed
+    ## Results
+    ##      (Quaternion): resulting from the sum
     result = newQuaternion(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w)
 
 proc `-`(lhs, rhs: Quaternion): Quaternion=
-    ##
+    ## Difference between two quaternions
+    ## Parameters
+    ##      lhs, rhs (Quaternion): quaternions to be substracted
+    ## Results
+    ##      (Quaternion): resulting from the difference
     result = newQuaternion(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w)
 
 proc `*`*(lhs, rhs: Quaternion): Quaternion {.inline.}=
-    ##
+    ## Product between two quaternions
+    ## Parameters
+    ##      lhs, rhs (Quaternion): quaternions to be multiplied
+    ## Results
+    ##      (Quaternion): resulting from the product
     result = newQuaternion(
         lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
         lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
@@ -170,30 +186,44 @@ proc `*`*(v: Vector3, rotation: Quaternion): Vector3 {.inline.}=
     return rotation*v
 
 proc `*`*(rotation: Quaternion, scalar: float32): Quaternion=
-    ##
+    ## Product between a quaternion and a scalar
+    ## Parameters
+    ##      rotation (Quaternion): quaternions to be multiplied
+    ##      scalar (float)
+    ## Results
+    ##      (Quaternion): resulting from the product
     result = newQuaternion(rotation.x * scalar, rotation.y * scalar, rotation.z * scalar, rotation.w * scalar)
 
 proc `*`*(scalar: float32, rotation: Quaternion): Quaternion=
+    ## scalar * q --> Mirror of q * scalar
+    ## See q * scalar documentation
     return rotation * scalar
 
 proc `/`*(q: Quaternion, scalar: float32): Quaternion=
-    ##
+    ## Division between a quaternion and a scalar
+    ## Parameters
+    ##      q (Quaternion)
+    ##      scalar (float)
+    ## Results
+    ##      (Quaternion): resulting from the division
     return newQuaternion(q.x/scalar, q.y/scalar, q.z/scalar, q.w/scalar)
 
 proc `==`*(lhs, rhs: Quaternion): bool =
-    ##
+    ## Verifies if two quaternions are the same
     return lhs.x == rhs.x and lhs.y == rhs.y and lhs.z == rhs.z and lhs.w == rhs.w
 
 proc `!=`*(lhs, rhs: Quaternion): bool=
-    ##
+    ## Verifies if two quaternions are NOT the same
     return not(lhs==rhs)
 
 proc isClose*(lhs, rhs: Quaternion, epsilon: float32 = 1e-6): bool=
-    ##
+    ## Verifies if two quaternions are equal 
+    ## raturns True if their difference is less then epsilon (default_value: 10^(-6))
     return IsEqual(lhs.x, rhs.x, epsilon) and IsEqual(lhs.y, rhs.y, epsilon) and IsEqual(lhs.z, rhs.z, epsilon) and IsEqual(lhs.w, rhs.w, epsilon)
 
 proc isNotClose*(lhs, rhs: Quaternion): bool=
-    ##
+    ## Verifies if two quaternions are different
+    ## opposite of 'isClose'
     return not isClose(lhs, rhs)
 
 # ------------------------------------- Setters and Getters -------------------------------------
@@ -201,13 +231,19 @@ proc Set*(self: var Quaternion, x,y,z,w: float32): void =
     ## Sets quaternion values
     ##
     ## Parameters
-    ## x,y,z,w (float32)
+    ##      self (Quaternion)
+    ##      x,y,z,w (float32)
     self.x = x
     self.y = y
     self.z = z
     self.w = w
 
 proc SetVector*(self: var Quaternion, vectorComponents: Vector3): void =
+    # Sets quaternion values
+    ##
+    ## Parameters
+    ##      self (Quaternion)
+    ##      vectorComponents (Vector3)
     self.x = vectorComponents[0]
     self.y = vectorComponents[1]
     self.z = vectorComponents[2]
@@ -215,9 +251,19 @@ proc SetVector*(self: var Quaternion, vectorComponents: Vector3): void =
 # ------------------------------------------- Methods ------------------------------------------
 
 proc Dot*(a,b: Quaternion): float32=
+    ## Returns the dot product of two quaternions
+    ## Parameters
+    ##      a,b (Quaternion)
+    ## Results
+    ##      (float)
     result = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
 
 proc Angle*(a,b: Quaternion): float32=
+    ## Returns the angle in degrees between two quaternions
+    ## Parameters
+    ##      a,b (Quaternion)
+    ## Results
+    ##      (float)
     let dot = min(abs(Dot(a,b)), 1.0)
     if a.isClose(b):
         return 0.0
@@ -226,12 +272,15 @@ proc Angle*(a,b: Quaternion): float32=
         return radToDeg(angle)
 
 proc Identity*(_: typedesc[Quaternion]): Quaternion =
+    ## Identity quaternion
     result = newQuaternion(0.0, 0.0, 0.0, 1.0)
 
 proc Norm*(q: Quaternion): float32 =
+    ## Returns the norm of a quaternion
     return sqrt(Dot(q,q))
 
 proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
+    ## Normalizes a quaternion
     let magn = Norm(self)
 
     if magn < epsilon:
@@ -240,6 +289,7 @@ proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
         return self / magn
 
 proc NormalizeInplace*(self: var Quaternion) : void=
+    ## Normalizes inplace a quaternion
     let magn = sqrt(Dot(self, self))
     self.x = self.x/magn
     self.y = self.y/magn
@@ -247,15 +297,19 @@ proc NormalizeInplace*(self: var Quaternion) : void=
     self.w = self.w/magn
 
 proc squaredNorm*(q: Quaternion): float32 =
+    ## Returns the suqared norm of a quaternion
     return Norm(q) * Norm(q)
 
 proc Conjugate*(q: Quaternion): Quaternion=
+    ## Returns the conjugate of a quaternion
     return newQuaternion(-q.x, -q.y, -q.z, q.w)
 
 proc Inverse*(q: Quaternion): Quaternion=
+    ## Returns the inverse of a quaternion
     return q.Conjugate() / q.squaredNorm()
 
 proc Negativize*(q: Quaternion): Quaternion=
+    ## Returns the negative of a quaternion
     return newQuaternion(-q.x, -q.y, -q.z, -q.w)
 
 proc makePositive*(euler: Vector3): Vector3=
@@ -279,9 +333,11 @@ proc makePositive*(euler: Vector3): Vector3=
         result.z -= 360.0
 
 proc isNormalized*(self: Quaternion): bool=
+    ## Verifies if a quaternion is normalized
     return self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w == 1
 
 proc toEuler*(q: Quaternion): Vector3 {.inline.}=
+    ## Sets a quaternion equal to a set of Euler Angles
     let
         sqw = q.w * q.w
         sqx = q.x * q.x
@@ -367,7 +423,7 @@ proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
     return a * ( sin((1-t)*theta)/(sin(theta)) ) + b * (sin(t*theta) / sin(theta))
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
-    ##
+    ## Rotates a quaternion
     let angle = q[3]
     let s = sin(angle/2.0)
     result = newQuaternion(
@@ -378,6 +434,12 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
     ) 
 
 proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
+    ## Rotates a quaternion of 'angle'
+    ## Parameters
+    ##      axis (Vector3)
+    ##      angle (float)
+    ## Returns
+    ##      (Quaternion)
     return RotationQuaternion( newQuaternion(axis[0], axis[1], axis[2], angle))
 
 
