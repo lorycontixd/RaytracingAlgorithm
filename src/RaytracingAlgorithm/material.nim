@@ -3,15 +3,16 @@ import std/[math]
 
 type
     Pigment* = ref object of RootObj # Abstract class
-    UniformPigment* = ref object of Pigment
+    # associates a color to each point on a parametric surface (u,v)
+    UniformPigment* = ref object of Pigment # uniform color for all the image
         color*: Color
 
-    CheckeredPigment* = ref object of Pigment
+    CheckeredPigment* = ref object of Pigment #checkered image
         color1*: Color
         color2*: Color
         numberOfSteps*: int
 
-    ImagePigment* = ref object of Pigment
+    ImagePigment* = ref object of Pigment #texture given through a PFM image
         image*: HdrImage
 
     GradientPigment* = ref object of Pigment
@@ -21,13 +22,13 @@ type
         uCoefficient*: float32
         vCoefficient*: float32
 
-    BRDF* = ref object of RootObj
+    BRDF* = ref object of RootObj # abstract class representing a Bidirectional Reflectance Distribution Function
         pigment*: Pigment
 
-    DiffuseBRDF* = ref object of BRDF
+    DiffuseBRDF* = ref object of BRDF # ideal diffuse BRDF
         reflectance*: float32
 
-    SpecularBRDF* = ref object of BRDF
+    SpecularBRDF* = ref object of BRDF # ideal mirror BRD
         thresholdAngle*: float32
 
     PhongBRDF* = ref object of BRDF
@@ -48,51 +49,74 @@ type
         ndf*: CookTorranceNDF
     
 
-    Material* = object
+    Material* = object # a material
         brdf*: BRDF
         emitted_radiance*: Pigment
 
 # ----------------------------  CONSTRUCTORS -------------------
 proc newUniformPigment*(color: Color = Color.black()): UniformPigment=
+    ## constructor for UniformPigmet (default_color: black)
     return UniformPigment(color: color)
 
 proc newGradientPigment*(color1, color2: Color, threshold: float32, uCoefficient: float32 = 1.0, vCoefficient: float32 = 0.0): GradientPigment=
+    ## constructor for GradientPigmet 
     assert IsEqual(uCoefficient + vCoefficient, 1.0)
     return GradientPigment(color1: color1, color2: color2, threshold: threshold, uCoefficient: uCoefficient, vCoefficient: vCoefficient)
 
 proc newCheckeredPigment*(color1, color2: Color, numberOfSteps: int = 10): CheckeredPigment=
+    ## constructor for CheckeredPigmet 
     return CheckeredPigment(color1: color1, color2: color2, numberOfSteps: numberOfSteps)
 
 proc newDiffuseBRDF*(pigment: Pigment = newUniformPigment(), reflectance: float32 = 1.0): DiffuseBRDF=
+    ## constructor for DiffuseBRDF 
     return DiffuseBRDF(pigment: pigment, reflectance: reflectance)
 
 proc newSpecularBRDF*(pigment: Pigment = newUniformPigment(), thresholdAngle: float32 = PI / 1800.0): SpecularBRDF=
+    ## constructor for SpecularBRDF 
     return SpecularBRDF(pigment: pigment, thresholdANgle: thresholdAngle)
 
 proc newPhongBRDF*(pigment: Pigment = newUniformPigment(), shininess: float32 = 10.0, diffuseReflectivity: float32 = 0.3, specularReflectivity: float32 = 0.5): PhongBRDF=
+    ## constructor for PhongBRDF 
     assert (diffuseReflectivity + specularReflectivity <= 1) # must obey energy conservation
     assert (shininess >= 0.0) ## cannot have negative values of shininess 
     return PhongBRDF(pigment: pigment, shininess: shininess, diffuseReflectivity: diffuseReflectivity, specularReflectivity: specularReflectivity)
 
 proc newCookTorranceBRDF*(pigment: Pigment = newUniformPigment(), diffuseCoefficient: float32 = 0.3, specCoefficient: float32 = 0.7, roughness: float32 = 0.5, albedo: float32 = 0.5, metallic: float32 = 0.5, ndf: CookTorranceNDF = CookTorranceNDF.GGX): CookTorranceBRDF =
+    ## constructor for CookTorranceBRDF 
     assert (diffuseCoefficient + specCoefficient <= 1.0)
     return CookTorranceBRDF(pigment: pigment, diffuseCoefficient: diffuseCoefficient, specularCoefficient: specCoefficient, roughness: roughness, albedo: albedo, metallic: metallic, ndf: ndf)
 
 proc newMaterial*(brdf: BRDF = newDiffuseBRDF(), pigment: Pigment = newUniformPigment()): Material=
+    ## constructor for material
     return Material(brdf: brdf, emitted_radiance: pigment)
 
 proc newImagePigment*(image: HdrImage): ImagePigment=
+    ## constructor for ImagePigment
     return ImagePigment(image: image)
 
 # ---------------------------
 
 method getColor*(self: Pigment, vec: Vector2): Color {.base.}=
+    ## Abstract method
+    ## Returns the color of the pigment at the specified coordinates
     raise newException(AbstractMethodError, "")
 
 method getColor*(self: UniformPigment, vec: Vector2): Color=
+    ## Returns the color of the pigment at the specified coordinates
+    ## Parameters
+    ##      self (UniformPigment)
+    ##      vec (Vector2): coordinates (u,v)
+    ## Returns
+    ##      (Color)
     return self.color
 
 method getColor*(self: CheckeredPigment, vec: Vector2): Color=
+    ## Returns the color of the pigment at the specified coordinates
+    ## Parameters
+    ##      self (CheckeredPigment)
+    ##      vec (Vector2): coordinates (u,v)
+    ## Returns
+    ##      (Color)
     let int_u = int(floor(vec.u * float32(self.numberOfSteps)))
     let int_v = int(floor(vec.v * float32(self.numberOfSteps)))
 
@@ -102,6 +126,12 @@ method getColor*(self: CheckeredPigment, vec: Vector2): Color=
         return self.color2
 
 method getColor*(self: GradientPigment, vec: Vector2): Color=
+    ## Returns the color of the pigment at the specified coordinates
+    ## Parameters
+    ##      self (GradientPigment)
+    ##      vec (Vector2): coordinates (u,v)
+    ## Returns
+    ##      (Color)
     let 
         ueff = self.uCoefficient * vec.u
         veff = self.vCoefficient * vec.v
@@ -110,6 +140,12 @@ method getColor*(self: GradientPigment, vec: Vector2): Color=
     return c
 
 method getColor*(self: ImagePigment, vec: Vector2): Color=
+    ## Returns the color of the pigment at the specified coordinates
+    ## Parameters
+    ##      self (ImagePigment)
+    ##      vec (Vector2): coordinates (u,v)
+    ## Returns
+    ##      (Color)
     var col = int(vec.u * float32(self.image.width))
     var row = int(vec.v * float32(self.image.height))
 
@@ -122,6 +158,7 @@ method getColor*(self: ImagePigment, vec: Vector2): Color=
     return c
 
 method getImage*(self: ImagePigment, image: HdrImage): HdrImage {.base.}=
+    ## Returns the image of a ImagePigment
     return self.image
 
 method eval*(self: BRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color {.base.}=
