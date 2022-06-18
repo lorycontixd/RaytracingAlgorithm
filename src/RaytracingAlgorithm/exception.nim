@@ -18,7 +18,7 @@ type
     InvalidColorError* =  object of InputError
         c*: float32
         component*: string
-    ShapeIDNotFoundError* =  object of InputError
+    ShapeIDNotFoundError* =  ref object of InputError
         shape_id*: string
     
     PFMImageError* =  object of ImageError
