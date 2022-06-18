@@ -91,6 +91,33 @@ type
 
     Token* = ref TokenObj
 
+# -------------------- EXCEPTIONS --------------------------
+type
+    InvalidTokenSymbolError* = ref object of ParserError
+        symbol*: char
+        token*: Token
+    InvalidTokenKindError* = ref object of ParserError
+        expectedKind*: TokenKind
+        kind*: TokenKind
+    InvalidTokenKeywordsError* = ref object of ParserError
+        token* : Token
+    InvalidTokenNumberError* = ref object of ParserError
+    InvalidTokenStringError* = ref object of ParserError
+    InvalidTokenIdentifierError* = ref object of ParserError
+
+## --- ParserError
+proc newInvalidTokenSymbolError*(symbol: char, token: Token): InvalidTokenSymbolError =
+    result = InvalidTokenSymbolError(symbol: symbol, token:token, msg: fmt"Expected symbol {symbol} but got token {$$token.symbolVal} in {token.location} ") 
+proc newInvalidTokenKindError*(expectedKind: TokenKind, kind: Token.kind): InvalidTokenKindError =
+    result = InvalidTokenKindError(expectedKind: expectedKind, kind:kind, msg:fmt"Expected {expectedKind} but got {kind}")
+proc newInvalidTokenKeywordsError*(token: Token): InvalidTokenKeywordsError =
+    result = InvalidTokenKeywordsError(token:token, msg:fmt" {token.keywordVal} is not a keyword")
+#proc newInvalidTokenNumberError*() = discard
+#proc newInvalidTokenStringError*() = discard
+#proc newInvalidTokenIdentifierError*() = discard
+
+# --------------------------------------------------------------
+
 converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s.toUpperAscii())
 ## Enumeration for all the possible keywords recognized by the lexer
 
@@ -287,9 +314,10 @@ proc ExpectSymbol*(file: var InputStream, symbol: char)=
     ## Returns
     ##      no returns, it's just a control    
     let token = file.ReadToken()
-    if token.kind != TokenKind.tkSymbol or token.symbolVal != symbol:
-        echo "Expected symbol `",symbol,"` but got token: ",$$token
-        raise TestError.newException("ciao")
+    if token.kind != TokenKind.tkSymbol:
+        raise newInvalidTokenKindError(TokenKind.tkSymbol, token.kind)
+    if token.symbolVal != symbol:
+        raise newInvalidTokenSymbolError(symbol, token)
 
 proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): KeywordType=
     ## Reads a token from 'input-file' and check that it is one of KEYWORDTYPE
@@ -299,12 +327,10 @@ proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): Keyword
     ## Returns
     ##      (KeywordType): the keyword as a '.KeywordType' object
     let token = file.ReadToken()
-    if not (token.kind == tkKeyword):
-        echo "expected keyword token but got: ",$$token
-        raise TestError.newException("ciao")
-
+    if token.kind != TokenKind.tkKeyword:
+        raise newInvalidTokenKindError(TokenKind.tkKeyword, token.kind)
     if not (token.keywordVal in keywords):
-        raise TestError.newException("ciao")
+        raise newInvalidTokenKeywordsError(token)
     return token.keywordVal
 
 proc ExpectNumber*(file: var InputStream, scene: Scene): float32=
@@ -321,9 +347,9 @@ proc ExpectNumber*(file: var InputStream, scene: Scene): float32=
     elif (token.kind == tkIdentifier):
         variable_name = token.identifierVal
         if not (scene.float_variables.hasKey(variable_name)):
-            raise TestError.newException("ciao")
+            raise TestError.newException("Unknown variable")
         return scene.float_variables[variable_name]
-    raise TestError.newException("ciao")
+    raise newInvalidTokenKindError(TokenKind.tkNumber, token.kind)
 
 
 proc ExpectString*(input_file: var InputStream): string=
@@ -334,9 +360,8 @@ proc ExpectString*(input_file: var InputStream): string=
     ## Returns
     ##      no returns, it's just a control  
     let token = input_file.ReadToken()
-    if not (token.kind == tkString):
-        raise TestError.newException("ciao")
-
+    if token.kind != TokenKind.tkString:
+        raise newInvalidTokenKindError(TokenKind.tkString, token.kind)
     return token.stringVal
 
 
@@ -347,9 +372,8 @@ proc ExpectIdentifier*(input_file: var InputStream):string=
     ## Returns
     ##      token.identifierVal (string): name of the identifier
     let token = input_file.ReadToken()
-    if not (token.kind == tkIdentifier):
-        raise TestError.newException("ciao")
-
+    if token.kind != TokenKind.tkIdentifier:
+        raise newInvalidTokenKindError(TokenKind.tkIdentifier ,token.kind)
     return token.identifierVal
 
 
@@ -758,4 +782,6 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
             let pointLight = ParsePointlight(input_file, scene)
             scene.world.AddLight(pointLight)
     return scene
+
+
 
