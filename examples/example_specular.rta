@@ -24,4 +24,5 @@ plane (ground_material, identity)
 sphere(sphere_material, translation([0, 0, 1]))
 ##############################
 
+renderer(pathtracer, <0.0, 0.0, 0.0>, 2, 4, 2)
 camera(perspective, rotation_z(30)* translation([-4, 0, 1]), 2.0, 2.0)

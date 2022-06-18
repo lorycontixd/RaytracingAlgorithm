@@ -67,6 +67,7 @@ proc newColor*(color: string): Color=
             return newColor(0.5, 0.5, 0.5)
         else:
             raise InvalidColorError.newException(fmt"Base color {color} is not defined.")
+           
 
 # ------------- Methods ----------------
 
