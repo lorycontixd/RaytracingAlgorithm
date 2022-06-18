@@ -169,7 +169,7 @@ proc render(filename: string, width: int = 800, height: int = 600, output_filena
         inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
         scene: Scene = ParseScene(inputstrm)
         img: HdrImage = newHdrImage(width, height)
-        imagetracer: ImageTracer = newImageTracer(img, scene.camera)
+        imagetracer: AntiAliasing = newAntiAliasing(img, scene.camera, 4, newPCG())
 
     ### Save image!!
     imagetracer.fireAllRays(scene.renderer.Get())
