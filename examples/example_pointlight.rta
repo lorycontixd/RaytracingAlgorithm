@@ -28,7 +28,8 @@ material cooktorrancemat(
 
 material diff(
     diffuse(uniform(<1.0, 1.0, 1.0>), 0.9),
-    uniform(<1.0, 0.0, 0.0>)
+    # uniform(<1.0, 1.0, 1.0>)
+    image("../media/images/texture_earth.pfm")
 )
 
 #light([0, 0, 40], <1.0, 1.0, 0.3>, 39.2)
