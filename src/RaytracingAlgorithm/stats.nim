@@ -32,6 +32,8 @@ type
 
     ThreadData = tuple[stat: Stats, fName: string, duration: float32]
 
+var useStats*: bool = false
+
 ## function callback
 func newFunctionCallback*(fname: string): FunctionCallback=
     return FunctionCallback(funcName: fname, callCount: 1)
@@ -59,19 +61,19 @@ proc newStats*(renderer: string): Stats =
     return Stats(startTime: now(), renderer: renderer, functionCallbacks: newSeq[FunctionCallback]())
 
 proc closeStats*(self: var Stats): void =
-    when defined(stats):
+    if useStats:
         self.endTIme = now()
         self.duration = self.endTime - self.startTime
 
 proc FindFunctionCallback*(self: var Stats, fName: string): Option[int]=
-    when defined(stats):
+    if useStats:
         for i in 0..self.functionCallbacks.high:
             if self.functionCallbacks[i].funcName == fName:
                 return some(i)
         return none(int)
 
 proc ToString*(self: var Stats): string =
-    when defined(stats):
+    if useStats:
         let startdate = self.startTime.format("yyyy-MM-dd, HH:mm:ss")
         var enddate: string
         try:
@@ -90,16 +92,16 @@ proc ToString*(self: var Stats): string =
         return s
 
 proc Show*(self: var Stats): void =
-    when defined(stats):
+    if useStats:
         echo self.ToString()
 
 proc ToFile*(self: var Stats): void =
-    when defined(stats):
+    if useStats:
         var strm: FileStream = newFileStream("stats.txt", fmWrite)
         strm.write(self.ToString())
 
 proc AddCall*(self: var Stats, fName: string, duration: Duration) {.thread, gcsafe.}=
-    when defined(stats):
+    if useStats:
         let res = self.FindFunctionCallback(fName)
         if not res.isSome:
             self.functionCallbacks.add(newFunctionCallback(fName, cast[Duration](duration), 1))
@@ -108,7 +110,7 @@ proc AddCall*(self: var Stats, fName: string, duration: Duration) {.thread, gcsa
             self.functionCallbacks[callback_index].AddFuncCall(duration)
 
 proc AddCall*(self: var Stats, fName: string, duration: Duration, depth: int) {.thread, gcsafe.}=
-    when defined(stats):
+    if useStats:
         let res = self.FindFunctionCallback(fName)
         if not res.isSome:
             self.functionCallbacks.add(newFunctionCallback(fName, duration, depth))
