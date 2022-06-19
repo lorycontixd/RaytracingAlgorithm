@@ -41,7 +41,40 @@ We are planning to publish the RaytracingAlgorithm package to nimble in order to
 
 
 ## Usage
-...
+### Renderer
+From terminal, type:
+```
+nim cpp -d:relaese RaytracingAlgorithm.nim && ./RaytracingAlgorithm.out render --filename=FILE_NAME --width=WIDTH --height=HEIGHT --output_filename=OUTPUT_FILENAME --png_output=BOOL
+```
+where:
+- ```FILE_NAME``` is the name of the input file with the description of the scene to be parsed;
+- ```WIDTH``` and ```HEIGHT``` are respectively the screen width and height in pixels, set by default to 800 and 600;
+- ```OUTPUT_FILENAME``` is the name of the name of the output file with the rendered image; it is set by default to 'output';
+- ```BOOL``` is **True** if you want the image also in a PNG format, **False** else, set to False by default.
+
+In this way, you're generating by default an image in PFM format. 
+
+### From PFM to LDR
+You would like to convert PFM images to LDR format, and you can do it as follows.
+From terminal, type:
+```
+nim cpp -d:relaese RaytracingAlgorithm.nim && ./RaytracingAlgorithm.out pfm2png --factor=FACTOR --gamma=GAMMA --input_filename=INPUT_FILENAME --output_filename=OUTPUT_FILENAME
+```
+
+where:
+- ```FACTOR``` is the multiplicative factor used to normalize the image, set by default to 0.7;
+- ```GAMMA``` is the exponent for the gamma-correction for the response of the monitor, set by default to 1.0;
+- ```INPUT_FILENAME``` is the PFM input file name;
+- ```OUTPUT_FILENAME``` is the PNG output file name.
+
+
+## Scene files
+We implemented a new straightforward language in order to create images from an input file. You can follow step by step this tutorial to generate a simple image. For more details about the language, consult the language documentation here ### add link.
+
+### How to create a simple image (tutorial)
+
+## History
+See the file changelog (### mettere link)
 
 
 ## Contributing
