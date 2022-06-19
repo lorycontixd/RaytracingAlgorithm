@@ -266,8 +266,8 @@ when isMainModule:
             "gamma" : "Exponent for gamma-correction",
             "input_filename" : "PFM file name in input  ",
             "output_filename" : "PNG file name in output"
-        }] #,
-        # [animate] 
+        }] 
+        [animate] 
     )
 
     
