@@ -20,4 +20,7 @@ plane (sky_material, translation([0, 0, 100])* rotation_y(ang_degrees))
 plane (ground_material, identity)
 sphere(sphere_material, translation([0, 0, 1]))
 camera(perspective, rotation_z(30)* translation([-4, 0, 1]), 2.0, 2.0)
-renderer()
+renderer(pathtracer, <0,0,0>, 11,6,3 )
+
+set antialiasing = new antialiasing(9)
+set logger = new logger("main.log", info)

@@ -1,18 +1,14 @@
 import hdrimage, camera, ray, color, pcg, utils, stats
 import std/[math, threadpool, times, sequtils]
+import weave
 
 
 type 
     ImageTracer* = ref object of RootObj # traces an image by shooting rays through each of its pixels
         image*: HdrImage
-        camera*: Camera 
-
-    AntiAliasing* = ref object of ImageTracer # prevents from artifacts caused by color changes in a single pixel
-        samplesPerSide: int
-        pcg: PCG
-
+        camera*: Camera
+        
 converter toParent[T:ImageTracer](x:T):ImageTracer= x.mapIt(it.ImageTracer)
-
 
 proc newImageTracer*(image: var HdrImage, camera: Camera): ImageTracer=
     ## constructor for ImageTracer
@@ -39,7 +35,7 @@ proc fireRay*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pi
     mainStats.AddCall(procName, endTime, 0)
     return self.camera.fireRay(u, v)
 
-proc fireAllRays*(self: var ImageTracer, f: proc): void {.injectProcName.}=
+proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false, antiAliasingRays: int = 0): void {.injectProcName.}=
     ## Shoots several rays through each pixel in the image
     ## For each pixel of `HdrImage` object, fires one ray and passes it to the function `f`, which
     ## accepts a `Ray` object and returns a `Color` object, to be assigned to that pixel in the image.
@@ -52,60 +48,29 @@ proc fireAllRays*(self: var ImageTracer, f: proc): void {.injectProcName.}=
     var
         color: Color
         ray: Ray
+        pcg: PCG = newPCG()
+        
     for row in 0 ..< self.image.height:
         for col in 0 ..< self.image.width:
-            ray = self.fireRay(col, row)
-            color = f(ray)
-            self.image.set_pixel(col, row, color)
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 0)
-
-func newAntiAliasing*(image: var HdrImage, camera: Camera, samples: int, pcg: PCG): AntiAliasing=
-    ## constructor for antiAliasing
-    return AntiAliasing(image: image, camera: camera, samplesPerSide: samples, pcg: pcg)
-
-proc fireRay*(self: var AntiAliasing, col, row: int, u_pixel: float32 = 0.5, v_pixel: float32 = 0.5): Ray {.injectProcName.}=
-    let start = now()
-    var
-        u:float32 = (float32(col) + u_pixel) / float32(self.image.width)
-        v:float32 = 1.0 - (float32(row) + v_pixel) / float32(self.image.height)
-    
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 0)
-    return self.camera.fireRay(u, v)
-
-proc fireAllRays*(self: var AntiAliasing, f: proc): void {.injectProcName.}=
-    ## Shoots several rays through each pixel in the image
-    ## Method 'stratified sampling':
-    ## to prevent aliasing, divides each pixel in squares and extracts a random position in
-    ## each of them, where ray will be shot
-    ## Parameters
-    ##      self (var Antialiasing) 
-    ##      f (proc)
-    ## Returns
-    ##      /
-    let start = now()
-    var
-        cumcolor: Color
-        ray: Ray
-    #echo "--> ",self.image.width,"      - ",self.image.height
-    for row in 0 .. self.image.height-1:
-        for col in 0 .. self.image.width-1:
-            cumcolor = Color.black()
-
-            if self.samplesPerSide > 0:
-                for inter_pixel_row in 0..<self.samplesPerSide:
-                    for inter_pixel_col in 0..<self.samplesPerSide:
-                        let
-                            u_pixel = (inter_pixel_col.float32 + self.pcg.random_float()) / self.samplesPerSide.float32
-                            v_pixel = (inter_pixel_row.float32 + self.pcg.random_float()) / self.samplesPerSide.float32
-                        ray = self.fireRay(col=col, row=row, u_pixel=u_pixel, v_pixel=v_pixel)
-                        cum_color = cum_color + f(ray)
-                self.image.set_pixel(col, row, cum_color * (1.0 / (self.samplesPerSide.float32 * self.samplesPerSide.float32)))
+            if useAntiAliasing:
+                
+                var cumcolor = Color.black()
+                if antiAliasingRays > 0:
+                    for inter_pixel_row in 0..<antiAliasingRays:
+                        for inter_pixel_col in 0..<antiAliasingRays:
+                            let
+                                u_pixel = (inter_pixel_col.float32 + pcg.random_float()) / antiAliasingRays.float32
+                                v_pixel = (inter_pixel_row.float32 + pcg.random_float()) / antiAliasingRays.float32
+                            ray = self.fireRay(col=col, row=row, u_pixel=u_pixel, v_pixel=v_pixel)
+                            cum_color = cum_color + f(ray)
+                    self.image.set_pixel(col, row, cum_color * (1.0 / (antiAliasingRays.float32 * antiAliasingRays.float32)))
+                else:
+                    ray = self.fireRay(col, row)
+                    color = f(ray)
+                    self.image.set_pixel(col, row, color)
             else:
-                ray = cast[var ImageTracer](self).fire_ray(col, row)
-                self.image.set_pixel(col, row, f(ray))
+                ray = self.fireRay(col, row)
+                color = f(ray)
+                self.image.set_pixel(col, row, color)
     let endTime = now() - start
     mainStats.AddCall(procName, endTime, 0)
-
-    

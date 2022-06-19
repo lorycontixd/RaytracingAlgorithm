@@ -2,7 +2,7 @@
 import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene]
 import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
 import cligen
-
+import weave
 
 proc demo(name: string, width: int = 800, height: int = 600): auto =
     logLevel = Level.debug
@@ -159,7 +159,6 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
 
 proc render(filename: string, width: int = 800, height: int = 600, output_filename = "output", pfm_output=true, png_output=false): auto =
     let start = cpuTime()
-    info("Starting rendering scene from file: " & filename)
     var strm: FileStream = newFileStream(filename, fmRead)
     if strm.isNil:
         echo getCurrentDir()
@@ -169,10 +168,33 @@ proc render(filename: string, width: int = 800, height: int = 600, output_filena
         inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
         scene: Scene = ParseScene(inputstrm)
         img: HdrImage = newHdrImage(width, height)
-        imagetracer: AntiAliasing = newAntiAliasing(img, scene.camera, 4, newPCG())
+        imagetracer: ImageTracer = newImageTracer(img, scene.camera)
+
+    if scene.settings.useLogger:
+        for log in scene.settings.loggers:
+            addLogger(log)
+    
+    useStats = scene.settings.useStats
+    info("Starting rendering scene from file: " & filename)
+
+    if scene.parseTimeLogs.len() > 0:
+        for lvl in scene.parseTimeLogs.keys:
+            for msg in scene.parseTimeLogs[lvl]:
+                case lvl:
+                    of logger.Level.debug:
+                        debug(msg)
+                    of logger.Level.info:
+                        info(msg)
+                    of logger.Level.warn:
+                        warn(msg)
+                    of logger.Level.error:
+                        error(msg)
+                    of logger.Level.fatal:
+                        fatal(msg)
+    
 
     ### Save image!!
-    imagetracer.fireAllRays(scene.renderer.Get())
+    imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
     var strmWrite = newFileStream("output.pfm", fmWrite)
     imagetracer.image.write_pfm(strmWrite)
     imagetracer.image.normalize_image(0.7)
@@ -243,8 +265,6 @@ proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string,
 when isMainModule:
     when compileOption("profiler"):
         import nimprof
-    addLogger( open( joinPath(getCurrentDir(), "main.log"), fmWrite)) # For file logging
-    #addLogger( stdout ) # For console logging
 
     info("Running RaytracingAlgorithm on version ",getPackageVersion())
     debug("Parsing command-line arguments")

@@ -1,5 +1,5 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights
-import std/[streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger
+import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
 
 ## ------------- PARSER ---------------
 ## used to analyze a sequnce of tokens in order to understand the syntactic and semantic strucuture
@@ -71,6 +71,8 @@ type
         HEIGHT,
         # SETTINGS
         SET,
+        ON,
+        OFF,
         LOGGER,
         ANTIALIASING,
         STATS
@@ -248,7 +250,7 @@ proc ReadToken*(self: var InputStream): Token=
     ##      self(InputStream): stream
     ## Returns
     ##      (Token): read token
-    let SYMBOLS = "()[],*<>"
+    let SYMBOLS = "()[],*<>="
     self.SkipWhitespacesAndComments()
     var c: Option[char] = self.ReadChar()
     if not (c.isSome) or c.get() == '\x00':
@@ -654,6 +656,82 @@ proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
         raise TestError.newException(fmt"unknown material {material_name}")
     return newTriangleMeshOBJ(transformation, filenameOBJ, scene.materials[material_name])
 
+proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
+    let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS])
+    ExpectSymbol(input_file,'=')
+    if settingID == KeywordType.LOGGER:
+        let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
+        if secondKeyword == KeywordType.OFF:
+            scene.settings.useLogger = false
+            return
+        elif secondKeyword == KeywordType.ON:
+            #addLogger( open( joinPath(getCurrentDir(), "main.log"), fmWrite))
+            scene.settings.useLogger = true
+            scene.settings.loggers.add(open( joinPath(getCurrentDir(), "main.log")))
+            let path = joinPath(getCurrentDir(), "main.log")
+            scene.AddParseTimeLog(fmt"Automatic logger created at file: {path}", logger.Level.info)
+        elif secondKeyword == KeywordType.NEW:
+            let loggerKeyword = ExpectKeywords(input_file, @[KeywordType.LOGGER])
+            ExpectSymbol(input_file, '(')
+            let strm = ExpectString(input_file)
+            if strm.len() <= 0:
+                raise TestError.newException("Empty stream passed to logger")
+            elif strm == "stdout":
+                scene.settings.loggers.add(stdout)
+                scene.AddParseTimeLog("Logger created at stream stdout", logger.Level.info)
+            elif strm == "stderr":
+                scene.settings.loggers.add(stderr)
+                scene.AddParseTimeLog("Logger created at stream stderr", logger.Level.info)
+            else:
+                let filestrm = open(strm, fmWrite)
+                if filestrm.isNil:
+                    raise TestError.newException(fmt"File {strm} does not exist")
+                scene.settings.loggers.add(filestrm)
+                scene.AddParseTimeLog(fmt"Logger created at file: {strm}", logger.Level.info)
+            ExpectSymbol(input_file, ',')
+            var
+                lvlStr: string = ExpectIdentifier(input_file)
+                lvl: Level = parseEnum[Level](lvlStr)
+            let
+                validIdentifiers = logger.Level.toSeq
+            if not (lvl in validIdentifiers):
+                raise TestError.newException("Invalid log level")
+            scene.settings.loggerLevel = lvl
+            ExpectSymbol(input_file,')')
+    elif settingID == KeywordType.STATS:
+        let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF])
+        if secondKeyword == KeywordType.OFF:
+            scene.settings.useStats = false
+            return
+        elif secondKeyword == KeywordType.ON:
+            scene.settings.useStats = true
+            return
+    elif settingID == KeywordType.ANTIALIASING:
+        let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
+        if secondKeyword == KeywordType.OFF:
+            scene.settings.useAntiAliasing = false
+            scene.settings.antiAliasingRays = 0
+        elif secondKeyword == KeywordType.ON:
+            scene.settings.useAntiAliasing = true
+            scene.settings.antiAliasingRays = 9
+            scene.AddParseTimeLog("Automatic antialiasing rays set to 9.", logger.Level.info)
+        elif secondKeyword == KeywordType.NEW:
+            let loggerKeyword = ExpectKeywords(input_file, @[KeywordType.ANTIALIASING])
+            ExpectSymbol(input_file, '(')
+            let tmp_n_rays = ExpectNumber(input_file, scene)
+            var nRays: int
+            try:
+                nRays = int(tmp_n_rays)
+            except:
+                raise newException(TestError, "Invalid integer for number of antialiasing rays")
+            let perfect_numbers = [1,4,9,16,25,36,47,64,81,100]
+            if not (nRays in perfect_numbers):
+                scene.AddParseTimeLog("Antialiasing rays is not a perfect square. This may cause misfunctionalities.", logger.Level.warn)
+            scene.settings.useAntiAliasing = true
+            scene.settings.antiAliasingRays = nRays
+            ExpectSymbol(input_file, ')')
+
+
 proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
     ## Interpretates tokens of input-file and returns the corresponding camera
     ## Parameters
@@ -763,6 +841,8 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
         elif what.keywordVal == KeywordType.LIGHT:
             let pointLight = ParsePointlight(input_file, scene)
             scene.world.AddLight(pointLight)
+        elif what.keywordVal == KeywordType.SET:
+            ParseSettings(input_file, scene) 
     if scene.camera.isNil:
         raise TestError.newException("Scene must contain at least one camera.")
     if scene.renderer.isNil:
