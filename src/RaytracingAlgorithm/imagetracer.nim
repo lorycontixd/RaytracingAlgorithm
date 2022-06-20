@@ -1,6 +1,6 @@
 import hdrimage, camera, ray, color, pcg, utils, stats
 import std/[math, threadpool, times, sequtils]
-import weave
+#import weave
 
 
 type 
