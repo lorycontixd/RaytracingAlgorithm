@@ -354,6 +354,9 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         b: Point = self.mesh.vertexPositions[self.vertices[1]]
         c: Point = self.mesh.vertexPositions[self.vertices[2]]
 
+    if not (self.mesh.aabb.RayIntersect(inversed_ray)):
+        return none(RayHit)
+    
     let det = newMatrix(@[
         @[(b.x - a.x).float32, c.x - a.x, inversed_ray.dir.x, 0.0],
         @[(b.y - a.y).float32, c.y - a.y, inversed_ray.dir.y, 0.0],
