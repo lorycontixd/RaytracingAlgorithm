@@ -800,33 +800,33 @@ proc radToDeg*(vec: Vector2): Vector2=
 
 # base vectors
 proc up*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    ## vector3 pointing upward
+    ## vector3 pointing upward (+y)
     result = newVector3(0.0, 1.0, 0.0)
 proc down*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    ## vector3 pointing downward
+    ## vector3 pointing downward (-y)
     result = newVector3(0.0, -1.0, 0.0)
 proc right*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    ## vector3 pointing to right
+    ## vector3 pointing to right (+x)
     result = newVector3(1.0, 0.0, 0.0)
 proc left*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    ## vector3 pointing to left
+    ## vector3 pointing to left (-x)
     result = newVector3(-1.0, 0.0, 0.0)
 proc forward*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    ## vector3 pointing forward
-    result = newVector3(0.0, 0.0, 1.0)
+    ## vector3 pointing forward (+z)
+    result = newVector3(0.0, 0.0, 1.0) 
 proc backward*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    ## vector3 pointing backward
+    ## vector3 pointing backward (-z)
     result = newVector3(0.0, 0.0, -1.0)
 
 proc right*(_: typedesc[Vector2]): Vector2 {.inline.}=
-    ## vector2 pointing to right
+    ## vector2 pointing to right (+u)
     result = newVector3(1.0, 0.0)
 proc left*(_: typedesc[Vector2]): Vector2 {.inline.}=
-    ## vector2 pointing to left
+    ## vector2 pointing to left (-u)
     result = newVector3(-1.0, 0.0)
 proc up*(_: typedesc[Vector2]): Vector2 {.inline.}=
-    ## vector2 pointing upward
+    ## vector2 pointing upward (+v)
     result = newVector3(0.0, 1.0)
 proc down*(_: typedesc[Vector2]): Vector2 {.inline.}=
-    ## vector2 pointing downward
+    ## vector2 pointing downward (-v)
     result = newVector3(0.0, -1.0)

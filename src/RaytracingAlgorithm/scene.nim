@@ -2,6 +2,7 @@ import world
 import camera
 import renderer
 import settings
+import pcg
 import logger
 from material import Material
 import std/[tables, sets, sequtils]
@@ -17,6 +18,7 @@ type
         overridden_variables*: HashSet[string]
         settings*: Settings
         parseTimeLogs*: Table[Level, seq[string]]
+        pcg*: PCG
 
 proc newScene*(): Scene=
     ## empty constructor for scene
@@ -24,8 +26,16 @@ proc newScene*(): Scene=
     for lvl in logger.Level.toSeq:
         parseTimeLogs[lvl] = newSeq[string]()
     var w: World = newWorld()
-    return Scene(world: w, parseTimeLogs: parseTimeLogs, settings: newSettings())
+    return Scene(world: w, parseTimeLogs: parseTimeLogs, settings: newSettings(), pcg: newPCG())
     
+proc newScene*(pcg: PCG): Scene=
+    ## empty constructor for scene
+    var parseTimeLogs: Table[Level, seq[string]] = initTable[Level, seq[string]]()
+    for lvl in logger.Level.toSeq:
+        parseTimeLogs[lvl] = newSeq[string]()
+    var w: World = newWorld()
+    return Scene(world: w, parseTimeLogs: parseTimeLogs, settings: newSettings(), pcg: pcg)
+
 func newScene*(w: var World, camera: var Camera, materials: Table[string, Material], fVars: Table[string, float32], orVars: HashSet[string]): Scene=
     ## constructor for scene
     let parseTimeLogs = initTable[Level, seq[string]]()

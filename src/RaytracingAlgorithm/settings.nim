@@ -5,6 +5,7 @@ type
         useStats*: bool
         useAntiAliasing*: bool
         useLogger*: bool
+        useParallel*: bool
         
         antiAliasingRays*: int
         loggers*: seq[File]
