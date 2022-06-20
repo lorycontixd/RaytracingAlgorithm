@@ -177,7 +177,4 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
     let resVN = (if len(vertexNormalIndices)==0 or len(vertexNormals)==0: none(seq[Normal]) else: some(vertexNormals))
     let resVT = (if len(vertexTextureIndices)==0 or len(textureCoordinates)==0: none(seq[Vector2]) else: some(textureCoordinates))
     #return newTriangleMesh(transform, nTriangles,len(vertexPoints), vertexIndices, vertexPoints, some(vertexNormalIndices), some(vertexNormals), some(vertexTextureIndices), some(textureCoordinates))
-    echo textureCoordinates,"\n"
-    echo vertexTextureIndices,"\n"
-    echo vertexPoints
     return TriangleMesh(transform: transform, nTriangles: nTriangles, nVertices: len(vertexPoints), vertexIndices: vertexIndices, vertexPositions: vertexPoints, normalIndices: resVNI, normals: resVN, textureIndices: resVTI, uvs: resVT, material:material, aabb: aabb)            
