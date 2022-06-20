@@ -116,7 +116,7 @@ proc valid_coordinates*(self: HdrImage, x,y:int): bool=
     ##      True (if valid coordinates), False (else)
     result = ((x>=0) and (x<self.width) and (y>=0) and (y<self.height))
 
-proc pixel_offset*(self: var HdrImage, x,y:int): int {.inline.} =
+proc pixel_offset*(self: HdrImage, x,y:int): int {.inline.} =
     ## Computes the index position of pixel (x,y) in the array 
     ## The pixel at the top-left corner has coordinates (0, 0)
     ## 
@@ -128,7 +128,7 @@ proc pixel_offset*(self: var HdrImage, x,y:int): int {.inline.} =
     ##      result (int)
     result = y * self.width + x
 
-proc get_pixel*(self: var HdrImage, x,y:int): Color {.inline.} =
+proc get_pixel*(self: HdrImage, x,y:int): Color {.inline.} =
     ## Returns the `Color` value for a pixel in the image
     ## The pixel at the top-left corner has coordinates (0, 0)
     ##

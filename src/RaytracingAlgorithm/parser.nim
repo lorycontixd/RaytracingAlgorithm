@@ -1,4 +1,4 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg
 import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
 
 ## ------------- PARSER ---------------
@@ -800,14 +800,14 @@ proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
         result[name] = newvalue
 
 
-proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] = initTable[string, float32]()): Scene=
+proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] = initTable[string, float32](), initialPCG: PCG = newPCG()): Scene=
     ## Interpretates tokens of input-file and returns the corresponding scene
     ## Parameters
     ##      input_file (InputStream): stream
     ##      variables (Table[string, float]): characters to be interpretated
     ## Returns
     ##      (Scene)
-    var scene: Scene = newScene()
+    var scene: Scene = newScene(initialPCG)
     scene.float_variables.shallowCopy(variables)
     var keyslist: seq[string] = @[]
     for k in variables.keys:

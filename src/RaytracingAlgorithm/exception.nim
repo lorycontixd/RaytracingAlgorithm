@@ -26,7 +26,7 @@ type
 
     ZeroDeterminantError* = object of MathError
 
-    #InvalidFormatError* = object of ParserError
+    InvalidFormatError* = object of ParserError
     InvalidCommandError* =  object of CommandLineError # invalid command passed (render, animate, pfm2png, demo)
          
 
