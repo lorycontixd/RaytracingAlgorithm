@@ -157,7 +157,7 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
 
 
 
-proc render(filename: string, width: int = 800, height: int = 600, output_filename = "output", pfm_output=true, png_output=false): auto =
+proc render(filename: string, width: int = 800, height: int = 600, pcg_state: int = 42, output_filename = "output", png_output = true): auto =
     let start = cpuTime()
     var strm: FileStream = newFileStream(filename, fmRead)
     if strm.isNil:
@@ -165,6 +165,7 @@ proc render(filename: string, width: int = 800, height: int = 600, output_filena
         raise TestError.newException(fmt"File {filename} does not exist.")
 
     var
+        pcg: PCG = newPCG(cast[uint64](pcg_state))
         inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
         scene: Scene = ParseScene(inputstrm)
         img: HdrImage = newHdrImage(width, height)
@@ -191,15 +192,17 @@ proc render(filename: string, width: int = 800, height: int = 600, output_filena
                         error(msg)
                     of logger.Level.fatal:
                         fatal(msg)
-    
+
 
     ### Save image!!
     imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
-    var strmWrite = newFileStream("output.pfm", fmWrite)
+    var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
     imagetracer.image.write_pfm(strmWrite)
-    imagetracer.image.normalize_image(0.7)
-    imagetracer.image.clamp_image()
-    imagetracer.image.write_png("output.png", 1.1)
+    if png_output:
+        imagetracer.image.normalize_image(0.9)
+        imagetracer.image.clamp_image()
+        imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
+    echo fmt"Written: {output_filename}"
     let endTime = cpuTime() - start
     mainStats.closeStats()
 
@@ -266,7 +269,11 @@ when isMainModule:
     when compileOption("profiler"):
         import nimprof
 
-    info("Running RaytracingAlgorithm on version ",getPackageVersion())
+    let pkgVersion = getPackageVersion()
+    if pkgVersion.isSome:
+        info("Running RaytracingAlgorithm on version ",pkgVersion)
+    else:
+        info("Running RaytracingAlgorithm")
     debug("Parsing command-line arguments")
 
     dispatchMulti(
@@ -277,8 +284,8 @@ when isMainModule:
             "filename" : "Scene text file to be parsed",
             "width" : "Screen width in pixels",
             "height" : "Screen height in pixels",
+            "pcg_state" : "Initial state of the random number generator",
             "output_filename": "Name of the rendered output image",
-            "pfm_output": "Save a PFM image",
             "png_output": "Save a PNG"
         }],
         [pfm2png, help = {
@@ -286,8 +293,8 @@ when isMainModule:
             "gamma" : "Exponent for gamma-correction",
             "input_filename" : "PFM file name in input  ",
             "output_filename" : "PNG file name in output"
-        }] 
-        [animate] 
+        }]
+        # [animate] 
     )
 
     
