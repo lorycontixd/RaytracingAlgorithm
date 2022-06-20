@@ -2,7 +2,6 @@
 import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene]
 import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
 import cligen
-#import weave
 
 proc demo(name: string, width: int = 800, height: int = 600): auto =
     logLevel = Level.debug
