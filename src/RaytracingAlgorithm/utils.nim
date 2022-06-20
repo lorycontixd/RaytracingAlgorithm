@@ -119,7 +119,6 @@ proc TriangulatePolygon*(vertices: seq[int]): seq[int]=
         return @[]
     var newVertices: seq[int]
     var pivot: int = vertices[0]
-    echo "Pivot: ",pivot
     for i in 1..len(vertices)-2:
         newVertices.add(pivot)
         newVertices.add(vertices[i])
