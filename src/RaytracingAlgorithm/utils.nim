@@ -1,4 +1,4 @@
-import std/[os, strutils, macros, parsecfg, times, terminal, parseutils]
+import std/[os, strutils, macros, parsecfg, times, terminal, parseutils, options]
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
 
@@ -62,10 +62,12 @@ proc cmdArgsToString*(): string=
     str = str[0 .. ^2]
     return str
 
-proc getPackageVersion*(): string=
-    var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
-
-    result = p.getSectionValue("", "version") 
+proc getPackageVersion*(isMainModule: bool = false): Option[string]=
+    if isMainModule:
+        var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
+        result = some(p.getSectionValue("", "version"))
+    else:
+        result = none(string)
 
 macro apply*(f, t: typed): auto =
   var args = newSeq[NimNode]()

@@ -1,4 +1,4 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg
 import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
 
 ## ------------- PARSER ---------------
@@ -584,7 +584,12 @@ proc ParseTransformation*(input_file: var InputStream, scene: Scene): Transforma
             break
 
 proc ParseRenderer*(input_file: var InputStream, scene: Scene): Renderer=
-    ##
+    ##Interpretates tokens of input-file and returns the corresponding renderer
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Renderer)
     ExpectSymbol(input_file, '(')
     let renderer_keyword = ExpectKeywords(input_file, @[KeywordType.POINTLIGHT, KeywordType.ONOFF, KeywordType.FLAT, KeywordType.PATHTRACER])
     ExpectSymbol(input_file, ',')
@@ -618,6 +623,12 @@ proc ParseRenderer*(input_file: var InputStream, scene: Scene): Renderer=
         raise TestError.newException("Invalid keyworld for renderer.")
 
 proc ParsePointlight(input_file: var InputStream, scene: Scene): Pointlight=
+    ## Interpretates tokens of input-file and returns the corresponding point-light
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Pointlight)
     ExpectSymbol(input_file, '(')
     let position = ParseVector(input_file, scene)
     ExpectSymbol(input_file, ',')
@@ -681,6 +692,13 @@ proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
     return newTriangleMeshOBJ(transformation, filenameOBJ, scene.materials[material_name])
 
 proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
+    ## Interpretates tokens of input-file and returns the corresponding setting for the scene
+    ## ex: Antialiasing: On/off
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      /
     let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS])
     ExpectSymbol(input_file,'=')
     if settingID == KeywordType.LOGGER:
@@ -800,14 +818,14 @@ proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
         result[name] = newvalue
 
 
-proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] = initTable[string, float32]()): Scene=
+proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] = initTable[string, float32](), initialPCG: PCG = newPCG()): Scene=
     ## Interpretates tokens of input-file and returns the corresponding scene
     ## Parameters
     ##      input_file (InputStream): stream
     ##      variables (Table[string, float]): characters to be interpretated
     ## Returns
     ##      (Scene)
-    var scene: Scene = newScene()
+    var scene: Scene = newScene(initialPCG)
     scene.float_variables.shallowCopy(variables)
     var keyslist: seq[string] = @[]
     for k in variables.keys:

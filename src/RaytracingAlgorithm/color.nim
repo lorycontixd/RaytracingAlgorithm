@@ -72,7 +72,7 @@ proc newColor*(color: string): Color=
 # ------------- Methods ----------------
 
 proc luminosity*(color: Color): float32 =
-    ## Color class method to compute luminosity
+    ## Color class method to compute luminosity, as average between max and min component of the color
     ## 
     ## Parameters
     ##      color (Color)
