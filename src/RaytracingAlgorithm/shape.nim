@@ -29,37 +29,27 @@ type
 
 proc newSphere*(id: string, origin: Point, radius: float32 ): Sphere =
     ## constructor for sphere
-    if not id.contains("SPHERE"):
-        raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     result = Sphere(id: id, origin: origin, radius: radius)
 
 proc newSphere*(id: string = "SPHERE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Sphere =
     ## constructor for sphere
-    if not id.contains("SPHERE"):
-        raise ValueError.newException("Sphere id must contain SPHERE keyword.")
     let o = ExtractTranslation(transform.m).convert(Point)
     let scaling = ExtractScale(transform.m)
     if scaling[0,0] != scaling[1,1] or scaling[1,1] != scaling[2,2]:
         raise NotImplementedError.newException("Asymmetrical spheres have not yet been implemented!")
     let radius = scaling[0,0]
-    result = Sphere(id: id, transform: transform, material: material, origin: o, radius: radius, aabb: newAABB(newPoint(o.x-radius, o.y-radius, o.z-radius), newPoint( o.x+radius, o.y+radius, o.z+radius)))
+    result = Sphere(id: id, transform: transform, material: material, origin: o, radius: radius, aabb: newAABB(newPoint(o.x-radius, o.y-radius, o.z-radius), newPoint( o.x+radius, o.y+radius, o.z+radius)), animator: newAnimator(id, transform))
     
 proc newPlane*(id: string = "PLANE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Plane =
     ## constructor for Plane
-    if not id.contains("PLANE"):
-        raise ValueError.newException("Plane id must contain PLANE keyword.")
-    result = Plane(id: id, transform: transform, material: material, origin: ExtractTranslation(transform.m).convert(Point))
+    result = Plane(id: id, transform: transform, material: material, origin: ExtractTranslation(transform.m).convert(Point), animator: newAnimator(id, transform))
 
 proc newCylinder*(id: string = "CYLINDER_0", transform: Transformation, material: Material = newMaterial()): Cylinder=
     ## constructor for cylinder
-    if not id.contains("CYLINDER"):
-        raise ValueError.newException("Cylinder id must contain CYLINDER keyword.")
     result = Cylinder(id: id, transform: transform, material: material, aabb: newAABB(newPoint(), newPoint()))
 
 proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTransformation(), mesh: TriangleMesh, triNumber: int = 0, material: Material = newMaterial()): Triangle=
-    ## constructor for triangke
-    if not id.contains("TRIANGLE"):
-        raise ValueError.newException("Triangle id must contain CYLINDER keyword.")
+    ## constructor for triangle
     var
         v: array[3, int] = [mesh.vertexIndices[3 * triNumber], mesh.vertexIndices[3 * triNumber + 1], mesh.vertexIndices[3 * triNumber + 2]]
         vn, vt: Option[array[3,int]] = none(array[3,int])
@@ -68,7 +58,7 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
     if mesh.textureIndices.isSome:
         vt = some([mesh.textureIndices.get()[3 * triNumber ], mesh.textureIndices.get()[3 * triNumber + 1], mesh.textureIndices.get()[3 * triNumber + 2]])
     var aabb: AABB = Union( newAABB(transform * mesh.vertexPositions[v[0]], transform * mesh.vertexPositions[v[1]]), mesh.vertexPositions[v[2]])
-    result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb)
+    result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb, animator: newAnimator(id, transform))
 
 proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
     ## Creates a mesh of triangles
