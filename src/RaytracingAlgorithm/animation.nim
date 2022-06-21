@@ -1,4 +1,4 @@
-import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix, animator
+import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix, animator, scene
 import std/[os, strformat, strutils, terminal]
 #[
 type
@@ -171,6 +171,7 @@ proc Show*(self: Animation) = discard
 
 type
     Animation* = object
+        #[
         width*: int
         height*: int
         camType*: CameraType
@@ -179,30 +180,35 @@ type
         world*: World
         duration_sec*: int
         framerate*: int
+        ]#
         nframes: int
+        scene*: Scene
 
         # internal
         frames*: seq[ImageTracer]
 
-func newAnimation*(world: var World, width, height: int, renderer: Renderer, cameraTransform: Transformation, camType: CameraType, duration_sec, fps: int): Animation=
-    return Animation(world: world, width: width, height: height, render: renderer, cameraTransform: cameraTransform, camType: camType, duration_sec: duration_sec, framerate: fps, nframes: duration_sec*fps)
-    
+#func newAnimation*(world: var World, width, height: int, renderer: Renderer, cameraTransform: Transformation, camType: CameraType, duration_sec, fps: int): Animation=
+#    return Animation(world: world, width: width, height: height, render: renderer, cameraTransform: cameraTransform, camType: camType, duration_sec: duration_sec, framerate: fps, nframes: duration_sec*fps)
+func newAnimation*(scene: Scene): Animation=
+    return Animation(scene: scene, nframes: scene.settings.animDuration * scene.settings.animFPS)
+
+
 proc SetTransforms*(self: var Animation, t: var float32): void=
-    for shape in self.world.shapes:
+    for shape in self.scene.world.shapes:
         shape.transform = shape.animator.Play(t)
 
 proc Play*(self: var Animation): void=
     for i in countup(0, self.nframes-1):
         var
-            t: float32 = float32(i / (self.nframes - 1)) * float32(self.duration_sec)
+            t: float32 = float32(i / (self.nframes - 1)) * float32(self.scene.settings.animDuration)
             percentage: int = int(float32(i)/float32(self.nframes-1) * 100.0)
         stdout.styledWriteLine(fgRed, fmt"{i+1}/{self.nframes}", fgWhite, '#'.repeat percentage, if percentage > 50: fgGreen else: fgYellow, "\t", $percentage , "%")
         self.SetTransforms(t)
         var
-            cam = newPerspectiveCamera(self.width, self.height, transform=self.cameraTransform)
-            hdrImage: HdrImage = newHdrImage(self.width, self.height)
-            imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
-        imagetracer.fireAllRays(self.render.Get())
+            cam = newPerspectiveCamera(self.scene.settings.width, self.scene.settings.height, transform=self.scene.camera.transform)
+            hdrImage: HdrImage = newHdrImage(self.scene.settings.width, self.scene.settings.height)
+            imagetracer: ImageTracer = newImageTracer(hdrImage, self.scene.camera)
+        imagetracer.fireAllRays(self.scene.renderer.Get(), self.scene.settings.useAntiAliasing, self.scene.settings.antiAliasingRays)
         let lum = imagetracer.image.average_luminosity()
         debug(fmt"Created frame {i+1}/{self.nframes} --> Average Luminosity: {lum}")
         self.frames.add(imagetracer)
@@ -234,7 +240,7 @@ proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
         img.write_png(savePath, 1.0)
         debug("Written temporary PNG: ",savePath)
         i = i + 1
-    var cmd: string = fmt"ffmpeg -f image2 -r {self.framerate} -i '{dirName}/output_%04d.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
+    var cmd: string = fmt"ffmpeg -f image2 -r {self.scene.settings.animFPS} -i '{dirName}/output_%04d.png' -c:v libx264 -pix_fmt yuv420p out.mp4"
     let res = execShellCmd(cmd)
     debug("FFmpeg command called, return status: ",res)
     if res == 0:
