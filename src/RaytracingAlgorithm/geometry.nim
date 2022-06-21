@@ -1,9 +1,8 @@
-import neo
 import std/[math, macros, typetraits, strformat, strutils]
-import exception
+from utils import IsEqual
 
 type
-    Vector3* = object
+    Vector3* = object   #to represent the ray-light direction
         x*, y*, z*: float32
     
     Vector2* = object
@@ -12,12 +11,14 @@ type
     Point* = object
         x*, y*, z*: float32
     
-    Normal* = object
+    Normal* = object   #to represent the surface inclination in a point
         x*, y*, z*: float32
 
 ## --------------------------------  CONSTRUCTORS  ------------------------------------------
 
-macro defineEmptyConstructors(type1: typedesc): typed =
+macro defineEmptyConstructors(type1: typedesc) =
+    ## constructor for vector3, Point and Normal
+    ## initializes all coordinates to 0.0
     let source = fmt"""
 proc new{$type1}*(): {$type1} =
     result = {$type1}(x: 0.0, y: 0.0, z: 0.0)
@@ -25,12 +26,14 @@ proc new{$type1}*(): {$type1} =
     result = parseStmt(source)
 
 proc newVector2*(): Vector2=
+    ## constructor to Vector2, initializing all coordinates to 0.0
     result = Vector2(u: 0.0, v: 0.0)
 
 #[proc newPoint*(x: float32, y: float32, z: float32) : Point =
     result = Point(x:x, y:y, z:z)]#
 
-macro defineConstructors(type1: typedesc): typed =
+macro defineConstructors(type1: typedesc) =
+    ## constructor for vector3, Point and Normal
     let source = fmt"""
 proc new{$type1}*(x,y,z: float32): {$type1} =
     result = {$type1}(x: x, y: y, z: z)
@@ -38,9 +41,11 @@ proc new{$type1}*(x,y,z: float32): {$type1} =
     result = parseStmt(source)
 
 proc newVector2*(u, v: float32): Vector2=
+    ## constructor to Vector2
     result = Vector2(u:u, v:v)
 
-macro defineCopyConstructors(type1: typedesc): typed =
+macro defineCopyConstructors(type1: typedesc) =
+    ## creates a copy of vector3, Point and Normal
     let source = fmt"""
 proc new{$type1}*(other: {$type1}): {$type1} =
     result = {$type1}(x: other.x, y: other.y, z: other.z)
@@ -48,6 +53,7 @@ proc new{$type1}*(other: {$type1}): {$type1} =
     result = parseStmt(source)
 
 proc newVector2*(other: Vector2): Vector2=
+    ## creates a copy of vector2
     result = Vector2(u: other.u, v: other.v)
 
 defineEmptyConstructors(Point)
@@ -64,6 +70,13 @@ defineCopyConstructors(Normal)
 ## --------------------------------  Sum + Subtraction  ------------------------------------------
 
 template defineOperations(fname: untyped, type1: typedesc, type2: typedesc, rettype: typedesc) =
+    ## Template for Sum and Differece
+    ## Returns the sum or difference between Vector3, Point and Normal
+    ## Parameters
+    ##     a (type1 (typedesc)): Vector3, Point or Normal
+    ##     b (type2 (typedesc)): Vector3, Point or Normal
+    ## Returns
+    ##      Vector3, Point or Normal resulting from the operation
     proc fname*(a: type1, b: type2): rettype =
         result.x = fname(a.x, b.x)
         result.y = fname(a.y, b.y)
@@ -75,11 +88,18 @@ defineOperations(`+`, Vector3, Point, Point)
 defineOperations(`-`, Vector3, Point, Point)
 defineOperations(`+`, Point, Vector3, Point)
 defineOperations(`-`, Point, Vector3, Point)
-defineOperations(`-`, Point, Point, Vector3)
 defineOperations(`+`, Normal, Normal, Normal)
 defineOperations(`-`, Normal, Normal, Normal)
+defineOperations(`+`, Point, Point, Point)
+defineOperations(`-`, Point, Point, Point)
 
 template defineVector2Operations(fname: untyped) =
+    ## Template for Sum and Differece
+    ## Returns the sum or difference between Vector2
+    ## Parameters
+    ##      a, b (Vector2)
+    ## Returns
+    ##      Vector2 resulting from the operation
     proc fname*(a, b: Vector2): Vector2=
         result.u = fname(a.u, b.u)
         result.v = fname(a.v, b.v)
@@ -89,18 +109,61 @@ defineVector2Operations(`-`)
 
 ## ---------------------------------------  Products  ------------------------------------------
 
-template defineProduct(type1: typedesc) =
-    # Product with scalar
+template defineFloatProduct(type1: typedesc) =
+    ## Product between a Vector3/Point/Normal and a scalar
     proc `*`*(a: type1, b: float32): type1 =
         result.x = a.x * b
         result.y = a.y * b
         result.z = a.z * b
+    
+    proc `*`*(b: float32, a: type1): type1 =
+        result.x = a.x * b
+        result.y = a.y * b
+        result.z = a.z * b
 
-defineProduct(Vector3)
-defineProduct(Point)
-defineProduct(Normal)
+defineFloatProduct(Vector3)
+defineFloatProduct(Point)
+defineFloatProduct(Normal)
+
+proc `*`*(scalar: float32, v: Vector2): Vector2=
+    ## Product between a Vector2 and a scalar
+    result = newVector2(v.u * scalar, v.v * scalar)
+
+proc `*`*(v: Vector2, scalar: float32): Vector2=
+    ## Product between a Vector2 and a scalar
+    result = scalar * v
+
+template defineComponentProduct(type1, type2, rettype: typedesc) =
+    ## Product between Vector3/Point/Normal
+    proc ComponentProduct*(a: type1, b: type2): rettype=
+        result.x = a.x * b.x
+        result.y = a.y * b.y
+        result.z = a.z * b.z
+
+defineComponentProduct(Point, Point, Point)
+defineComponentProduct(Vector3, Vector3, Vector3)
+defineComponentProduct(Point, Vector3, Vector3)
+defineComponentProduct(Vector3, Point, Vector3)
+
+template defineFloatDivision(type1: typedesc) =
+    ## Division between Vector3/Point/Normal and a float
+    proc `/`*(a: type1, b: float32): type1 =
+        result.x = a.x / b
+        result.y = a.y / b
+        result.z = a.z / b
+    
+    proc `/`*(b: float32, a: type1): type1 =
+        result.x = b / a.x 
+        result.y = b / a.y
+        result.z = b / a.z
+
+defineFloatDivision(Vector3)
+defineFloatDivision(Point)
+defineFloatDivision(Normal)
+
 
 template defineDot(type1: typedesc, type2: typedesc) = 
+    ## Dot product between Vector3/Point/Normal
     proc Dot*(this: type1, other: type2): float32 = 
         result = this.x * other.x + this.y * other.y + this.z * other.z
     
@@ -111,14 +174,17 @@ defineDot(Vector3, Vector3)
 defineDot(Normal, Vector3)
 defineDot(Vector3, Normal)
 defineDot(Point, Vector3)
+defineDot(Vector3, Point)
 
 proc Dot*(this, other: Vector2): float32=
+    ## Dot product between Vector2
     result = this.u * other.u + this.v * other.v
 
 proc `*`*(this, other: Vector2): float32 = 
         result = this.Dot(other)
 
 template defineCross(type1: typedesc, type2: typedesc, rettype: typedesc) =
+    ## Cross product between Vector3/Point/Normal
     proc Cross*(this: type1, other: type2): rettype =
         result.x = this.y * other.z - this.z * other.y
         result.y = this.z * other.x - this.x * other.z
@@ -131,6 +197,7 @@ defineCross(Normal, Normal, Vector3)
 ## ----------------------------------------  Norm  ----------------------------------------------
 
 template defineNorm(type1: typedesc)=
+    ## Norm of Vector3/Point/Normal
     proc squareNorm*(a: type1): float32=
         result = pow(a.x,2) + pow(a.y,2) + pow(a.z,2)
     proc norm*(a: type1): float32=
@@ -141,34 +208,17 @@ defineNorm(Point)
 defineNorm(Normal)
 
 proc squareNorm*(a: Vector2): float32=
+    ## Square norm of Vector2
     result = pow(a.u,2) + pow(a.v,2)
 
 proc norm*(a: Vector2): float32 =
+    ## Norm of Vector2
     result = sqrt(square_norm(a))
 
 ## ------------------------------------  Other operators  ---------------------------------------
 
-# normalize
-template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or Normal 
-    proc normalize*(a: type1): type1=
-        result.x = a.x/a.norm()
-        result.y = a.y/a.norm()
-        result.z = a.z/a.norm()
-
-    proc normalizeInplace*(a: var type1): void=
-        a.x = a.x/a.norm()
-        a.y = a.y/a.norm()
-        a.z = a.z/a.norm()
-
-defineNormalize(Vector3)
-defineNormalize(Normal)
-
-proc normalize*(a: Vector2): Vector2=
-    result.u = a.u/a.norm()
-    result.v = a.v/a.norm()
-
-# neg
 template defineNegative(type1: typedesc) =
+    ## Negative of Vector3/Point/Normal
     proc neg*(a: type1): type1 =
         result.x = -a.x
         result.y = -a.y
@@ -176,12 +226,19 @@ template defineNegative(type1: typedesc) =
 
 defineNegative(Vector3)
 defineNegative(Normal)
+defineNegative(Point)
+
 
 proc neg*(a: Vector2): Vector2=
+    ## Negative of Vector2
     result = newVector2(-a.u, -a.v)
+
+
+
 
 # convert
 template defineConvert(type1: typedesc, rettype: typedesc) =
+    ## Converts a a type between Vector3/Point/Normal into another
     proc convert*(a: type1, t: typedesc[rettype]): rettype =
         result.x = a.x
         result.y = a.y
@@ -191,38 +248,77 @@ defineConvert(Vector3, Normal)
 defineConvert(Point, Vector3)
 defineConvert(Vector3, Point)
 defineConvert(Normal, Vector3)
-
-# eq
-proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
-    return abs(x - y) < epsilon
+defineConvert(Normal, Point)
 
 template defineEqualities(type1: typedesc) =
     proc `==`*(this, other: type1): bool=
+        ## Verifies if two Vector3/Point/Normal are the same
         return this.x == other.x and this.y == other.y and this.z == other.z
     
     proc `!=`*(this, other: type1): bool=
+        ## Verifies if two Vector3/Point/Normal are different
         return this.x != other.x or this.y != other.y or this.z != other.z
 
     proc isClose*(this, other: type1, eps: float32 = 1e-4): bool=
+        ## Verifies if two Vector3/Point/Normal are equal
+        ## They're considered equal if their difference is less than 'eps' (default_value: 10^(-4))
         return IsEqual(this.x, other.x, eps) and IsEqual(this.y, other.y, eps) and IsEqual(this.z, other.z, eps)
 
     proc isNotClose*(this, other: type1): bool=
+        ## Verifies if two Vector3/Point/Normal are NOT equal
+        ## They're considered equal if their difference is less than 'eps'
         return not(IsEqual(this.x, other.x) or IsEqual(this.y, other.y) or IsEqual(this.z, other.z))
 
 defineEqualities(Vector3)
 defineEqualities(Point)
 defineEqualities(Normal)
 
+# normalize
+template defineNormalize(type1: typedesc)=     #returns normalized Vector3 or Normal 
+    proc normalize*(a: type1): type1=
+        ## Returns a new Vector3/Point/Normal which is the input Vector3/Point/Normal normalized
+        result.x = a.x/a.norm()
+        result.y = a.y/a.norm()
+        result.z = a.z/a.norm()
+
+    proc normalizeInplace*(a: var type1): void=
+        ## Returns the input Vector3/Point/Normal normalized
+        a.x = a.x/a.norm()
+        a.y = a.y/a.norm()
+        a.z = a.z/a.norm()
+
+    proc IsNormalized*(a: type1): bool=
+        ## Verifies if a Vector3/Point/Normal is normalized
+        return (a.x * a.x + a.y * a.y * a.z * a.z).IsEqual(1.0)
+
+defineNormalize(Vector3)
+defineNormalize(Normal)
+defineNormalize(Point)
+
+proc normalize*(a: Vector2): Vector2=
+    ## Returns a new Vector2 which is the input Vector2 normalized
+    result.u = a.u/a.norm()
+    result.v = a.v/a.norm()
+
+
+
+
 proc `==`*(this, other: Vector2): bool =
+    ## Verifies if two Vector2 are the same
     return this.u == other.u and this.v == other.v
 
 proc `!=`*(this, other: Vector2): bool=
-        return this.u != other.u or this.v != other.v
+    ## Verifies if two Vector2 are different
+    return this.u != other.u or this.v != other.v
 
 proc isClose*(this, other: Vector2, eps: float32 = 1e-5): bool=
-        return IsEqual(this.u, other.u, eps) and IsEqual(this.v, other.v, eps)
+    ## Verifies if two Vector2 are equal
+    ## They're considered equal if their difference is less than 'eps' (default_value: 10^(-5))
+    return IsEqual(this.u, other.u, eps) and IsEqual(this.v, other.v, eps)
 
 proc isNotClose*(this, other: Vector2): bool=
+    ## Verifies if two Vector2 are NOT equal
+    ## They're considered equal if their difference is less than 'eps' (default_value: 10^(-5))
     return not(IsEqual(this.u, other.v) or IsEqual(this.u, other.v))
 
 
@@ -493,6 +589,35 @@ toString(Point)
 toString(Normal)  
 
 
+proc `[]`*(self: Vector2, index: int): float32=
+    case index:
+        of 0:
+            return self.u
+        of 1:
+            return self.v
+        else:
+            raise ValueError.newException("Invalid index access for Vector2")
+
+proc `[]=`*(self: var Vector2, index: int, val: float32): void=
+    case index:
+        of 0:
+            self.u = val
+        of 1:
+            self.v = val
+        else:
+            raise ValueError.newException("Invalid index access for Vector2")
+
+template definePermute(type1: typedesc)=
+    proc Permute*(a: type1, x,y,z: int): type1=
+        result.x = a[x]
+        result.y = a[y]
+        result.z = a[z]
+
+definePermute(Vector3)
+definePermute(Normal)
+definePermute(Point)
+
+
 ## ----------------------------------------  Vector3 Specific  ----------------------------------------------
 proc Dot*(_:typedesc[Vector3], this, other: Vector3): float32 {.inline.} = 
     ## Returns the dot product (float32) between two vectors.
@@ -503,6 +628,7 @@ proc Dot*(_:typedesc[Vector3], this, other: Vector3): float32 {.inline.} =
 
 macro defineDistance(type1: untyped): void =
     ## Define a distance between objects of type type1
+    ## Use: Distance(pointA, pointB)
     nnkStmtList.newTree(
         nnkProcDef.newTree(
             nnkPostfix.newTree(
@@ -620,7 +746,7 @@ proc Cross*(_:typedesc[Vector3], this, other: Vector3): Vector3 {.inline.}=
     result.z = this.x * other.y - this.y * other.x
 
 proc Angle*(_:typedesc[Vector3], a, b: Vector3, kEpsilonNormalSqrt: float32 = 1e-15): float32 {.inline.}=
-    ## Computes the angle (float32) between two vectors.
+    ## Computes the angle (float32) between two vectors3.
     ## Static method
     ##
     ## Example: let angle = Vector3.Angle(newVector3(1,2,3), newVector3(4,5,6))
@@ -631,14 +757,20 @@ proc Angle*(_:typedesc[Vector3], a, b: Vector3, kEpsilonNormalSqrt: float32 = 1e
     return float(radToDeg(arccos(dot)))
 
 proc Angle*(_: typedesc[Vector2], a,b: Vector2, kEpsilonNormalSqrt: float32 = 1-15): float32 {.inline.}=
+    ## Computes the angle (float32) between two vectors2.
+    ## Static method
+    ##
+    ## Example: let angle = Vector2.Angle(newVector3(1,2), newVector3(4,5))
     var denominator: float32 = float(sqrt(a.square_norm() * b.square_norm()))
     if (denominator < kEpsilonNormalSqrt):
         return 0.0
     var dot: float32 = Dot(a, b) / denominator.clamp(-1.0, 1.0)
     return float(radToDeg(arccos(dot)))
 
+#template defineStaticDistance()
+
 proc Slerp*(_: typedesc[Vector3], fromV, toV: Vector3, t: float32): Vector3=
-    ## Gives the vector between fromV and toV at percentage t.
+    ## Gives the vector between 'fromV' and 'toV 'at percentage t.
 
     
     # Dot product - the cosine of the angle between 2 vectors.
@@ -659,30 +791,42 @@ proc Slerp*(_: typedesc[Vector3], fromV, toV: Vector3, t: float32): Vector3=
     return ((fromV*cos(theta)) + (relativeVec * sin(theta)));
 
 proc radToDeg*(vec: Vector3): Vector3=
+    ## converts the components from radians to derees
     result = newVector3(radToDeg(vec.x), radToDeg(vec.y), radToDeg(vec.z))
 
 proc radToDeg*(vec: Vector2): Vector2=
+    ## converts the components from radians to derees
     result = newVector2(radToDeg(vec.u), radToDeg(vec.v))
 
 # base vectors
 proc up*(_: typedesc[Vector3]): Vector3 {.inline.}=
+    ## vector3 pointing upward (+y)
     result = newVector3(0.0, 1.0, 0.0)
 proc down*(_: typedesc[Vector3]): Vector3 {.inline.}=
+    ## vector3 pointing downward (-y)
     result = newVector3(0.0, -1.0, 0.0)
 proc right*(_: typedesc[Vector3]): Vector3 {.inline.}=
+    ## vector3 pointing to right (+x)
     result = newVector3(1.0, 0.0, 0.0)
 proc left*(_: typedesc[Vector3]): Vector3 {.inline.}=
+    ## vector3 pointing to left (-x)
     result = newVector3(-1.0, 0.0, 0.0)
 proc forward*(_: typedesc[Vector3]): Vector3 {.inline.}=
-    result = newVector3(0.0, 0.0, 1.0)
+    ## vector3 pointing forward (+z)
+    result = newVector3(0.0, 0.0, 1.0) 
 proc backward*(_: typedesc[Vector3]): Vector3 {.inline.}=
+    ## vector3 pointing backward (-z)
     result = newVector3(0.0, 0.0, -1.0)
 
 proc right*(_: typedesc[Vector2]): Vector2 {.inline.}=
+    ## vector2 pointing to right (+u)
     result = newVector3(1.0, 0.0)
 proc left*(_: typedesc[Vector2]): Vector2 {.inline.}=
+    ## vector2 pointing to left (-u)
     result = newVector3(-1.0, 0.0)
 proc up*(_: typedesc[Vector2]): Vector2 {.inline.}=
+    ## vector2 pointing upward (+v)
     result = newVector3(0.0, 1.0)
 proc down*(_: typedesc[Vector2]): Vector2 {.inline.}=
+    ## vector2 pointing downward (-v)
     result = newVector3(0.0, -1.0)

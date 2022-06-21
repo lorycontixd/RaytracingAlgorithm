@@ -1,6 +1,4 @@
-import std/[os, strutils, strformat, macros, parsecfg, times]
-from sequtils import mapIt
-import neo
+import std/[os, strutils, macros, parsecfg, times, terminal, parseutils, options]
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
 
@@ -21,6 +19,17 @@ proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
         x[i] = s[i]
     return x
 
+proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
+    ## Function to verify if two floats are approximately equal
+    ## 
+    ## Parameters
+    ## - x (float32): left float
+    ## - y (float32): right float
+    ## 
+    ## Returns
+    ##      True (floats are close) or False (floats are not equal)
+    return abs(x - y) < epsilon
+
 proc size*[T](x: T): int =
     #[
         Returns the size of a container of type T
@@ -28,7 +37,7 @@ proc size*[T](x: T): int =
     for _ in x:
         inc result
 
-proc getFileCount(dirPath: string): int =
+proc getFileCount*(dirPath: string): int =
     result = 0
     for kind, path in walkDir(dirPath):
         inc result
@@ -53,26 +62,12 @@ proc cmdArgsToString*(): string=
     str = str[0 .. ^2]
     return str
 
-proc getPackageVersion*(): string=
-    var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
-
-    result = p.getSectionValue("", "version") 
-
-proc getMatrixRows*(m: Matrix): int =
-    var k: int = 0
-    for i in m.rows:
-        inc k
-    return k
-
-proc getMatrixCols*(m: Matrix): int =
-    var k: int = 0
-    for i in m.columns:
-        inc k
-    return k
-
-proc getMatrixSize*(m: Matrix): (int,int)=
-    result = (getMatrixRows(m), getMatrixCols(m))
-
+proc getPackageVersion*(isMainModule: bool = false): Option[string]=
+    if isMainModule:
+        var p: Config = loadConfig(joinPath(packageRootDir, "RaytracingAlgorithm.nimble"))
+        result = some(p.getSectionValue("", "version"))
+    else:
+        result = none(string)
 
 macro apply*(f, t: typed): auto =
   var args = newSeq[NimNode]()
@@ -88,3 +83,48 @@ template timeIt*(theFunc: proc, passedArgs: varargs[untyped]): untyped =
   let res = theFunc(passedArgs)
   echo "Time taken: ",cpuTime() - t
   res
+
+proc showBar*(content: string) =
+    stdout.eraseLine
+    stdout.write("[$1]" % [content])
+    stdout.flushFile
+
+proc progressBar*()=
+    for i in 0..100:
+        stdout.styledWriteLine(fgRed, "0% ", fgWhite, '#'.repeat i, if i > 50: fgGreen else: fgYellow, "\t", $i , "%")
+        sleep 42
+        cursorUp 1
+        eraseLine()
+
+    stdout.resetAttributes()
+
+
+macro injectProcName*(procDef: untyped): untyped =
+  procDef.expectKind({nnkProcDef, nnkMethodDef, nnkFuncDef})
+  
+  let
+    procName = procDef[0].toStrLit
+    procNameId = ident("procName")
+  
+  let pnameDef = quote do:
+    let `procNameId` = `procName`
+  
+  procDef.body.insert(0, pnameDef)
+  
+  return procDef
+
+
+proc TriangulatePolygon*(vertices: seq[int]): seq[int]=
+    if len(vertices) == 0:
+        return @[]
+    var newVertices: seq[int]
+    var pivot: int = vertices[0]
+    for i in 1..len(vertices)-2:
+        newVertices.add(pivot)
+        newVertices.add(vertices[i])
+        newVertices.add(vertices[i+1])
+    return newVertices
+
+
+        
+

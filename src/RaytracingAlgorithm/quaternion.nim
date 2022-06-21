@@ -1,25 +1,75 @@
-import std/[os, math, macros, strformat]
-import geometry, exception, transformation
+import std/[os, math, strformat]
+import geometry, mathutils
+from utils import IsEqual
 
 type
     Quaternion* = ref object
         x*,y*,z*,w*: float32
 
+
+
 # --------------- Constructors -----------------
 proc newQuaternion*(): Quaternion=
+    ## constructor for quaternion, sets to 0 all parameters
     result = Quaternion(x:0, y:0, z:0, w:0)
 
 proc newQuaternion*(x,y,z,w: float32): Quaternion=
+    ## constructor for quaternion
     result = Quaternion(x:x, y:y, z:z, w:w)
 
 proc newQuaternion*(v: Vector3, w: float32): Quaternion=
+    ## constructor for quaternion (normalized)
     result = newQuaternion(v[0], v[1], v[2], w)
+    let dot = result.x * result.x + result.y * result.y + result.z * result.z + result.w * result.w
+    let magn = sqrt(dot)
+    result.x = result.x/magn
+    result.y = result.y/magn
+    result.z = result.z/magn
+    result.w = result.w/magn
+
+#[
+proc newQuaternion*(m: Matrix): Quaternion= 
+    result = newQuaternion()
+    let trace = m.trace()
+    if (trace > 0.0):
+        let s = sqrt( trace + m[3][3] )
+        result.w = s / 2.0
+        result.x = m[2][1] - m[1][2] * s
+        result.y = m[0][2] - m[2][0] * s
+        result.z = m[1][0] - m[0][1] * s
+    else:
+        var 
+            next: seq[int] = @[1,2,0]
+            q: seq[float32] = newSeq[float32](3)
+            i: int = 0
+        if (m[1][1] > m[0][0]):
+            i = 1
+        if (m[2][2] > m[i][i]):
+            i = 2
+        let
+            j = next[i]
+            k = next[j]
+        var s: float32 = sqrt((m[i][i] - (m[j][j] + m[k][k])) + 1.0)
+        q[i] = s * 0.5
+        if (s != 0.0):
+            s = 0.5 / s
+        result.w = (m[k][j] - m[j][k]) * s
+        q[j] = (m[j][i] + m[i][j]) * s
+        q[k] = (m[k][i] + m[i][k]) * s
+        result.x = q[0]
+        result.y = q[1]
+        result.z = q[2]
+        let dot = result.x * result.x + result.y * result.y + result.z * result.z + result.w * result.w
+        let magn = sqrt(dot)
+        result.x = result.x/magn
+        result.y = result.y/magn
+        result.z = result.z/magn
+        result.w = result.w/magn
+]#
 
 proc newQuaternion*(other: Quaternion): Quaternion=
+    ## returns a quaternion euqal to another
     result = Quaternion(x:other.x, y:other.y, z:other.z, w:other.w)
-
-proc Identity*(_: typedesc[Quaternion]): Quaternion =
-    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
 
 # ----------------- Operators -------------------
 
@@ -70,15 +120,27 @@ proc `$`*(self: Quaternion): string =
     result = fmt"Quaternion({self.x},{self.y},{self.z},{self.w})"
 
 proc `+`(lhs, rhs: Quaternion): Quaternion=
-    ##
+    ## Sum between two quaternions
+    ## Parameters
+    ##      lhs, rhs (Quaternion): quaternions to be summed
+    ## Results
+    ##      (Quaternion): resulting from the sum
     result = newQuaternion(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w)
 
 proc `-`(lhs, rhs: Quaternion): Quaternion=
-    ##
+    ## Difference between two quaternions
+    ## Parameters
+    ##      lhs, rhs (Quaternion): quaternions to be substracted
+    ## Results
+    ##      (Quaternion): resulting from the difference
     result = newQuaternion(lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z, lhs.w - rhs.w)
 
 proc `*`*(lhs, rhs: Quaternion): Quaternion {.inline.}=
-    ##
+    ## Product between two quaternions
+    ## Parameters
+    ##      lhs, rhs (Quaternion): quaternions to be multiplied
+    ## Results
+    ##      (Quaternion): resulting from the product
     result = newQuaternion(
         lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y,
         lhs.w * rhs.y + lhs.y * rhs.w + lhs.z * rhs.x - lhs.x * rhs.z,
@@ -124,27 +186,44 @@ proc `*`*(v: Vector3, rotation: Quaternion): Vector3 {.inline.}=
     return rotation*v
 
 proc `*`*(rotation: Quaternion, scalar: float32): Quaternion=
-    ##
+    ## Product between a quaternion and a scalar
+    ## Parameters
+    ##      rotation (Quaternion): quaternions to be multiplied
+    ##      scalar (float)
+    ## Results
+    ##      (Quaternion): resulting from the product
     result = newQuaternion(rotation.x * scalar, rotation.y * scalar, rotation.z * scalar, rotation.w * scalar)
 
+proc `*`*(scalar: float32, rotation: Quaternion): Quaternion=
+    ## scalar * q --> Mirror of q * scalar
+    ## See q * scalar documentation
+    return rotation * scalar
+
 proc `/`*(q: Quaternion, scalar: float32): Quaternion=
-    ##
+    ## Division between a quaternion and a scalar
+    ## Parameters
+    ##      q (Quaternion)
+    ##      scalar (float)
+    ## Results
+    ##      (Quaternion): resulting from the division
     return newQuaternion(q.x/scalar, q.y/scalar, q.z/scalar, q.w/scalar)
 
 proc `==`*(lhs, rhs: Quaternion): bool =
-    ##
+    ## Verifies if two quaternions are the same
     return lhs.x == rhs.x and lhs.y == rhs.y and lhs.z == rhs.z and lhs.w == rhs.w
 
-proc `!=`(lhs, rhs: Quaternion): bool=
-    ##
+proc `!=`*(lhs, rhs: Quaternion): bool=
+    ## Verifies if two quaternions are NOT the same
     return not(lhs==rhs)
 
 proc isClose*(lhs, rhs: Quaternion, epsilon: float32 = 1e-6): bool=
-    ##
+    ## Verifies if two quaternions are equal 
+    ## raturns True if their difference is less then epsilon (default_value: 10^(-6))
     return IsEqual(lhs.x, rhs.x, epsilon) and IsEqual(lhs.y, rhs.y, epsilon) and IsEqual(lhs.z, rhs.z, epsilon) and IsEqual(lhs.w, rhs.w, epsilon)
 
 proc isNotClose*(lhs, rhs: Quaternion): bool=
-    ##
+    ## Verifies if two quaternions are different
+    ## opposite of 'isClose'
     return not isClose(lhs, rhs)
 
 # ------------------------------------- Setters and Getters -------------------------------------
@@ -152,23 +231,39 @@ proc Set*(self: var Quaternion, x,y,z,w: float32): void =
     ## Sets quaternion values
     ##
     ## Parameters
-    ## x,y,z,w (float32)
+    ##      self (Quaternion)
+    ##      x,y,z,w (float32)
     self.x = x
     self.y = y
     self.z = z
     self.w = w
 
 proc SetVector*(self: var Quaternion, vectorComponents: Vector3): void =
+    # Sets quaternion values
+    ##
+    ## Parameters
+    ##      self (Quaternion)
+    ##      vectorComponents (Vector3)
     self.x = vectorComponents[0]
     self.y = vectorComponents[1]
     self.z = vectorComponents[2]
 
 # ------------------------------------------- Methods ------------------------------------------
 
-proc Dot(a,b: Quaternion): float32=
+proc Dot*(a,b: Quaternion): float32=
+    ## Returns the dot product of two quaternions
+    ## Parameters
+    ##      a,b (Quaternion)
+    ## Results
+    ##      (float)
     result = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
 
 proc Angle*(a,b: Quaternion): float32=
+    ## Returns the angle in degrees between two quaternions
+    ## Parameters
+    ##      a,b (Quaternion)
+    ## Results
+    ##      (float)
     let dot = min(abs(Dot(a,b)), 1.0)
     if a.isClose(b):
         return 0.0
@@ -176,17 +271,46 @@ proc Angle*(a,b: Quaternion): float32=
         let angle = arccos(dot) * 2.0
         return radToDeg(angle)
 
+proc Identity*(_: typedesc[Quaternion]): Quaternion =
+    ## Identity quaternion
+    result = newQuaternion(0.0, 0.0, 0.0, 1.0)
+
 proc Norm*(q: Quaternion): float32 =
+    ## Returns the norm of a quaternion
     return sqrt(Dot(q,q))
 
+proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
+    ## Normalizes a quaternion
+    let magn = Norm(self)
+
+    if magn < epsilon:
+        return Quaternion.Identity()
+    else:
+        return self / magn
+
+proc NormalizeInplace*(self: var Quaternion) : void=
+    ## Normalizes inplace a quaternion
+    let magn = sqrt(Dot(self, self))
+    self.x = self.x/magn
+    self.y = self.y/magn
+    self.z = self.z/magn
+    self.w = self.w/magn
+
 proc squaredNorm*(q: Quaternion): float32 =
+    ## Returns the suqared norm of a quaternion
     return Norm(q) * Norm(q)
 
 proc Conjugate*(q: Quaternion): Quaternion=
+    ## Returns the conjugate of a quaternion
     return newQuaternion(-q.x, -q.y, -q.z, q.w)
 
-proc Inverse(q: Quaternion): Quaternion {.inline.}=
+proc Inverse*(q: Quaternion): Quaternion=
+    ## Returns the inverse of a quaternion
     return q.Conjugate() / q.squaredNorm()
+
+proc Negativize*(q: Quaternion): Quaternion=
+    ## Returns the negative of a quaternion
+    return newQuaternion(-q.x, -q.y, -q.z, -q.w)
 
 proc makePositive*(euler: Vector3): Vector3=
     let negativeFlip = radToDeg(-0.0001)
@@ -194,39 +318,26 @@ proc makePositive*(euler: Vector3): Vector3=
 
     result = newVector3(euler)
     if (result.x < negativeFlip):
-        result.x = result.x + 360.0f
+        result.x = result.x + 360.0
     elif (result.x > positiveFlip):
-        result.x -= 360.0f;
+        result.x -= 360.0
 
     if (result.y < negativeFlip):
-        result.y += 360.0f
+        result.y += 360.0
     elif (result.y > positiveFlip):
-        result.y -= 360.0f
+        result.y -= 360.0
 
     if (result.z < negativeFlip):
-        result.z += 360.0f
+        result.z += 360.0
     elif (result.z > positiveFlip):
-        result.z -= 360.0f
-
-proc Normalize*(self: Quaternion, epsilon: float32 = 1e-6): Quaternion=
-    let magn = sqrt(Dot(self, self))
-
-    if magn < epsilon:
-        return Quaternion.Identity()
-    else:
-        return newQuaternion(self.x/magn, self.y/magn, self.z/magn, self.w/magn)
-
-proc NormalizeInplace*(self: var Quaternion) : void=
-    let magn = sqrt(Dot(self, self))
-    self.x = self.x/magn
-    self.y = self.y/magn
-    self.z = self.z/magn
-    self.w = self.w/magn
+        result.z -= 360.0
 
 proc isNormalized*(self: Quaternion): bool=
+    ## Verifies if a quaternion is normalized
     return self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w == 1
 
 proc toEuler*(q: Quaternion): Vector3 {.inline.}=
+    ## Sets a quaternion equal to a set of Euler Angles
     let
         sqw = q.w * q.w
         sqx = q.x * q.x
@@ -268,44 +379,8 @@ proc fromEuler*(phi, theta, psi: float32): Quaternion {.inline.}=
         qz = cos(phi/2) * cos(theta/2) * sin(psi/2) - sin(phi/2) * sin(theta/2) * cos(psi/2)
     return newQuaternion(qx, qy, qz, qw)
 
-proc toRotationMatrix*(q: Quaternion): Matrix {.inline.}=
-    ## Translates a quaternion rotation to a rotation matrix rotation.
-    ## 
-    var
-        q0: float32 = q[0]
-        q1: float32 = q[1]
-        q2: float32 = q[2]
-        q3: float32 = q[3]
-
-        m00: float32 = 2.0 * (q0 * q0 + q1 * q1)
-        m01: float32 = 2.0 * (q1 * q2 - q0 * q3)
-        m02: float32 = 2.0 * (q1 * q3 + q0 * q2)
-        m03: float32 = 0.0
-
-        m10: float32 = 2.0 * (q1 * q2 + q0 * q3)
-        m11: float32 = 2.0 * (q0 * q0 + q2 * q2)
-        m12: float32 = 2.0 * (q2 * q3 - q0 * q1)
-        m13: float32 = 0.0
-
-        m20: float32 = 2.0 * (q1 * q3 - q0 * q2)
-        m21: float32 = 2.0 * (q2 * q3 + q0 * q1)
-        m22: float32 = 2.0 * (q0 * q0 + q3 * q3) - 1
-        m23: float32 = 0.0
-
-        m30: float32 = 0.0
-        m31: float32 = 0.0
-        m32: float32 = 0.0
-        m33: float32 = 1.0
-
-    result = newMatrix(@[
-        @[m00, m01, m02, m03],
-        @[m10, m11, m12, m13],
-        @[m20, m21, m22, m23],
-        @[m30, m31, m32, m33]]
-    )
-
-
-proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
+#[
+proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
     ## Spherical linear interpolation between two quaternions.
     ## Interpolates a quaternion in between two quaternions based on the free parameter t.
     ## If t=0, returns the first quaternion. If t=1, returns the second quaternion.
@@ -317,27 +392,38 @@ proc Slerp*(a, b: Quaternion, t: var float32): Quaternion {.inline.} =
     ##      t (float32): Interpolation value
     ##
     ## Returns
-    ##      Interpolated quaternion between a and b at value t
-    assert a.isNormalized() and b.isNormalized() 
-    t = t.clamp(0.0, 1.0)
-
-    var q: Quaternion = newQuaternion()
-    
-    var 
-        t2: float32 = 1 - t
-        theta: float32 = arccos(Dot(a,b))
-        sn: float32 = sin(theta)
-        wa: float32 =  sin(t2 * theta) / sn
-        wb: float32 = sin(t * theta) / sn
-    q.x = wa * a.x + wb * b.x
-    q.y = wa * a.y + wb * b.y
-    q.z = wa * a.z + wb * b.z
-    q.w = wa * a.w + wb * b.w
-    result = q.Normalize()
-
+    ##      Interpolated quaternion between a and b at value t 
+    ## 
+    a = a.Normalize()
+    b = b.Normalize()
+    var cosTheta: float32 = Dot(a, b)
+    if (cosTheta > 0.9995):  #a,b are parallel
+        return Normalize((1 - t) * a + t * b);  #linear interpolation
+    else:
+        var theta: float32 = arccos(Clamp(cosTheta, -1, 1))
+        echo "t: ",theta
+        var thetap: float32 = theta * t
+        var qperp: Quaternion = Normalize(b - a * cosTheta) #orthogonl to a
+        return a * cos(thetap) + qperp * sin(thetap) #interpolation quaternion
+]#
+proc Slerp*(a, b: var Quaternion, t: var float32): Quaternion {.inline.} =
+    ## Returns the interpolation between two rotations (a,b quaternions) at time t
+    ## Parameters
+    ##      a,b (Quaternion): initial and final quaternion
+    ##      t (float): time at which interpolate
+    ## Returns
+    ##      (Quaternion): quaterion interpolated at time t
+    a = a.Normalize()
+    b = b.Normalize()
+    t = Clamp(t, 0.0, 1.0)
+    var dot: float32 = Dot(a,b)
+    let theta = arccos(Clamp(dot, -1.0, 1.0))
+    if theta.IsEqual(0.0):
+        return Normalize((1 - t) * a + t * b)
+    return a * ( sin((1-t)*theta)/(sin(theta)) ) + b * (sin(t*theta) / sin(theta))
 
 proc RotationQuaternion*(q: Quaternion): Quaternion=
-    ##
+    ## Rotates a quaternion
     let angle = q[3]
     let s = sin(angle/2.0)
     result = newQuaternion(
@@ -348,6 +434,12 @@ proc RotationQuaternion*(q: Quaternion): Quaternion=
     ) 
 
 proc RotationQuaternion*(axis: Vector3, angle: float32): Quaternion {.inline.}=
+    ## Rotates a quaternion of 'angle'
+    ## Parameters
+    ##      axis (Vector3)
+    ##      angle (float)
+    ## Returns
+    ##      (Quaternion)
     return RotationQuaternion( newQuaternion(axis[0], axis[1], axis[2], angle))
 
 
@@ -393,3 +485,5 @@ macro define_base_quaternions(axis: string, angle: float32)=
     var source: string = fmt"""echo axis"""
     parseStmt(source)
 ]#
+
+    

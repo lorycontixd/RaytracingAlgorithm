@@ -1,4 +1,4 @@
-import std/[os, strutils, times]
+import std/[os, strutils, times, exitprocs]
 import utils
 
 type
@@ -35,7 +35,7 @@ proc addLogger*(file: File) =
     ##      - file(File): stream to which the logger can write to (can be a filestream or a pipeline such as stdout/stderr)
     if size(loggers)<=0:
         let dir = joinPath(parentDir(getCurrentDir()), "examples", "logs")
-        if not existsDir(dir):
+        if not dirExists(dir):
             createDir(dir)
 
     loggers.add Logger(file: file)
@@ -131,4 +131,4 @@ template fatal*(args: varargs[string, `$`]) =
 # Initialize module
 open(channel)
 thread.createThread(threadLog)
-addQuitProc(stopLog)
+addExitProc(stopLog)

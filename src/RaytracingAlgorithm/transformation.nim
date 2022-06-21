@@ -1,399 +1,318 @@
-import geometry, utils 
-import std/[sequtils, math]
-
+import geometry, matrix
 
 type
-    Matrix* = seq[seq[float32]]
-    Transformation* = object
+    Transformation* = object   
         m*, inverse*: Matrix
 
-proc newMatrix*(s: seq[seq[float32]]): Matrix=
-    return cast[Matrix](s)
 
-proc IdentityMatrix*(): Matrix=
-    result = newSeq[seq[float32]](4)
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
+proc newTransformation*(): Transformation=
+    ## constructor for transformation
+    ## 
+    ## Parameters:
+    ##      /
+    ## Results
+    ##      (Transformation): Transformation object with matrix and inverse both equal to Identity matrix 
+    
+    result = Transformation(m:IdentityMatrix(), inverse: IdentityMatrix())
 
-proc Zeros*(): Matrix =
-    result = newSeq[seq[float32]](4)
-    for i in 0 .. 3:
-        result[i] = newSeq[float32](4)
-        for j in 0 .. 3:
-            result[i][j] = float32(0.0)
+proc newTransformation*(m: Matrix, inv: Matrix): Transformation=
+    ## constructor for transformation
+    ## 
+    ## Parameters
+    ##       m (Matrix): matrix
+    ##       inv (Matrix): inverse matrix of m
+    ## Output: Transformation object with m as matrix and inv as inverse matrix
 
-proc Ones*(): Matrix=
-    result = newSeq[seq[float32]](4)
-    for i in 0 .. 3:
-        result[i] = newSeq[float32](4)
-        for j in 0 .. 3:
-            result[i][j] = float32(1.0)
-
-
-
-#[
-proc TranslationMatrix*(v: Vector3): Matrix=
-    result = newSeq[seq[float32]](4)
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i<3:
-            result[i][result.len-1] = float32(v[i])
-
-proc TranslationInverseMatrix*(v: Vector3): Matrix=
-    result = newSeq[seq[float32]](4)
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i<3:
-            result[i][result.len-1] = float32(-v[i])
-
-proc ScaleMatrix*(v: Vector3): Matrix=
-    result = newSeq[seq[float32]](4)
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        if i<3:
-            result[i][i] = float32(v[i])
-        else:
-            result[i][i] = float32(1.0)
-            
-proc ScaleInverseMatrix*(v: Vector3): Matrix=
-
-    result = newSeq[seq[float32]](4)
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        if i<3:
-            result[i][i] = float32(1.0/v[i])
-        else:
-            result[i][i] = float32(1.0)
-
-proc RotationX_Matrix(angle_deg: float32): Matrix=
-    result = newSeq[seq[float32]](4)
-    let angle = degToRad(angle_deg)
-    let ang = [cos(angle), sin(angle)]
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i==1:
-            result[i][i] = ang[0]
-            result[i][i+1] = -ang[1]
-        if i==2:
-            result[i][i-1] = ang[1]
-            result[i][i] = ang[0]
-
-proc RotationX_InverseMatrix(angle_deg: float32): Matrix=
-    result = newSeq[seq[float32]](4)
-    let angle = degToRad(angle_deg)
-    let ang = [cos(angle), sin(angle)]
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i==1:
-            result[i][i] = ang[0]
-            result[i][i+1] = ang[1]
-        if i==2:
-            result[i][i-1] = -ang[1]
-            result[i][i] = ang[0]
-
-proc RotationY_Matrix(angle_deg: float32): Matrix=
-    result = newSeq[seq[float32]](4)
-    let angle = degToRad(angle_deg)
-    let ang = [cos(angle), sin(angle)]
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i==0:
-            result[i][i] = ang[0]
-            result[i][i+2] = ang[1]
-        if i==2:
-            result[i][i-2] = -ang[1]
-            result[i][i] = ang[0]
-
-proc RotationY_InverseMatrix(angle_deg: float32): Matrix=
-    result = newSeq[seq[float32]](4)
-    let angle = degToRad(angle_deg)
-    let ang = [cos(angle), sin(angle)]
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i==0:
-            result[i][i] = ang[0]
-            result[i][i+2] = -ang[1]
-        if i==2:
-            result[i][i-2] = ang[1]
-            result[i][i] = ang[0]
-
-proc RotationZ_Matrix(angle_deg: float32): Matrix=
-    result = newSeq[seq[float32]](4)
-    let angle = degToRad(angle_deg)
-    let ang = [cos(angle), sin(angle)]
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i==0:
-            result[i][i] = ang[0]
-            result[i][i+1] = -ang[1]
-            result[i+1][i] = ang[1]
-            result[i+1][i+1] = ang[0]
-
-proc RotationZ_InverseMatrix(angle_deg: float32): Matrix=
-    result = newSeq[seq[float32]](4)
-    let angle = degToRad(angle_deg)
-    let ang = [cos(angle), sin(angle)]
-    for i in 0 ..< result.len:
-        result[i] = newSeq[float32](4)
-        result[i][i] = float32(1.0)
-        if i==0:
-            result[i][i] = ang[0]
-            result[i][i+1] = ang[1]
-            result[i+1][i] = -ang[1]
-            result[i+1][i+1] = ang[0]
-]#
-
-
-proc TranslationMatrix*(v: Vector3): Matrix=
-    result = @[
-        @[float32(1.0), float32(0.0), float32(0.0), float32(v.x)],
-        @[float32(0.0), float32(1.0), float32(0.0), float32(v.y)],
-        @[float32(0.0), float32(0.0), float32(1.0), float32(v.z)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
-    ]
-
-proc TranslationInverseMatrix*(v: Vector3): Matrix=
-    result = @[
-        @[float32(1.0), float32(0.0), float32(0.0), float32(-v.x)],
-        @[float32(0.0), float32(1.0), float32(0.0), float32(-v.y)],
-        @[float32(0.0), float32(0.0), float32(1.0), float32(-v.z)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
-    ]
-
-proc ScaleMatrix*(v: Vector3): Matrix=
-    result = @[
-        @[float32(v.x), float32(0.0), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(v.y), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(v.z), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
-    ]
-
-proc ScaleInverseMatrix*(v: Vector3): Matrix=
-    result = @[
-        @[float32(1/v.x), float32(0.0), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(1/v.y), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(1/v.z), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)],
-    ]
-
-proc RotationX_Matrix(angle_deg: float32): Matrix=
-    let
-        sinang = sin(degToRad(angle_deg))
-        cosang = cos(degToRad(angle_deg))
-
-    result = @[
-        @[float32(1.0), float32(0.0), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(cosang), float32(-sinang), float32(0.0)],
-        @[float32(0.0), float32(sinang), float32(cosang), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
-    ]
-
-proc RotationX_InverseMatrix(angle_deg: float32): Matrix=
-    let
-        sinang = sin(degToRad(angle_deg))
-        cosang = cos(degToRad(angle_deg))
-
-    result = @[
-        @[float32(1.0), float32(0.0), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(cosang), float32(sinang), float32(0.0)],
-        @[float32(0.0), float32(-sinang), float32(cosang), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
-    ]
-
-
-proc RotationY_Matrix(angle_deg: float32): Matrix=
-    let
-        sinang = sin(degToRad(angle_deg))
-        cosang = cos(degToRad(angle_deg))
-
-    result = @[
-        @[float32(cosang), float32(0.0), float32(sinang), float32(0.0)],
-        @[float32(0.0), float32(1.0), float32(0.0), float32(0.0)],
-        @[float32(-sinang), float32(0.0), float32(cosang), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
-    ]
-
-proc RotationY_InverseMatrix(angle_deg: float32): Matrix=
-    let
-        sinang = sin(degToRad(angle_deg))
-        cosang = cos(degToRad(angle_deg))
-
-    result = @[
-        @[float32(cosang), float32(0.0), float32(-sinang), float32(0.0)],
-        @[float32(0.0), float32(1.0), float32(0.0), float32(0.0)],
-        @[float32(sinang), float32(0.0), float32(cosang), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
-    ]
-
-proc RotationZ_Matrix(angle_deg: float32): Matrix=
-    let
-        sinang = sin(degToRad(angle_deg))
-        cosang = cos(degToRad(angle_deg))
-
-    result = @[
-        @[float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
-        @[float32(sinang), float32(cosang), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
-    ]
-
-proc RotationZ_InverseMatrix(angle_deg: float32): Matrix=
-    let
-        sinang = sin(degToRad(angle_deg))
-        cosang = cos(degToRad(angle_deg))
-    result = @[
-        @[float32(cosang), float32(-sinang), float32(0.0), float32(0.0)],
-        @[float32(-sinang), float32(cosang), float32(0.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(1.0), float32(0.0)],
-        @[float32(0.0), float32(0.0), float32(0.0), float32(1.0)]
-    ]
-
-proc newTransformation*(m: Matrix=IdentityMatrix(), inv: Matrix=IdentityMatrix()): Transformation=
     result = Transformation(m:m, inverse:inv) 
 
+proc newTransformation*(m: Matrix): Transformation=
+    ## constructor for transformation, which computes the inverse matrix
+    ## 
+    ## Parameters:
+    ##      m (Matrix): matrix
+    ## Returns:
+    ##      (Transformation) : Transformation object with m as matrix and the computed inverse matrix as invers 
+    
+    result = Transformation(m: m, inverse: Inverse(m))
+
+
 proc Inverse*(t: Transformation): Transformation=
+    ## method for transformation giving the inverse affine transformation
+    ## 
+    ## Paramaters:
+    ##      t (Transformation):  Transformation object
+    ## Returns
+    ##       Transformation object (m: inverse matrix, inverse: matrix)
     result = Transformation(m:t.inverse, inverse:t.m)
 
-proc `*`*(this, other: Matrix): Matrix=
-    ## Matrix4 - Matrix4 product
-    result = Zeros()
-    for i in 0 .. 3:
-        for j in 0 .. 3:
-            for k in 0 .. 3:
-                result[i][j] += this[i][k] * other[k][j]
 
 proc `*`*(t: Transformation, other: Vector3): Vector3=
+    ## Product to apply a Transformation to a Vector3
+    ## 
+    ## Parameters:
+    ##      t (Transformation object)
+    ##      other (Vector3)
+    ## Results: 
+    ##      Vector3
     result = newVector3(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z,# + t m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z,# + t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z,# + t.m[2][3]
+        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z,# + t m[0,3],
+        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z,# + t.m[1,3],
+        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z,# + t.m[2,3]
     )
-
+   
 proc `*`*(t: Transformation, other: Point): Point=
+    ## Product to apply a Transformation to a Point
+    ## 
+    ## Parameters: 
+    ##      t (Transformation object)
+    ##      oter (Point)
+    ## Results:
+    ##       Point
     result = newPoint(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z + t.m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z + t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z + t.m[2][3]
+        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z + t.m[0,3],
+        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z + t.m[1,3],
+        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z + t.m[2,3]
     )
-    let w = other.x * t.m[3][0] + other.y * t.m[3][1] + other.z * t.m[3][2]  + t.m[3][3] 
-    if float32(w) != 1.0 and float32(w) != 0.0:
+    let w = other.x * t.m[3,0] + other.y * t.m[3,1] + other.z * t.m[3,2]  + t.m[3,3] 
+    if float32(w) != 1.0 and float32(w) != 0.0: #to avoid three (potentially costly) divisions if not needed
         result.x = result.x / w
         result.y = result.y / w
         result.z = result.z / w
 
 proc `*`*(t: Transformation, other: Normal): Normal=
+    ## Product to apply a Transformation to a Normal
+    ## 
+     ## Parameters: 
+    ##      t (Transformation object)
+    ##      oter (Normal)
+    ## Results:
+    ##       Normal
     result = newNormal(
-        t.m[0][0] * other.x + t.m[0][1] * other.y + t.m[0][2] * other.z + t.m[0][3],
-        t.m[1][0] * other.x + t.m[1][1] * other.y + t.m[1][2] * other.z + t.m[1][3],
-        t.m[2][0] * other.x + t.m[2][1] * other.y + t.m[2][2] * other.z + t.m[2][3]
+        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z + t.m[0,3],
+        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z + t.m[1,3],
+        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z + t.m[2,3]
     )
 
 proc `*`*(self, other: Transformation): Transformation= 
+    ## commposition of two transormations
+    ## 
+    ## Parameters: 
+    ##      self, other (Transformation object)
+    ## Results:
+    ##       (Transformation)
     var
         res_m: Matrix = self.m * other.m
         res_inv: Matrix = other.inverse * self.inverse
     result = newTransformation(res_m, res_inv)
+#[
+proc `*`*(self: Transformation, b: Bounds3): Bounds3=
+    result = newBounds3(self * newPoint(b.pMin.x, b.pMin.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMin.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMin.x, b.pMax.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMin.x, b.pMin.y, b.pMax.z))
+    result = Union(result, self * newPoint(b.pMin.x, b.pMax.y, b.pMax.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMax.y, b.pMin.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMin.y, b.pMax.z))
+    result = Union(result, self * newPoint(b.pMax.x, b.pMax.y, b.pMax.z))
+]#
+
+proc `==`*(self, other: Transformation): bool=
+    ## To verify that the two transformations are equal
+    ## 
+    ## Parameters:
+    ##      self, other (Transformation object)
+    ## Returns: 
+    ##      True (if equal), False (else)
+    return are_matrix_close(self.m, other.m,1e-1) and are_matrix_close(self.inverse, other.inverse,1e-5)
+
+proc `!=`*(self, other: Transformation): bool=
+    ## To verify that the two transformations are NOT equal
+    ## 
+    ## Parameters:
+    ##      self, other (Transformation object)
+    ## Returns: 
+    ##   True (if NOT equal), False (else)
+    return not (self == other)
+
+proc TransformVector3*(self: Transformation, v: Vector3): Vector3=
+    ## Transformation applied to a Vector3
+    ## 
+    ## Parameters: 
+    ##      self (Transformation object)
+    ##      v (Vector3)
+    ## Output: 
+    ##      (Vector3)
+    return self * v
+
+proc TransformNormal*(self: Transformation, n: Normal): Normal=
+    ## Transformation applied to a Normal
+    ## 
+    ## Parameters: 
+    ##      self (Transformation object)
+    ##      n (Vector3)
+    ## Output: 
+    ##      (Normal)
+    return self * n
+
+proc TransformPoint*(self: Transformation, p: Point): Point=
+    ## Transformation applied to a Point
+    ## 
+    ## Parameters: 
+    ##      self (Transformation object)
+    ##      p (Point)
+    ## Output: 
+    ##      (Point)
+    return self * p
+
+#func TransformBounds*(self: Transformation, bounds: Bounds3): Bounds3=
+#    return self * bounds
+
+proc LookAt*(pos: Point, look: Point, up: Vector3): Transformation=
+    ## Returns the necessary transformation to get an object to face a specific point (usually used on a camera)
+    ## The call specifies the position of the object and the point for the object to look at, together with an "up" vector for object orientation.
+    ## The returned transformation is a transformation between object(camera)-space to world-space.
+    ## 
+    ## Parameters:
+    ##      position (Point): position of the object
+    ##      look (Point): point to look at
+    ##      up (Vector3): vector for object orientation
+    ## Returns:
+    ##      Transformation object    
+    
+    var cameraToWorld: Matrix = newMatrix()
+    
+    # Set camera position in world space
+    cameraToWorld[0,3] = pos[0]
+    cameraToWorld[1,3] = pos[1]
+    cameraToWorld[2,3] = pos[2]
+    cameraToWorld[3,3] = float32(1.0)
+
+    let
+        dir = (look - pos).convert(Vector3).normalize()
+        right = Vector3.Cross(up.normalize(), dir).normalize()
+        newUp = Vector3.Cross(dir, right)
+    cameraToWorld[0,0] = right.x
+    cameraToWorld[1,0] = right.y
+    cameraToWorld[2,0] = right.z
+    cameraToWorld[3,0] = float32(0.0)
+    cameraToWorld[0,1] = newUp.x
+    cameraToWorld[1,1] = newUp.y
+    cameraToWorld[2,1] = newUp.z
+    cameraToWorld[3,1] = float32(0.0)
+    cameraToWorld[0,2] = dir.x
+    cameraToWorld[1,2] = dir.y
+    cameraToWorld[2,2] = dir.z
+    cameraToWorld[3,2] = float32(0.0)
+    return newTransformation(Inverse(cameraToWorld), cameraToWorld)
+
+
+
+proc is_consistent*(t : Transformation): bool =
+    ##To verifiy that the matrix and the inverse matrix are consistent
+    ## e.g., their dot product is equal to identyty matrix
+    ## 
+    ## Parameters: 
+    ##      t (Transformation) : matrix, inverse matrix to be verified
+    ## Returns:
+    ##       True (matrixes are consistent) or False (they aren't)
+    let product = t.m * t.inverse
+    return are_matrix_close(product, IdentityMatrix())
+
+proc Show*(self: Transformation): void=
+    ## To print Matrix and Inverse matrix associated to the Transformation
+    ## 
+    ## Parameters: 
+    ##      self (Transformation object)
+    ## Returns: 
+    ##      just prints matrixes
+    echo "=> Matrix: "
+    self.m.Show()
+    echo ""
+    echo "=> Inverse: "
+    self.inverse.Show()
+    
+
+
+### -------------------------------------------------- Static methods -----------------------------------
 
 proc translation*(_: typedesc[Transformation], vector: Vector3): Transformation =
+    ## Returns a Transformation object encoding a rigid translation
+    ## 
+    ## Parameters: 
+    ##      vector (Vector3): which specifies the amount of shift to be applied along the three axes
+    ## Returns: 
+    ##      (Transformation object)
     result = newTransformation()
     result.m = TranslationMatrix(vector)
     result.inverse = TranslationInverseMatrix(vector)
 
+proc translation*(_: typedesc[Transformation], x,y,z: float32): Transformation=
+    ## Returns a Transformation object encoding a rigid translation
+    ## 
+    ## Parameters: 
+    ##       x,y,z (float32): coordinates of the vector
+    ##           which specifies the amount of shift to be applied along the three axes
+    ## Returns:
+    ##       (Transformation object)
+    result = newTransformation()
+    result.m = TranslationMatrix(newVector3(x,y,z))
+    result.inverse = TranslationInverseMatrix(newVector3(x,y,z))
+
 proc scale*(_: typedesc[Transformation], vector: Vector3): Transformation =
+    ## Returns a Transformation object encoding a scaling
+    ## 
+    ## Parameters: 
+    ##      vector (Vector3): which specifies the amount of scaling to be applied along the three axes
+    ## Returns: 
+    ##      (Transformation object)
     result = newTransformation()
     result.m = ScaleMatrix(vector)
     result.inverse = ScaleInverseMatrix(vector)
+
+proc scale*(_: typedesc[Transformation], x,y,z: float32): Transformation =
+    ## Returns a Transformation object encoding a scaling
+    ## 
+    ## Parameters: 
+    ##       x,y,z (float32): coordinates of the vector
+    ##           which specifies the amount of scaling to be applied along the three axes
+    ## Returns: 
+    ##      (Transformation object)
+    result = newTransformation()
+    result.m = ScaleMatrix(newVector3(x,y,z))
+    result.inverse = ScaleInverseMatrix(newVector3(x,y,z))
     
 proc rotationX*(_: typedesc[Transformation], angle_deg: float32): Transformation =
+    ## Returns a Transformation object encoding a rotation around axisX
+    ## 
+    ## Parameters: 
+    ##      angle_deg (float): angle in degrees which specifies the rotation angle.
+    ##         The positive sign is given by the right-hand rule
+    ## Returns: 
+    ##      (Transformation object)
     result = newTransformation()
     result.m = RotationX_Matrix(angle_deg)
     result.inverse = RotationX_InverseMatrix(angle_deg)
 
 proc rotationY*(_: typedesc[Transformation], angle_deg: float32): Transformation =
+    ## Returns a Transformation object encoding a rotation around axisY
+    ## 
+    ## Parameters: 
+    ##      angle_deg (float): angle in degrees which specifies the rotation angle.
+    ##         The positive sign is given by the right-hand rule
+    ## Returns: 
+    ##      (Transformation object)
     result = newTransformation()
     result.m = RotationY_Matrix(angle_deg)
     result.inverse = RotationY_InverseMatrix(angle_deg)
 
 proc rotationZ*(_: typedesc[Transformation], angle_deg: float32): Transformation =
+    ## Returns a Transformation object encoding a rotation around axisZ
+    ## 
+    ## Parameters: 
+    ##      angle_deg (float): angle in degreeswhich specifies the rotation angle.
+    ##         The positive sign is given by the right-hand rule
+    ## Returns: 
+    ##      (Transformation object)
     result = newTransformation()
     result.m = RotationZ_Matrix(angle_deg)
     result.inverse = RotationZ_InverseMatrix(angle_deg)
-
-
-##-------------------- utilities --------------------
-
-proc inverse*(m: Matrix): Matrix {.inline.}=
-    var A2323 = m[2][2] * m[3][3] - m[2][3] * m[3][2]
-    var A1323 = m[2][1] * m[3][3] - m[2][3] * m[3][1]
-    var A1223 = m[2][1] * m[3][2] - m[2][2] * m[3][1]
-    var A0323 = m[2][0] * m[3][3] - m[2][3] * m[3][0]
-    var A0223 = m[2][0] * m[3][2] - m[2][2] * m[3][0]
-    var A0123 = m[2][0] * m[3][1] - m[2][1] * m[3][0]
-    var A2313 = m[1][2] * m[3][3] - m[1][3] * m[3][2]
-    var A1313 = m[1][1] * m[3][3] - m[1][3] * m[3][1]
-    var A1213 = m[1][1] * m[3][2] - m[1][2] * m[3][1]
-    var A2312 = m[1][2] * m[2][3] - m[1][3] * m[2][2]
-    var A1312 = m[1][1] * m[2][3] - m[1][3] * m[2][1]
-    var A1212 = m[1][1] * m[2][2] - m[1][2] * m[2][1]
-    var A0313 = m[1][0] * m[3][3] - m[1][3] * m[3][0]
-    var A0213 = m[1][0] * m[3][2] - m[1][2] * m[3][0]
-    var A0312 = m[1][0] * m[2][3] - m[1][3] * m[2][0]
-    var A0212 = m[1][0] * m[2][2] - m[1][2] * m[2][0]
-    var A0113 = m[1][0] * m[3][1] - m[1][1] * m[3][0]
-    var A0112 = m[1][0] * m[2][1] - m[1][1] * m[2][0]
-
-    var det = m[0][0] * ( m[1][1] * A2323 - m[1][2] * A1323 + m[1][3] * A1223 ) - m[0][1] * ( m[1][0] * A2323 - m[1][2] * A0323 + m[1][3] * A0223 ) + m[0][2] * ( m[1][0] * A1323 - m[1][1] * A0323 + m[1][3] * A0123 ) - m[0][3] * ( m[1][0] * A1223 - m[1][1] * A0223 + m[1][2] * A0123 ) ;
-    det = 1 / det;
-
-    let
-        m00 = det *   ( m[1][1] * A2323 - m[1][2] * A1323 + m[1][3] * A1223 )
-        m01 = det * - ( m[0][1] * A2323 - m[0][2] * A1323 + m[0][3] * A1223 )
-        m02 = det *   ( m[0][1] * A2313 - m[0][2] * A1313 + m[0][3] * A1213 )
-        m03 = det * - ( m[0][1] * A2312 - m[0][2] * A1312 + m[0][3] * A1212 )
-        m10 = det * - ( m[1][0] * A2323 - m[1][2] * A0323 + m[1][3] * A0223 )
-        m11 = det *   ( m[0][0] * A2323 - m[0][2] * A0323 + m[0][3] * A0223 )
-        m12 = det * - ( m[0][0] * A2313 - m[0][2] * A0313 + m[0][3] * A0213 )
-        m13 = det *   ( m[0][0] * A2312 - m[0][2] * A0312 + m[0][3] * A0212 )
-        m20 = det *   ( m[1][0] * A1323 - m[1][1] * A0323 + m[1][3] * A0123 )
-        m21 = det * - ( m[0][0] * A1323 - m[0][1] * A0323 + m[0][3] * A0123 )
-        m22 = det *   ( m[0][0] * A1313 - m[0][1] * A0313 + m[0][3] * A0113 )
-        m23 = det * - ( m[0][0] * A1312 - m[0][1] * A0312 + m[0][3] * A0112 )
-        m30 = det * - ( m[1][0] * A1223 - m[1][1] * A0223 + m[1][2] * A0123 )
-        m31 = det *   ( m[0][0] * A1223 - m[0][1] * A0223 + m[0][2] * A0123 )
-        m32 = det * - ( m[0][0] * A1213 - m[0][1] * A0213 + m[0][2] * A0113 )
-        m33 = det *   ( m[0][0] * A1212 - m[0][1] * A0212 + m[0][2] * A0112 )
-
-    return cast[Matrix](@[
-        @[m00, m01, m02, m03],
-        @[m10, m11, m12, m13],
-        @[m20, m21, m22, m23],
-        @[m30, m31, m32, m33]
-    ])
-
-proc transpose*(m1: Matrix): Matrix=
-    result = cast[Matrix](@[
-        @[float32(m1[0][0]), float32(m1[1][0]), float32(m1[2][0]), float32(m1[3][0])],
-        @[float32(m1[0][1]), float32(m1[1][1]), float32(m1[2][1]), float32(m1[3][1])],
-        @[float32(m1[0][2]), float32(m1[1][2]), float32(m1[2][2]), float32(m1[3][2])],
-        @[float32(m1[0][3]), float32(m1[1][3]), float32(m1[2][3]), float32(m1[3][3])],
-    ])
-
-proc are_matrix_close*(m1, m2 : Matrix): bool=
-    for i in 0 .. 3:
-        for j in 0 .. 3:
-            return IsEqual(m1[i][j], m2[i][j])
-
-proc is_consistent*(t : Transformation): bool =
-    let product = t.m * t.inverse
-    return are_matrix_close(product, IdentityMatrix())
-
-proc `==`*(m1, m2: Matrix): bool=
-    return are_matrix_close(m1,m2)
