@@ -20,6 +20,7 @@ type
         parseTimeLogs*: Table[Level, seq[string]]
         pcg*: PCG
 
+
 proc newScene*(): Scene=
     ## empty constructor for scene
     var parseTimeLogs: Table[Level, seq[string]] = initTable[Level, seq[string]]()
