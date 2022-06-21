@@ -1,4 +1,4 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg, animator
 import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
 
 ## ------------- PARSER ---------------
@@ -75,7 +75,10 @@ type
         OFF,
         LOGGER,
         ANTIALIASING,
-        STATS
+        STATS,
+        ANIMATION,
+        # ANIMATIONS
+        ANIMATE
 
     TokenKind* = enum  # the different token types (tags)
         tkKeyword,          # keywords of our language
@@ -105,7 +108,7 @@ type
         token*: Token
     InvalidTokenKindError* = ref object of ParserError
         expectedKind*: TokenKind
-        kind*: TokenKind
+        token*: Token
     InvalidTokenKeywordsError* = ref object of ParserError
         token* : Token
     InvalidTokenNumberError* = ref object of ParserError
@@ -114,14 +117,15 @@ type
 
 ## --- ParserError
 proc newInvalidTokenSymbolError*(symbol: char, token: Token): InvalidTokenSymbolError =
-    result = InvalidTokenSymbolError(symbol: symbol, token:token, msg: fmt"Expected symbol {symbol} but got token {$$token.symbolVal} in {token.location} ") 
-proc newInvalidTokenKindError*(expectedKind: TokenKind, kind: Token.kind): InvalidTokenKindError =
-    result = InvalidTokenKindError(expectedKind: expectedKind, kind:kind, msg:fmt"Expected {expectedKind} but got {kind}")
+    result = InvalidTokenSymbolError(symbol: symbol, token:token, msg: fmt"[{token.location}] Expected symbol {symbol} but got token {$$token.symbolVal} ") 
+proc newInvalidTokenKindError*(expectedKind: TokenKind, token: Token): InvalidTokenKindError =
+    result = InvalidTokenKindError(expectedKind: expectedKind, token:token, msg:fmt"[{token.location}] Expected {expectedKind} but got {token.kind}")
 proc newInvalidTokenKeywordsError*(token: Token): InvalidTokenKeywordsError =
-    result = InvalidTokenKeywordsError(token:token, msg:fmt" {token.keywordVal} is not a keyword")
+    result = InvalidTokenKeywordsError(token:token, msg:fmt"[{token.location}] {token.keywordVal} keyword doesn't exist")
 #proc newInvalidTokenNumberError*() = discard
 #proc newInvalidTokenStringError*() = discard
 #proc newInvalidTokenIdentifierError*() = discard
+
 
 # --------------------------------------------------------------
 
@@ -322,7 +326,7 @@ proc ExpectSymbol*(file: var InputStream, symbol: char)=
     ##      no returns, it's just a control    
     let token = file.ReadToken()
     if token.kind != TokenKind.tkSymbol:
-        raise newInvalidTokenKindError(TokenKind.tkSymbol, token.kind)
+        raise newInvalidTokenKindError(TokenKind.tkSymbol, token)
     if token.symbolVal != symbol:
         raise newInvalidTokenSymbolError(symbol, token)
 
@@ -335,8 +339,9 @@ proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): Keyword
     ##      (KeywordType): the keyword as a '.KeywordType' object
     let token = file.ReadToken()
     if token.kind != TokenKind.tkKeyword:
-        raise newInvalidTokenKindError(TokenKind.tkKeyword, token.kind)
+        raise newInvalidTokenKindError(TokenKind.tkKeyword, token)
     if not (token.keywordVal in keywords):
+        echo keywords
         raise newInvalidTokenKeywordsError(token)
     return token.keywordVal
 
@@ -356,7 +361,7 @@ proc ExpectNumber*(file: var InputStream, scene: Scene): float32=
         if not (scene.float_variables.hasKey(variable_name)):
             raise TestError.newException("Unknown variable")
         return scene.float_variables[variable_name]
-    raise newInvalidTokenKindError(TokenKind.tkNumber, token.kind)
+    raise newInvalidTokenKindError(TokenKind.tkNumber, token)
 
 
 proc ExpectString*(input_file: var InputStream): string=
@@ -368,7 +373,7 @@ proc ExpectString*(input_file: var InputStream): string=
     ##      no returns, it's just a control  
     let token = input_file.ReadToken()
     if token.kind != TokenKind.tkString:
-        raise newInvalidTokenKindError(TokenKind.tkString, token.kind)
+        raise newInvalidTokenKindError(TokenKind.tkString, token)
     return token.stringVal
 
 
@@ -380,7 +385,7 @@ proc ExpectIdentifier*(input_file: var InputStream):string=
     ##      token.identifierVal (string): name of the identifier
     let token = input_file.ReadToken()
     if token.kind != TokenKind.tkIdentifier:
-        raise newInvalidTokenKindError(TokenKind.tkIdentifier ,token.kind)
+        raise newInvalidTokenKindError(TokenKind.tkIdentifier ,token)
     return token.identifierVal
 
 
@@ -634,6 +639,7 @@ proc ParseSphere*(input_file: var InputStream, scene: Scene): Sphere=
     ##      scene (Scene)
     ## Returns
     ##      (Sphere)
+    let name = ExpectIdentifier(input_file)
     ExpectSymbol(input_file, '(')
 
     let material_name = ExpectIdentifier(input_file)
@@ -645,7 +651,7 @@ proc ParseSphere*(input_file: var InputStream, scene: Scene): Sphere=
     let transformation = ParseTransformation(input_file, scene)
     ExpectSymbol(input_file, ')')
 
-    return newSphere(transform=transformation, material=scene.materials[material_name])
+    return newSphere(id=name, transform=transformation, material=scene.materials[material_name])
 
 
 proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
@@ -681,7 +687,7 @@ proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
     return newTriangleMeshOBJ(transformation, filenameOBJ, scene.materials[material_name])
 
 proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
-    let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS])
+    let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS, KeywordType.ANIMATION, KeywordType.WIDTH, KeywordType.HEIGHT])
     ExpectSymbol(input_file,'=')
     if settingID == KeywordType.LOGGER:
         let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
@@ -690,9 +696,9 @@ proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
             return
         elif secondKeyword == KeywordType.ON:
             #addLogger( open( joinPath(getCurrentDir(), "main.log"), fmWrite))
-            scene.settings.useLogger = true
-            scene.settings.loggers.add(open( joinPath(getCurrentDir(), "main.log")))
             let path = joinPath(getCurrentDir(), "main.log")
+            scene.settings.useLogger = true
+            scene.settings.loggers.add(open(path, fmWrite ))
             scene.AddParseTimeLog(fmt"Automatic logger created at file: {path}", logger.Level.info)
         elif secondKeyword == KeywordType.NEW:
             let loggerKeyword = ExpectKeywords(input_file, @[KeywordType.LOGGER])
@@ -740,7 +746,7 @@ proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
             scene.settings.antiAliasingRays = 9
             scene.AddParseTimeLog("Automatic antialiasing rays set to 9.", logger.Level.info)
         elif secondKeyword == KeywordType.NEW:
-            let loggerKeyword = ExpectKeywords(input_file, @[KeywordType.ANTIALIASING])
+            let aa = ExpectKeywords(input_file, @[KeywordType.ANTIALIASING])
             ExpectSymbol(input_file, '(')
             let tmp_n_rays = ExpectNumber(input_file, scene)
             var nRays: int
@@ -754,6 +760,65 @@ proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
             scene.settings.useAntiAliasing = true
             scene.settings.antiAliasingRays = nRays
             ExpectSymbol(input_file, ')')
+    elif settingID == KeywordType.ANIMATION:
+        let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
+        if secondKeyword == KeywordType.OFF:
+            scene.settings.isAnimated = false
+            scene.settings.animDuration = 0
+            scene.settings.animFPS = 0
+        elif secondKeyword == KeywordType.ON:
+            scene.settings.isAnimated = true
+            scene.settings.animDuration = 3
+            scene.settings.animFPS = 20
+        elif secondKeyword == KeywordType.NEW:
+            let an = ExpectKeywords(input_file, @[KeywordType.ANIMATION])
+            ExpectSymbol(input_file, '(')
+            # Parse Duration
+            let tmpduration = ExpectNumber(input_file, scene)
+            var duration: int
+            try:
+                duration = int(tmpduration)
+                scene.settings.animDuration = duration
+            except:
+                raise newException(TestError, "Invalid integer for scene duration setting")
+            # Parse FPS
+            ExpectSymbol(input_file, ',')
+            let tmpfps = ExpectNumber(input_file, scene)
+            var fps: int
+            try:
+                fps = int(tmpfps)
+                scene.settings.animFPS = fps
+            except:
+                raise newException(TestError, "Invalid integer for scene FPS setting")
+            ExpectSymbol(input_file, ')')
+            scene.settings.isAnimated = true
+            scene.settings.animDuration = duration
+            scene.settings.animFPS = fps
+    elif settingID == KeywordType.WIDTH:
+        let tmpvalue = ExpectNumber(input_file, scene)
+        var value: int
+        try:
+            value = int(tmpvalue)
+        except:
+            raise newException(InputError, fmt"[{input_file.location}] Invalid integer for WIDTH setting")
+        if value <= 0:
+            raise newException(InputError, fmt"[{input_file.location}] Invalid value for WIDTH setting")
+        scene.settings.width = value
+        scene.settings.hasDefinedWidth = true
+    elif settingID == KeywordType.HEIGHT:
+        let tmpvalue = ExpectNumber(input_file, scene)
+        var value: int
+        try:
+            value = int(tmpvalue)
+        except:
+            raise newException(InputError, fmt"[{input_file.location}] Invalid integer for WIDTH setting")
+        if value <= 0:
+            raise newException(InputError, fmt"[{input_file.location}] Invalid value for HEIGHT setting")
+        scene.settings.height = value
+        scene.settings.hasDefinedHeight = true
+
+
+
 
 
 proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
@@ -777,6 +842,42 @@ proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
         result = newPerspectiveCamera(distance=distance, aspectratio=aspect_ratio, transform=transformation)
     elif type_kw == KeywordType.ORTHOGONAL:
         result = newOrthogonalCamera(aspectratio=aspect_ratio, transform=transformation)
+
+
+proc ExpectKeyframe(input_file: var InputStream, scene: var Scene): (float32, Transformation)=
+    ExpectSymbol(input_file, '[')
+    let time = ExpectNumber(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let transform = ParseTransformation(input_file, scene)
+    ExpectSymbol(input_file, ']')
+    return (time, transform)
+    
+
+proc ParseAnimator(input_file: var InputStream, scene: var Scene): void=
+    if not scene.settings.isAnimated:
+        raise newException(TestError, fmt"[{input_file.location}] Shape keyframes are being defined without having defined an animation")
+    ExpectSymbol(input_file, '(')
+    let shape_id = ExpectIdentifier(input_file)
+    ExpectSymbol(input_file, ',')
+    var
+        keyframe_times: seq[float32] = newSeq[float32]()
+        keyframe_transforms: seq[Transformation] = newSeq[Transformation]()
+    while true:
+        let (time, transform) = ExpectKeyframe(input_file, scene)
+        keyframe_times.add(time)
+        keyframe_transforms.add(transform)
+        let next_kw = input_file.ReadToken()
+        if (next_kw.kind != tkSymbol) or (next_kw.symbolVal != ','):
+            input_file.UnreadChar(next_kw.symbolVal)
+            break
+    ExpectSymbol(input_file,')')
+    let shapeopt = scene.world.Find(shape_id)
+    if not shapeopt.isSome:
+        raise newShapeIDError(shape_id)
+    let shape = shapeopt.get()
+    for i in countup(0, keyframe_times.len()-1):
+        shape.animator.AddKeyframe(keyframe_times[i],keyframe_transforms[1])
+    scene.settings.isAnimated = true
 
 proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
     ## Parse the list of `-d` switches and return a dictionary associating variable names with their values"""
@@ -813,7 +914,6 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
     for k in variables.keys:
         keyslist.add(k)
     scene.overridden_variables = toHashSet(keyslist)
-
     while true:
         let what = input_file.ReadToken()
         if what.kind == tkStop:
@@ -867,6 +967,9 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
             scene.world.AddLight(pointLight)
         elif what.keywordVal == KeywordType.SET:
             ParseSettings(input_file, scene) 
+        elif what.keywordVal == KeywordType.ANIMATE:
+            ParseAnimator(input_file, scene)
+    # Post-parsing checks
     if scene.camera.isNil:
         raise TestError.newException("Scene must contain at least one camera.")
     if scene.renderer.isNil:
