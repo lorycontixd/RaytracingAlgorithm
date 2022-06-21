@@ -2,8 +2,16 @@ import transformation, matrix, geometry, quaternion, mathutils
 import std/[sequtils, tables, enumerate, algorithm, strformat, marshal]
 
 type
+    Keyframe* = object
+        # not used yet
+        time*: float
+        transform*: Transformation
+
     InterpolationFunction = proc(x: float32, a,b: float32): float32
+
     Animator* = object
+        shapeID*: string
+        defaultTransform*: Transformation
         keyframes*: OrderedTable[float32, Transformation] # seq Transformation or Table[float, Transformation] ??
 
         translations*: OrderedTable[float32, Vector3]
@@ -12,8 +20,31 @@ type
         decomposed*: seq[float32] # whether the transformation at time t has been decomposed (performance)
 
         interpolationFunction*: InterpolationFunction
-
+        
+proc linear*(x: float32, a,b: float32): float32=
+    return a*x + b
 ## Constructors
+
+proc newAnimator*(shapeid: string, initTransform: Transformation): Animator=
+    #initialKeyframes.sort(system.cmp)
+    result = Animator()
+    result.interpolationFunction = linear
+    result.shapeID = shapeid
+    result.defaultTransform = initTransform
+
+proc newAnimator*(initialKeyframes: var OrderedTable[float32, Transformation], f: InterpolationFunction, initTransform: Transformation): Animator=
+    #initialKeyframes.sort(system.cmp)
+    result = Animator()
+    result.interpolationFunction = f
+    result.keyframes = initialKeyframes
+    result.defaultTransform = initTransform
+    for i, key in enumerate(initialKeyframes.keys):
+        result.translations[key] = newVector3()
+        result.rotations[key] = newQuaternion()
+        result.scales[key] = Zeros()
+        Decompose(initialKeyframes[key].m, result.translations[key], result.rotations[key], result.scales[key])
+        result.decomposed.add(key)
+
 
 proc newAnimator*(initialKeyframes: var OrderedTable[float32, Transformation], f: InterpolationFunction): Animator=
     #initialKeyframes.sort(system.cmp)
@@ -133,9 +164,12 @@ func SetInterpolationFunction*(self: var Animator, f: InterpolationFunction): vo
     self.interpolationFunction = f
 
 proc Play*(self: var Animator, t: float32): Transformation =
+    if len(self.keyframes) <= 0:
+        return self.defaultTransform
     let
         firstkey = self.FindKeyByIndex(0)
         lastkey = self.FindLastKey()
+    
     if t <= firstkey:
         return self.keyframes[firstkey]
     if t >= lastkey:
@@ -144,10 +178,12 @@ proc Play*(self: var Animator, t: float32): Transformation =
     var
         a: float32 = self.GetPreviousKey(t)
         b: float32 = self.GetNextKey(t)
+    echo "t: ",t,"\tfirstkey: ",a,"\tlastkey: ",b
     var dt: float32 = (t-a)/(b-a)
     #echo "t: ",t,"\ta: ",a,"\tb: ",b
     var f_dt: float32 = self.interpolationFunction(dt, 1.0, 1.0)
-    return self.Interpolate(a, b, f_dt)
+    let transform = self.Interpolate(a, b, f_dt)
+    return transform
     
 
 
