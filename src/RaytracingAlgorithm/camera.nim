@@ -15,19 +15,19 @@ type
 
 # -------------------------------- Constructors -------------------------------------
 
-proc newOrthogonalCamera*(width: int = 800, height: int = 800, transform: Transformation = newTransformation()): OrthogonalCamera {.inline.}=
+proc newOrthogonalCamera*(width: int = 800, height: int = 600, transform: Transformation = newTransformation()): OrthogonalCamera {.inline.}=
     ## constructor for orthogonal camera
     ## Parameters
-    ##      width, height (int, int): default_value: 800
+    ##      width, height (int=800, int=600): Width and height of the camera screen
     ##      transform (Transformation) : default: Identity
     ## Returns
     ##      (OrthogonalCamera)
     result = OrthogonalCamera(aspectRatio:float(width/height), transform: transform, camType: CameraType.Orthogonal)
 
-proc newPerspectiveCamera*(width: int = 800, height: int = 800, distance: float32=1.0, transform: Transformation = newTransformation()): PerspectiveCamera {.inline.}=
+proc newPerspectiveCamera*(width: int = 800, height: int = 600, distance: float32=1.0, transform: Transformation = newTransformation()): PerspectiveCamera {.inline.}=
     ## constructor for perspective camera
     ## Parameters
-    ##      width, height (int, int): default_value: 800
+    ##      width, height (int, int): default_value: 800/600
     ##      distance (float32): default_value: 1.0
     ##      transform (Transformation) : default: Identity
     ## Returns
