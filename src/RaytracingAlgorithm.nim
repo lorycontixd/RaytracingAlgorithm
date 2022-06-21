@@ -162,7 +162,7 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
     if strm.isNil:
         echo getCurrentDir()
         raise TestError.newException(fmt"File {filename} does not exist.")
-
+    
     var
         pcg: PCG = newPCG(cast[uint64](pcg_state))
         inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
@@ -192,58 +192,26 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
                     of logger.Level.fatal:
                         fatal(msg)
 
+    var finalWidth: int = (if scene.settings.hasDefinedWidth: scene.settings.width else: width)
+    var finalHeight: int = (if scene.settings.hasDefinedHeight: scene.settings.height else: height)
 
     ### Save image!!
-    imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
-    var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
-    imagetracer.image.write_pfm(strmWrite)
-    if png_output:
-        imagetracer.image.normalize_image(0.9)
-        imagetracer.image.clamp_image()
-        imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
-    echo fmt"Written: {output_filename}"
+    if scene.settings.isAnimated:
+        var animation: Animation = newAnimation(scene )
+        animation.Play()
+        animation.Save()
+    else:
+        img.set_size(finalWidth, finalHeight)
+        imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
+        var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
+        imagetracer.image.write_pfm(strmWrite)
+        if png_output:
+            imagetracer.image.normalize_image(0.9)
+            imagetracer.image.clamp_image()
+            imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
     let endTime = cpuTime() - start
     mainStats.closeStats()
 
-
-#######  --
-#[
-proc animate(width: int = 800, height: int = 600, camera: string = "perspective", dontDeleteFrames: bool = false): void=
-    let start = cpuTime()
-    logLevel = Level.debug
-    info("Starting animating script at ",now())
-    var
-        world: World = newWorld()
-        scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1))
-    
-
-    world.Add(newSphere("SPHERE_0", Transformation.translation( newVector3(0.5, 0.5, 0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_1", Transformation.translation( newVector3(0.5, 0.5, -0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_2", Transformation.translation( newVector3(0.5, -0.5, 0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_3", Transformation.translation( newVector3(0.5, -0.5, -0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_4", Transformation.translation( newVector3(-0.5, 0.5, 0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_5", Transformation.translation( newVector3(-0.5, 0.5, -0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_6", Transformation.translation( newVector3(-0.5, -0.5, -0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_7", Transformation.translation( newVector3(-0.5, -0.5, 0.5)) * scale_tranform))
-    world.Add(newSphere("SPHERE_8", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
-
-    var animator: Animation = newAnimation(
-        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(0.0),
-        Transformation.translation(-2.0, 0.0, 0.0) * Transformation.rotationX(120.0),
-        CameraType.Perspective,
-        newFlatRenderer(world, Color.green()),
-        width, height,
-        world,
-        4,
-        10
-    )
-    animator.Play()
-    animator.Save(dontDeleteFrames)
-    let endTime = cpuTime() - start
-    info(fmt"Animation executed in {endTime}")
-
-]#
- 
 proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string, output_filename:string){.inline.} =
     if not input_filename.endsWith(".pfm"):
         raise InvalidFormatError.newException(fmt"Invalid input file for conversion: {input_filename}. Must be PFM file.")
@@ -293,7 +261,6 @@ when isMainModule:
             "input_filename" : "PFM file name in input  ",
             "output_filename" : "PNG file name in output"
         }]
-        # [animate] 
     )
 
     
