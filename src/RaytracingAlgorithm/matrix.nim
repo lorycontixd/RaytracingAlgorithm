@@ -105,7 +105,7 @@ proc newMatrix*(m: Matrix): Matrix=
 
 ## Methods
 ## 
-## NB: we are using homogenous coordinates: matrix 3x3 becomes 4x4 where line_4 and row_4 a
+## NB: we are using homogenous coordinates: matrix 3x3 becomes 4x4 where line_4 and row_4 
 ## are all zeros with element[4,4] equal to 0 for vectors and to 1 for points
 
 proc Show*(m: Matrix): void=
