@@ -206,6 +206,9 @@ proc clamp_image*(self: var HdrImage)=
         self.pixels[i].b = clampFloat(self.pixels[i].b)
 
 
+proc set_size*(self: var HdrImage, w,h: int): void=
+    self.width = w
+    self.height = h
 
 
 ## ------------------ FILLERS -------------------------
