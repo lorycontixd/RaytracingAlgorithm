@@ -35,7 +35,7 @@ Unfortunately, the package versions were not updated for a long time, so this on
     - renderer.nim: Various techniques for shooting and bouncing rays across the scene.
     - scene.nim: Class holding all informations relative to a scene, such as: scene shapes, scene materials, scene settings, scene variables and more.
     - settings.nim: Scene settings (AA, stats, logs, etc...)
-    - shape.nim: 
+    - shape.nim: Shapes class (sphere, plane, triangle, etc..)
 
 ### Updated
 - Updated RaytracingAlgorithm modules
