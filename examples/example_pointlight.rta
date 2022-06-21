@@ -1,0 +1,51 @@
+float skyscale(100.0)
+float skyrotation(90.0)
+
+material skymaterial(
+    diffuse(uniform(<0.46, 0.62, 0.94>), 1.0),
+    uniform(<0.46, 0.62, 0.94>)
+)
+
+material grass(
+    diffuse(uniform(<0.05, 0.5, 0.05>), 1.0),
+    image("../media/images/grass_texture.pfm")
+)
+
+material spec(
+    specular(uniform(<0.0, 0.1, 0.5>), 1.0),
+    uniform(<0.0, 0.1, 0.5>)
+)
+
+material phongmat(
+    phong(uniform(<1, 1, 1>), 0.1, 0.9, 0.1),
+    uniform(<0.9, 0.2, 0.1>)
+)
+
+material cooktorrancemat(
+    cooktorrance(uniform(<0,0,0>), 0.1, 0.9, 0.05, ggx),
+    uniform(<1.0, 1.0, 1.0>)
+)
+
+material diff(
+    diffuse(uniform(<1.0, 1.0, 1.0>), 0.9),
+    # uniform(<1.0, 1.0, 1.0>)
+    image("../media/images/texture_earth.pfm")
+)
+
+#light([0, 0, 40], <1.0, 1.0, 0.3>, 39.2)
+light([-2.5, 1, 10], <1.0, 1.0, 1.0>, 10.0)
+light([2.5, 0, 10], <1.0, 1.0, 1.0>, 10.0)
+# light([-3.8, 1.3, 4.9], <0.9, 1.0, 1.0>, 4.2)
+
+# light([2, 2, 2], <1.0, 0.0, 0.0>, 2.1)
+# light([-2, -2, 2], <0.0, 0.0, 1.0>, 2.1)
+# sphere (skymaterial, translation([0, 0, 0]) * scale([30, 30, 30]))
+# plane (skymaterial, translation([0, 0, 150]) * rotation_y(skyrotation))
+
+plane (grass, identity)
+sphere (spec, translation([0,0,1]))
+sphere (phongmat, translation([1, -2, 2]))
+sphere (diff, translation([-2.1, 1.6, 1.2]))
+camera(perspective,  translation([-4, 0, 2]), 1.0, 1.0)
+#renderer(pointlight, <0.46, 0.62, 0.94>, <0.1, 0.1, 0.1>)
+renderer(pathtracer, <0.46, 0.62, 0.94>, 7, 4, 6)
