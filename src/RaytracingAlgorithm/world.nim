@@ -40,6 +40,12 @@ method Remove*(self: var World, s_id: string): void {.base.}=
     let index = self.GetIndex(s_id)
     self.shapes.delete(index)
 
+method Find*(self: var World, shape_id: string): Option[Shape] {.inline, base.}=
+    for i, shape in self.shapes.pairs:
+        if shape.id == shape_id:
+            return some(shape)
+    return none(Shape)
+
 func Filter*(self:World, t: typedesc): seq[t]=
     ## Selects a type of shape out of all shapes in the scene.
     ## The selection is done by passing the type of the object.
