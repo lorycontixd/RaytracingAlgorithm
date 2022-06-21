@@ -703,13 +703,7 @@ proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
     ## Parameters
     ##      input_file (InputStream): stream
     ##      scene (Scene)
-<<<<<<< HEAD
     let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS, KeywordType.ANIMATION, KeywordType.WIDTH, KeywordType.HEIGHT])
-=======
-    ## Returns
-    ##      /
-    let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS])
->>>>>>> 262bc95056d70623341850ef6917bc5d9f206a23
     ExpectSymbol(input_file,'=')
     if settingID == KeywordType.LOGGER:
         let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
