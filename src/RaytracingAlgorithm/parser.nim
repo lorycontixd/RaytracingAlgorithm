@@ -589,7 +589,12 @@ proc ParseTransformation*(input_file: var InputStream, scene: Scene): Transforma
             break
 
 proc ParseRenderer*(input_file: var InputStream, scene: Scene): Renderer=
-    ##
+    ##Interpretates tokens of input-file and returns the corresponding renderer
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Renderer)
     ExpectSymbol(input_file, '(')
     let renderer_keyword = ExpectKeywords(input_file, @[KeywordType.POINTLIGHT, KeywordType.ONOFF, KeywordType.FLAT, KeywordType.PATHTRACER])
     ExpectSymbol(input_file, ',')
@@ -623,6 +628,12 @@ proc ParseRenderer*(input_file: var InputStream, scene: Scene): Renderer=
         raise TestError.newException("Invalid keyworld for renderer.")
 
 proc ParsePointlight(input_file: var InputStream, scene: Scene): Pointlight=
+    ## Interpretates tokens of input-file and returns the corresponding point-light
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Pointlight)
     ExpectSymbol(input_file, '(')
     let position = ParseVector(input_file, scene)
     ExpectSymbol(input_file, ',')
@@ -687,6 +698,11 @@ proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
     return newTriangleMeshOBJ(transformation, filenameOBJ, scene.materials[material_name])
 
 proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
+    ## Interpretates tokens of input-file and returns the corresponding setting for the scene
+    ## ex: Antialiasing: On/off
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
     let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS, KeywordType.ANIMATION, KeywordType.WIDTH, KeywordType.HEIGHT])
     ExpectSymbol(input_file,'=')
     if settingID == KeywordType.LOGGER:
@@ -816,8 +832,6 @@ proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
             raise newException(InputError, fmt"[{input_file.location}] Invalid value for HEIGHT setting")
         scene.settings.height = value
         scene.settings.hasDefinedHeight = true
-
-
 
 
 
