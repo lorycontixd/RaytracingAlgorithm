@@ -1,11 +1,12 @@
 # RaytracingAlgorithm package
 RaytracingAlgorithm is a raytracer written mostly in Nim to generate photo-realistic images defined by a scene, which is a collection of 3D objects and environment rules.
 
-** Features **
+**Features**
 - Generate photo-realistic images of your choice
-- Parallel CPU execution (CUDA in future)
+- Possible parallel CPU execution (CUDA in future)
 - Easy-to-use language to define a scene
 - Optimized for speed and memory
+- Render pre-defined demo images in an instance
 
 ## Getting Started
 If this is the first time you use this library, this is the right place for you
