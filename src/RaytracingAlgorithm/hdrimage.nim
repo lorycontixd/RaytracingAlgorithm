@@ -8,6 +8,7 @@ type
         width*: int # number of columns of 2D color-matrix
         height*: int # number of rows of 2D color-matrix
         pixels*: seq[Color] # 2D color-matrix, represented as a 1D array
+        distanceHits*: seq[float32]
         endianness*: Endianness # kind of byte/bit endianness
 
     Endianness* = enum
@@ -27,6 +28,7 @@ proc newHdrImage*(): HdrImage {.inline.} =
         width:0,
         height:0,
         pixels: newSeq[Color](0),
+        distanceHits: newSeq[float32](0),
         endianness: Endianness.littleEndian
     )
 
@@ -37,9 +39,11 @@ proc newHdrImage*(width, height: int): HdrImage {.inline.} =
     ## 
     ## Returns:  
     ##      (HdrImage): black HdrImage with little endianness
-    result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
+    result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height), distanceHits: newSeq[float32](width*height))
     for i in 0..width*height-1:
         result.pixels[i] = newColor(0,0,0)
+    for i in 0..width*height-1:
+        result.distanceHits[i] = Inf
     result.endianness = Endianness.littleEndian
 
 proc newHdrImage*(width, height: int, endianness:Endianness): HdrImage {.inline.} =
@@ -50,9 +54,11 @@ proc newHdrImage*(width, height: int, endianness:Endianness): HdrImage {.inline.
     ## 
     ## Returns: 
     ##      (HdrImage): black HdrImage with the endianness requested
-    result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height))
+    result = HdrImage(width: width, height: height, pixels: newSeq[Color](width*height), distanceHits: newSeq[float32](width*height))
     for i in 0..width*height-1:
         result.pixels[i] = newColor(0,0,0)
+    for i in 0..width*height-1:
+        result.distanceHits[i] = Inf
     result.endianness = endianness
 
 proc newHdrImage*(other:HdrImage): HdrImage {.inline.} =
@@ -61,7 +67,7 @@ proc newHdrImage*(other:HdrImage): HdrImage {.inline.} =
     ##      other (HdrImage)
     ## Returns:
     ##      (HdrImage): an image equal to 'other' HdrImage
-    result = HdrImage(width:other.width, height:other.height, pixels:other.pixels, endianness:other.endianness)
+    result = HdrImage(width:other.width, height:other.height, pixels:other.pixels, distanceHits: other.distanceHits, endianness:other.endianness)
 
 proc parse_endianess*(self: HdrImage, line:string): string = # Remove public on release
     ## Assign endianness 
@@ -134,11 +140,14 @@ proc get_pixel*(self: HdrImage, x,y:int): Color {.inline.} =
     ##
     ## -Parameters: 
     ##      self (HdrImage)
-    ##      x,y (int,int) : coordinates
+    ##      x,y (int,int) : coordinates (x for width, y for height)
     ## 
     ## -Returns: 
     ##      (Color) : pixel of Color with coordinates x,y
-    assert self.valid_coordinates(x,y)
+    try:
+        assert self.valid_coordinates(x,y)
+    except:
+        echo fmt"validating {x},{y} in {self.width},{self.height}"
     result = self.pixels[self.pixel_offset(x,y)]
 
 proc set_pixel*(self: var HdrImage, x,y:int, new_color: Color) {.inline.} = 
@@ -152,9 +161,16 @@ proc set_pixel*(self: var HdrImage, x,y:int, new_color: Color) {.inline.} =
     ## -Returns: 
     ##      no return, but set pixel of coordinates x,y to Color
     if not self.valid_coordinates(x,y):
-        raise ValueError.newException(fmt"Invalid coordinates: {x},{y}) for width,height: {self.width}x{self.height}")
+        raise ValueError.newException(fmt"Invalid coordinates: {x},{y} for width,height: {self.width}x{self.height}")
     let offset = self.pixel_offset(x,y)
     self.pixels[offset] = new_color
+
+proc set_pixel_distance*(self: var HdrImage, x,y: int, distance: float32): void {.inline.}=
+    ##
+    if not self.valid_coordinates(x,y):
+        raise ValueError.newException(fmt"Invalid coordinates: {x},{y} for width,height: {self.width}x{self.height}")
+    let offset = self.pixel_offset(x,y)
+    self.distanceHits[offset] = distance
 
 proc average_luminosity*(self: var HdrImage, delta: float = 1e-10): float32 {.inline.} =
     ## Returns the average luminosity of the image
@@ -170,41 +186,6 @@ proc average_luminosity*(self: var HdrImage, delta: float = 1e-10): float32 {.in
     for pix in self.pixels:
         cumsum += log10(delta + pix.luminosity())
     return pow(10, cumsum / float(size(self.pixels)))
-
-
-proc normalize_image*(self: var HdrImage, factor: float32, luminosity: Option[float32] = none(float32), delta: float32 = 1e-10)=
-    ## NORMALIZE IMAGE:  updates R,G,B values of the Image by normalization (factor * pixel / average_luminosity)
-    ## 
-    ## -Parameters: 
-    ##      self (HdrImage)
-    ##      factor (float) 
-    ##      luminosity (float): optional
-    ##      delta(float):  default_value: 1e-10)
-    ## 
-    ## -Returns: 
-    ##      no returns, just update of pixels  
-    var l: float32
-    if not luminosity.isSome():
-        l = self.average_luminosity()
-    else:
-        l = luminosity.get
-    for i in 0..size(self.pixels)-1:
-        self.pixels[i] = self.pixels[i] * (factor/l)
-
-
-proc clamp_image*(self: var HdrImage)=
-    ## applies corrections for luminous sources to R,G,B components of pixels
-    ## 
-    ## -Parameters: 
-    ##      self (HdrImage)
-    ## 
-    ## -Returns: 
-    ##      no returns, only applies corrections
-    for i in 0..size(self.pixels)-1:
-        self.pixels[i].r = clampFloat(self.pixels[i].r)
-        self.pixels[i].g = clampFloat(self.pixels[i].g)
-        self.pixels[i].b = clampFloat(self.pixels[i].b)
-
 
 proc set_size*(self: var HdrImage, w,h: int): void=
     self.width = w
@@ -384,3 +365,4 @@ proc write_png*(self: var HdrImage, output_file: string, gamma:float =1.0){.inli
         )
         i+=1
     simplePNG(output_file, p)
+

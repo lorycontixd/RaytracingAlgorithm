@@ -1,5 +1,5 @@
 
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene, postprocessing]
 import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
 import cligen
 
@@ -18,7 +18,7 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             var
                 world: World = newWorld()
                 hdrImage: HdrImage = newHdrImage(width, height)
-                imagetracer: ImageTracer = newImageTracer(hdrImage, cam)
+                tracer: ImageTracer = newImageTracer(hdrImage, cam)
                 onoff: OnOffRenderer = newOnOffRenderer(world, Color.black(), Color.white())
                 scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1))
             debug(fmt"Using renderer: OnOffRenderer")
@@ -34,12 +34,12 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             world.Add(newSphere("SPHERE_8", Transformation.translation( newVector3(-0.5, 0.0, -0.5)) * scale_tranform))
 
             ### Save image!!
-            imagetracer.fireAllRays(onoff.Get())
+            tracer.fireAllRays(onoff.Get())
             var strmWrite = newFileStream("output.pfm", fmWrite)
-            imagetracer.image.write_pfm(strmWrite)
-            imagetracer.image.normalize_image(1.0)
-            imagetracer.image.clamp_image()
-            imagetracer.image.write_png("output.png", 1.0)
+            tracer.image.write_pfm(strmWrite)
+            var tonemapping: ToneMapping = newToneMapping(1.0)
+            tonemapping.eval(tracer.image)
+            tracer.image.write_png("output.png", 1.0)
             let endTime = cpuTime() - start
             mainStats.closeStats()
             mainStats.Show()
@@ -86,9 +86,10 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             w.Add(newSphere("SPHERE_2", Transformation.translation(1.0, 2.5, 0.0), mirror_material)) 
             tracer.fireAllRays(render.Get())
             var strmWrite = newFileStream("output.pfm", fmWrite)
+            
             tracer.image.write_pfm(strmWrite)
-            tracer.image.normalize_image(1.0)
-            tracer.image.clamp_image()
+            var tonemapping: ToneMapping = newToneMapping(1.0)
+            tonemapping.eval(tracer.image)
             tracer.image.write_png("output.png", 1.0)
             let endTime = now() - start
             mainStats.Show()
@@ -147,8 +148,8 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             tracer.fireAllRays(render.Get())
             var strmWrite = newFileStream("output.pfm", fmWrite)
             tracer.image.write_pfm(strmWrite)
-            tracer.image.normalize_image(1.0)
-            tracer.image.clamp_image()
+            var tonemapping: ToneMapping = newToneMapping(1.0)
+            tonemapping.eval(tracer.image)
             tracer.image.write_png("output.png", 1.0)
             let endTime = now() - start
             mainStats.Show()
@@ -206,8 +207,8 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
         var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
         imagetracer.image.write_pfm(strmWrite)
         if png_output:
-            imagetracer.image.normalize_image(0.9)
-            imagetracer.image.clamp_image()
+            var tonemapping: ToneMapping = newToneMapping(1.0)
+            tonemapping.eval(imagetracer.image)
             imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
     let endTime = cpuTime() - start
     mainStats.closeStats()
@@ -224,8 +225,8 @@ proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string,
     info("Created HdrImage from inputfile ", input_filename, " for pfm2png conversion")
 
     let luminosity = image.average_luminosity()
-    image.normalize_image(factor, some(luminosity))
-    image.clamp_image()
+    var tonemapping: ToneMapping = newToneMapping(1.0)
+    tonemapping.eval(image)
 
     image.write_png(output_filename)
     debug("File", output_filename, "has been written to disk")

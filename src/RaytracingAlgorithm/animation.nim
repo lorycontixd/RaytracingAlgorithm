@@ -1,4 +1,4 @@
-import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix, animator, scene
+import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix, animator, scene, postprocessing
 import std/[os, strformat, strutils, terminal]
 #[
 type
@@ -233,8 +233,8 @@ proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
     var i: int = 0
     for frame in self.frames:
         var img = frame.image
-        img.normalize_image(1.0)
-        img.clamp_image()
+        var tonemapping: ToneMapping = newToneMapping(1.0)
+        tonemapping.eval(img)
         let stringInt = fmt"{i:04}" # int, works
         var savePath: string = joinPath(dirName, fmt"output_{stringInt}.png")
         img.write_png(savePath, 1.0)
