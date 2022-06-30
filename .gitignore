@@ -2,6 +2,7 @@
 src/RaytracingAlgorithm.out
 # ignore main tests
 examples/privates/
+examples/tests/
 # ignore outputs
 src/*.log
 src/*.mp4
