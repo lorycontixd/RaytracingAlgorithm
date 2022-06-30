@@ -42,7 +42,7 @@ func Clamp01*(value: float32): float32=
 
 proc CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3) {.injectProcName.}=
     ## Normal must be normalized
-    let start = now()
+    #let start = now()
     var normal: Normal = normall.normalize()
     var sign: float32
     if normal.z > 0.0:
@@ -55,8 +55,8 @@ proc CreateOnbFromZ*(normall: Normal): (Vector3, Vector3, Vector3) {.injectProcN
     let
         e1 = newVector3(1.0 + sign * normal.x * normal.x * a, sign * b, -sign * normal.x)
         e2 = newVector3(b, sign + normal.y * normal.y * a, -normal.y)
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime)
+    #let endTime = now() - start
+    #mainStats.AddCall(procName, endTime)
     return (e1, e2, newVector3(normal.x, normal.y, normal.z))
 
 func Lerp*(a,b: float32, t: var float32): float32=

@@ -142,7 +142,7 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.i
     ##      r (Ray)
     ## Returns   
     ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
-    let start = now()
+    #let start = now()
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32
@@ -177,9 +177,8 @@ method rayIntersect*(s: Sphere, r: Ray, debug: bool = false): Option[RayHit] {.i
     hit.surface_point = sphereWorldToLocal(hitpoint, s.radius)
     hit.ray = r
     hit.material = s.material
-    #hit.hitshape = s
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 2)
+    #let endTime = now() - start
+    #mainStats.AddCall(procName, endTime, 2)
     return some(hit)
 
 
@@ -224,7 +223,7 @@ method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayH
     ##      r (Ray)
     ## Returns   
     ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
-    let start = now()
+    #let start = now()
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32
@@ -263,8 +262,8 @@ method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayH
     hit.ray = ray
     hit.material = self.material
     #hit.hitshape = s
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 2)
+    #let endTime = now() - start
+    #mainStats.AddCall(procName, endTime, 2)
     return some(hit)
 
 #[
@@ -334,7 +333,6 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
     ##      r (Ray)
     ## Returns   
     ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
-    let start = now()
     var hit: RayHit = newRayHit()
     var
         firsthit_t: float32

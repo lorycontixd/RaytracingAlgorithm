@@ -108,7 +108,7 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray, dist: var float32): Color) {.
     ## Returns
     ##      (Color): color computed from the BRDF and emitted radiance
     return proc(r: Ray, dist: var float32): Color =
-        let start = now()
+        #let start = now()
         var hit: Option[RayHit] = renderer.world.rayIntersect(r)
         if hit == none(RayHit):
             dist = Inf
@@ -119,8 +119,8 @@ method Get*(renderer: FlatRenderer): (proc(r: Ray, dist: var float32): Color) {.
         var
             brdfColor: Color = material.brdf.pigment.getColor(hit.get().GetSurfacePoint()) 
             emittedRadianceColor: Color = material.emitted_radiance.getColor(hit.get().GetSurfacePoint())
-        let endTime = now() - start
-        mainStats.AddCall(procName, endTime)
+        ##let endTime = now() - start
+        #mainStats.AddCall(procName, endTime)
         return ( brdfColor + emittedRadianceColor )
 
 
@@ -131,7 +131,7 @@ method Get*(renderer: PathTracer): (proc(ray: Ray, dist: var float32): Color) {.
     ## Returns
     ##      (Color)
     return proc(ray: Ray, dist: var float32): Color=
-        let start = now()
+        #let start = now()
         if ray.depth > renderer.maxRayDepth:
             return Color.black()
         let hitrecord = renderer.world.rayIntersect(ray)
@@ -169,8 +169,8 @@ method Get*(renderer: PathTracer): (proc(ray: Ray, dist: var float32): Color) {.
                 let newRadiance = renderer.Get()(newRay, dist)
                 cum_radiance = cum_radiance + hit_color * newRadiance
                 renderer.raysShot  = renderer.raysShot + 1
-        let endTime = now() - start
-        mainStats.AddCall(procName, endTime, 1)
+        #let endTime = now() - start
+        #mainStats.AddCall(procName, endTime, 1)
         return emitted_radiance + cum_radiance * (1.0 / float32(renderer.numRays))
 
 method Get*(self: PointlightRenderer): (proc(ray: Ray, dist: var float32): Color) {.injectProcName.}=
@@ -180,7 +180,7 @@ method Get*(self: PointlightRenderer): (proc(ray: Ray, dist: var float32): Color
     ## Returns
     ##      (Color)
     return proc(ray: Ray, dist: var float32): Color=
-        let start = now()
+        #let start = now()
         let hit = self.world.rayIntersect(ray)
         if not hit.isSome:
             return self.backgroundColor
@@ -210,6 +210,6 @@ method Get*(self: PointlightRenderer): (proc(ray: Ray, dist: var float32): Color
                     )
                 #echo emitted_color, " - ",brdf_color, " -- ",light.color, " - ",costheta, " - ",distance_factor
                 result_color = result_color + (emitted_color + brdf_color) * light.color * costheta * distance_factor
-        let endTime = now() - start
-        mainStats.AddCall(procName, endTime, 1)
+        ##let endTime = now() - start
+        #mainStats.AddCall(procName, endTime, 1)
         return result_color

@@ -77,7 +77,7 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.
     ## 
     ## Returns
     ##      Option of a RayHit. Null if the fired ray does not intersect a shape in the scene, RayHit with collision information if a shape was hit.
-    let start = now()
+    #let start = now()
     var
         closest: Option[RayHit] = none(RayHit)
         intersection: Option[RayHit]
@@ -90,8 +90,8 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.
         
         if closest == none(RayHit) or intersection.get().t < closest.get().t:
             closest = intersection
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 2)
+    #let endTime = now() - start
+    #mainStats.AddCall(procName, endTime, 2)
     
     return closest
 

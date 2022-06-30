@@ -25,13 +25,13 @@ proc fireRay*(self: var ImageTracer, col, row: int, u_pixel: float32 = 0.5, v_pi
     ##                                  they are in range [0,1], default_value: 0.5
     ## Returns
     ##      (Ray)
-    let start = now()
+    #let start = now()
     var
         u:float32 = (float32(col) + u_pixel) / float32(self.image.width)
         v:float32 = 1.0 - (float32(row) + v_pixel) / float32(self.image.height)
     
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 0)
+    #let endTime = now() - start
+    #mainStats.AddCall(procName, endTime, 0)
     return self.camera.fireRay(u, v)
 
 proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false, antiAliasingRays: int = 0): void {.injectProcName.}=
@@ -43,7 +43,7 @@ proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false,
     ##      f (proc)
     ## Returns
     ##      (Ray)
-    let start = now()
+    #let start = now()
     var
         color: Color
         ray: Ray
@@ -74,5 +74,5 @@ proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false,
                 color = f(ray, pixel_dist)
                 self.image.set_pixel(col, row, color)
                 self.image.set_pixel_distance(col, row, pixel_dist)
-    let endTime = now() - start
-    mainStats.AddCall(procName, endTime, 0)
+    #let endTime = now() - start
+    #mainStats.AddCall(procName, endTime, 0)
