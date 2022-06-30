@@ -151,14 +151,13 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             var tonemapping: ToneMapping = newToneMapping(1.0)
             tonemapping.eval(tracer.image)
             tracer.image.write_png("output.png", 1.0)
-            let endTime = now() - start
-            mainStats.Show()
-            echo $endTIme
+            #let endTime = now() - start
+            #mainStats.Show()
 
 
 
 proc render(filename: string, width: int = 800, height: int = 600, pcg_state: int = 42, output_filename = "output", png_output = true): auto =
-    let start = cpuTime()
+    #let start = cpuTime()
     var strm: FileStream = newFileStream(filename, fmRead)
     if strm.isNil:
         echo getCurrentDir()
@@ -210,7 +209,7 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
             var tonemapping: ToneMapping = newToneMapping(1.0)
             tonemapping.eval(imagetracer.image)
             imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
-    let endTime = cpuTime() - start
+    #let endTime = cpuTime() - start
     mainStats.closeStats()
 
 proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string, output_filename:string){.inline.} =
