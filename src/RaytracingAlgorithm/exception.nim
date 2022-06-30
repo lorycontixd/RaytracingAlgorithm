@@ -20,6 +20,8 @@ type
         component*: string
     ShapeIDNotFoundError* =  ref object of InputError
         shape_id*: string
+
+    SettingsError* = object of InputError
     
     PFMImageError* =  object of ImageError
     PNGImageError* =  object of ImageError
@@ -41,5 +43,5 @@ func newShapeIDError*(shape_id: string): ShapeIDNotFoundError=
     result = ShapeIDNotFoundError(shape_id: shape_id, msg: fmt"Shape id not found: {shape_id}")
 
 func newInvalidColorError*(color: float32, component: string): InvalidColorError =
-        result = InvalidColorError(c: color, component: component, msg : fmt"{component} of RGB Color is out of range [0,1]: {color}" )
+    result = InvalidColorError(c: color, component: component, msg : fmt"{component} of RGB Color is out of range [0,1]: {color}" )
 
