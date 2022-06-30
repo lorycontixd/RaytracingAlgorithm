@@ -198,7 +198,7 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
 
     ### Save image!!
     if scene.settings.isAnimated:
-        var animation: Animation = newAnimation(scene )
+        var animation: Animation = newAnimation(scene)
         animation.Play()
         animation.Save()
     else:
