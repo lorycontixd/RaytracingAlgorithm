@@ -4,6 +4,7 @@ import renderer
 import settings
 import pcg
 import logger
+import color
 from material import Material
 import std/[tables, sets, sequtils]
 
@@ -27,7 +28,7 @@ proc newScene*(): Scene=
     for lvl in logger.Level.toSeq:
         parseTimeLogs[lvl] = newSeq[string]()
     var w: World = newWorld()
-    return Scene(world: w, parseTimeLogs: parseTimeLogs, settings: newSettings(), pcg: newPCG())
+    return Scene(world: w, parseTimeLogs: parseTimeLogs, settings: newSettings(), pcg: newPCG(), camera: newPerspectiveCamera(), renderer: newFlatRenderer(w, Color.black()))
     
 proc newScene*(pcg: PCG): Scene=
     ## empty constructor for scene
