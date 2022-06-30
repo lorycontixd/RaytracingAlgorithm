@@ -890,7 +890,7 @@ proc ParseAnimator(input_file: var InputStream, scene: var Scene): void=
         raise newShapeIDError(shape_id)
     let shape = shapeopt.get()
     for i in countup(0, keyframe_times.len()-1):
-        shape.animator.AddKeyframe(keyframe_times[i],keyframe_transforms[1])
+        shape.animator.AddKeyframe(keyframe_times[i],keyframe_transforms[i])
     scene.settings.isAnimated = true
 
 proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
