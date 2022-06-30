@@ -1,4 +1,4 @@
-import camera, mathutils, color, geometry, quaternion, logger, world, transformation, hdrimage, imagetracer, renderer, matrix, animator, scene, postprocessing
+import camera, mathutils, color, geometry, quaternion, logger, world, transformation, settings, hdrimage, imagetracer, renderer, matrix, animator, scene, postprocessing, exception
 import std/[os, strformat, strutils, terminal]
 #[
 type
@@ -198,6 +198,10 @@ proc SetTransforms*(self: var Animation, t: var float32): void=
         shape.transform = shape.animator.Play(t)
 
 proc Play*(self: var Animation): void=
+    if self.scene.settings.animDuration <= 0:
+        raise newException(SettingsError, "Animation duration must be greater than 0 in settings.")
+    if self.scene.settings.animFPS <= 0:
+        raise newException(SettingsError, "Animation FPS must be greater than 0 in settings.")
     for i in countup(0, self.nframes-1):
         var
             t: float32 = float32(i / (self.nframes - 1)) * float32(self.scene.settings.animDuration)
