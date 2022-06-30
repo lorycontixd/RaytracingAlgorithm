@@ -196,6 +196,8 @@ func newAnimation*(scene: Scene): Animation=
 proc SetTransforms*(self: var Animation, t: var float32): void=
     for shape in self.scene.world.shapes:
         shape.transform = shape.animator.Play(t)
+        echo "Id: ",shape.id
+        echo "Transform: ",shape.transform,"\n"
 
 proc Play*(self: var Animation): void=
     if self.scene.settings.animDuration <= 0:

@@ -182,8 +182,7 @@ proc Play*(self: var Animator, t: float32): Transformation =
     var dt: float32 = (t-a)/(b-a)
     #echo "t: ",t,"\ta: ",a,"\tb: ",b
     var f_dt: float32 = self.interpolationFunction(dt, 1.0, 1.0)
-    let transform = self.Interpolate(a, b, f_dt)
-    transform.Show()
+    let transform = self.Interpolate(a, b, dt)
     return transform
     
 
