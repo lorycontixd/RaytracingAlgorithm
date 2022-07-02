@@ -1,4 +1,4 @@
-# Raytracing Algorithm DSL (rta)
+# Raytracing Algorithm DSL 
 The RaytracingAlgorithm package includes a language to define a 3D scene from a text file. In the following document we present a little documentation and some examples for the usage. 
 
 >⚠️The input text file must be of format .txt or .rta
@@ -39,20 +39,20 @@ Colours are declared using angular brackets, and each component separated by a c
 
 ## Pigments
 A pigment does not allow identifiers and has to be inserted directly as an argument, so it can be defined with the following syntax:
-<center>type(*args)</center>
-where the arguments depend on the pigment being used:
 
 ### Uniform
-Represent a uniform pigment, made of only one colour and a reflectance factor:
-<center>uniform(color, reflectance) </center>
+Represent a uniform pigment, made of only one colour, and hides a reflectance factor which is always 1.
+
+**Syntax:** uniform(color)
 
 ##### Examples
-- uniform(<0,0,0>, 1.5)
-- uniform(<0.9, 0.9, 0.9>, 1)
+- uniform(<0,0,0>) --> Black
+- uniform(<0.9, 0.9, 0.9>) --> Light grey
 
 ### Checkered
-Represent a checkered pigment, made of two alternating colours and the size of each tile:
-<center>checkered(color1, color2, size)</center>
+Represent a checkered pigment, made of two alternating colours and the size of each tile.
+
+**Syntax:** checkered(color1, color2, size)
 
 ##### Examples
 - checkered(<0,0,0>, <1,1,1>, 1)
@@ -60,8 +60,9 @@ Represent a checkered pigment, made of two alternating colours and the size of e
 
 ### Image 
 Represent an image pigment, which maps an image onto a material which is then mapped onto an object.
-The image pigment only expects the file path of the image to be loaded into the pigment:
-<center>image(filepath)</center>
+The image pigment only expects the file path of the image to be loaded into the pigment.
+
+**Syntax:** image(filepath)
 
 > ⚠️ The input image must be of .pfm format
 
@@ -72,9 +73,11 @@ The image pigment only expects the file path of the image to be loaded into the 
 ### Gradient
 A gradient pigment is defined by two colors and two numbers that encode the coefficients for each axis, so the contribution of the horizontal and vertical component of the gradient.
 This means that a horizontal coefficient of 1 and a vertical coefficient of 0 gives a complete horizontal gradient. 
-<center>gradient(color1, color2, hCoefficient, vCoefficient)</center>
+
+**Syntax:** gradient(color1, color2, hCoefficient, vCoefficient)
 
 >⚠️The sum of horizontal and vertical coefficients must equal 1.
+
 #####  Examples
 - gradient(<0,0,0>, <1,1,1>, 0, 1)
 - gradient(<0.1, 0.1, 0.1>,  <0.9, 0.9, 0.9>, 0.4, 0.6)
@@ -85,28 +88,31 @@ It requires a pigment of the surface and additional parameters that depend on th
 
 ### Diffuse BRDF
 A diffuse BRDF is such that incoming radiance is distributed equally on a hemisphere, such that the BRDF is constant independently of the angle of incidence/emission.
-<center> diffuse(pigment, reflectance)</center>
+
+**Syntax:** diffuse(pigment)
 
 ##### Examples
-- diffuse(uniform(<0,0,0>), 1.0)
+- diffuse(uniform(<0,0,0>))
 - diffuse(checkered(<0,0,0>, <1,1,1>, 4), 0.5)
 
 ### Specular BRDF
 A specular BRDF is such that incoming radiance is totally reflected according to Snell's law, therefore the BRDF is a Dirac's delta function.
-It requires a pigment and a threshold angle which dictates over which angle should the reflection be calculated.
-<center> specular(pigment, threshold_angle)</center>
+It requires only a pigment, but encodes a threshold angle which dictates over which angle should the reflection be calculated.
+
+**Syntax:** specular(pigment)
 
 ##### Examples
-- specular(uniform(<0,0,0>). 0.001)
-- specular(image("mypath.pfm"), 0.001)
+- specular(uniform(<0,0,0>))
+- specular(image("mypath.pfm"))
 
 ### Phong BRDF
 The Phong Model combines the previously defined functions into one, taking into account a diffuse component and a glossy component responsible for reflections on the surface.
 The intensity of specular reflections is dictated by a factor called specular exponent or shininess, which is the power law coefficient of the dot product of incoming and outgoing directions.
 Clearly there has to be two coefficients which dictate the strength of the diffuse and the glossy component.
-> ⚠️ The sum of the diffuse and specular coefficients must not be greater than 1.
 
-<center> phong(pigment, shininess, diffuseCoefficient, specularCoefficient) </center>
+**Syntax:** phong(pigment, shininess, diffuseCoefficient, specularCoefficient)
+
+> ⚠️ The sum of the diffuse and specular coefficients must not be greater than 1.
 
 ##### Examples
 - phong(uniform(<1,0,0>), 20, 0.9, 0.1)
@@ -115,7 +121,45 @@ Clearly there has to be two coefficients which dictate the strength of the diffu
 ### Cook Torrance BRDF
 
 ## Materials
-A material describes how the surface of an object is made, and it's a combination of a BRDF and an emissive component described by a pigment. Materials can be defined with the keyword `material` and must have an identifier associated so that they can be later assigned to objects. The syntax is:
-<center>material matname(*args)
+A material describes how the surface of an object is made. It's a combination of a BRDF and an intrinsic, emissive component described by a pigment. Materials can be defined with the keyword `material` and must have an identifier associated so that they can be later assigned to objects.
 
-where the arguments depend on the materials being defined.
+**Syntax:** material matname(brdf, pigment)
+
+##### Examples
+
+```
+- material ground_material( 
+    diffuse(checkered(<0.3, 0.5, 0.1>, <0.1, 0.2, 0.5>, 4), 1.0 ),
+    uniform(<0, 0, 0>)
+)
+
+- material sky_material(
+    diffuse(uniform(<0, 0, 0>)),
+    uniform(<0.5, 0.8, 1>)
+)
+```
+
+## Shapes
+RaytracingAlgorithm supports an infinite amount of shapes using triangle meshes, but can only support spheres, infinite planes and triangles without the use of meshes.
+A shape is uniquely identified by an ID which allows the user to define animations and assign them to the shape by means of the identifier. Also, the shape obviously contains the transformations in world space, as well as a material which is assigned through the material identifier.
+
+### Spheres
+A sphere is defined with the ```sphere``` keyword, and an identifier has to be passed immediately. The constructor then takes in the material and the transformation for that sphere. The overall syntax is then:
+
+**Syntax:** sphere identifier(material_name, transform)
+
+##### Examples
+- sphere skydome (skymaterial, scale([0,0,0]) )
+- sphere ball( ball_material, translation([1,2,3])
+- sphere mysphere( mymaterial, identity)
+
+### Planes
+A plane is defined by the ```plane``` keyword, and accepts an identifier just like the sphere. The syntax is the same.
+
+**Syntax:** sphere identifier(material_name, transform)
+
+##### Examples
+- plane ground( groundmaterial, identity )
+- plane myplane( mymaterial, translation([0,0,2]) )
+
+### Triangle
