@@ -198,8 +198,8 @@ method ScatterRay*(
 ## Specular BRDF
 method eval*(self: SpecularBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color=
     let
-        theta_in = arccos(Dot(normal.convert(Vector3), in_dir))
-        theta_out = arccos(Dot(normal.convert(Vector3), out_dir))
+        theta_in = arccos(Dot(normal.convert(Vector3).normalize(), in_dir.normalize()))
+        theta_out = arccos(Dot(normal.convert(Vector3).normalize(), out_dir.normalize()))
 
     if abs(theta_in - theta_out) < self.thresholdAngle:
         return self.pigment.get_color(uv)
@@ -216,11 +216,10 @@ method ScatterRay*(
         depth: int
     ): Ray=
     let
-        ray_dir = normalize(newVector3(incoming_dir.x, incoming_dir.y, incoming_dir.z))
-        newnormal = normalize(normal.convert(Vector3))
-        dot_prod = normal * ray_dir
+        normalizedDir = incoming_dir.normalize()
+        normalizedNormal = normal.normalize()
 
-    return newRay(interaction_point, ray_dir - newnormal * 2 * dot_prod, 1e-5, Inf, depth)
+    return newRay(interaction_point, Reflect(normalizedDir, normalizedNormal), 1e-5, Inf, depth)
 
 
 
