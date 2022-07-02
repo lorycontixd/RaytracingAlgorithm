@@ -1,4 +1,4 @@
-import hdrimage, matrix, color, utils, exception, scene
+import hdrimage, matrix, color, utils, exception
 import std/[math, enumerate, options]
 
 
@@ -8,7 +8,6 @@ type
     DepthOfField* = ref object of PostProcessingEffect
         apertureRadius*: float32
         focalDistance*: float32
-        scene*: Scene
 
     GaussianBlur* = ref object of PostProcessingEffect
         kernelRadius*: int
@@ -27,10 +26,8 @@ method eval*(self: PostProcessingEffect, input_ig: var HdrImage): auto {.base.}=
     raise newException(AbstractMethodError, "Cannot call abstract method eval of PostProcessingEffect")
 
 
-################################################  GAUSSIAN BLUR  #######################################################
+################################################  DEPTH OF FIELD  #######################################################
 
-func newDepthOfField*(apertureRadius: float, focalDistance: float32, scene: Scene): DepthOfField {.inline.}=
-    return DepthOfField(apertureRadius: apertureRadius, focalDistance: focalDistance, scene: scene)
 
 
 ################################################  GAUSSIAN BLUR  #######################################################
