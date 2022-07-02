@@ -727,7 +727,10 @@ proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
     ExpectSymbol(input_file, ')')
     return newPlane(transform=transformation, material=scene.materials[material_name])
 
-proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
+proc ParseMeshDefined(input_file: var InputStream, scene: Scene): TriangleMesh=
+    ExpectSymbol(input_file, '(')
+
+proc ParseMeshOBJ(input_file: var InputStream, scene: Scene): TriangleMesh=
     ExpectSymbol(input_file, '(')
     let filenameOBJ = ExpectString(input_file)
     ExpectSymbol(input_file, ',')
