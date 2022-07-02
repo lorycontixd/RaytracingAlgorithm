@@ -49,8 +49,8 @@ proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false,
         ray: Ray
         pcg: PCG = newPCG()
         
-    for row in 0 ..< self.image.height:
-        for col in 0 ..< self.image.width:
+    for row in countup(0,self.image.height-1):
+        for col in countup(0,self.image.width-1):
             if useAntiAliasing:
                 var cumcolor = Color.black()
                 if antiAliasingRays > 0:
@@ -70,5 +70,3 @@ proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false,
                 ray = self.fireRay(col, row)
                 color = f(ray)
                 self.image.set_pixel(col, row, color)
-    #let endTime = now() - start
-    #mainStats.AddCall(procName, endTime, 0)

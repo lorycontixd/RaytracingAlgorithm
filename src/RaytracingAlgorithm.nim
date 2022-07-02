@@ -167,13 +167,19 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
         pcg: PCG = newPCG(cast[uint64](pcg_state))
         inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
         scene: Scene = ParseScene(inputstrm)
-        img: HdrImage = newHdrImage(width, height)
-        imagetracer: ImageTracer = newImageTracer(img, scene.camera)
+        
 
     if scene.settings.useLogger:
         for log in scene.settings.loggers:
             addLogger(log)
     
+    var finalWidth: int = (if scene.settings.hasDefinedWidth: scene.settings.width else: width)
+    var finalHeight: int = (if scene.settings.hasDefinedHeight: scene.settings.height else: height)
+    
+    var
+        img: HdrImage = newHdrImage(finalWidth, finalHeight)
+        imagetracer: ImageTracer = newImageTracer(img, scene.camera)
+
     useStats = scene.settings.useStats
     info("Starting rendering scene from file: " & filename)
 
@@ -192,16 +198,12 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
                     of logger.Level.fatal:
                         fatal(msg)
 
-    var finalWidth: int = (if scene.settings.hasDefinedWidth: scene.settings.width else: width)
-    var finalHeight: int = (if scene.settings.hasDefinedHeight: scene.settings.height else: height)
-    echo "final size: ",finalWidth, " - ",finalHeight
     ### Save image!!
     if scene.settings.isAnimated:
         var animation: Animation = newAnimation(scene)
         animation.Play()
         animation.Save()
     else:
-        img.set_size(finalWidth, finalHeight)
         imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
         var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
 
