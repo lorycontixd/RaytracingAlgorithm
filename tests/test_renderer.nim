@@ -45,13 +45,7 @@ proc test_onoff_renderer2(): void=
     assert image.get_pixel(0,2) == Color.black
     assert image.get_pixel(1,2) == Color.black
     assert image.get_pixel(2,2) == Color.black
-    echo image.get_pixel(1,1)
 
-    var strmWrite = newFileStream("test2.pfm", fmWrite)
-    tracer.image.write_pfm(strmWrite)
-    tracer.image.normalize_image(1.0)
-    tracer.image.clamp_image()
-    tracer.image.write_png("test2.png", 1.0)
 
 
 proc test_flat_renderer(): void=
@@ -80,17 +74,7 @@ proc test_flat_renderer(): void=
     assert image.get_pixel(1,2) == Color.black
     assert image.get_pixel(2,2) == Color.black
 
-    echo image.get_pixel(1,1)
-
-    var strmWrite = newFileStream("test.pfm", fmWrite)
-    tracer.image.write_pfm(strmWrite)
-    tracer.image.normalize_image(1.0)
-    tracer.image.clamp_image()
-    tracer.image.write_png("test.png", 1.0)
-
 proc test_pointlight_renderer(): void = discard
-
-    
 
 
 
