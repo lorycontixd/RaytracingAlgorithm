@@ -1,5 +1,5 @@
-import geometry, transformation, utils, material, aabb
-import std/[options, streams, os, parseutils, strutils, sequtils, enumerate]
+import geometry, transformation, utils, material, aabb, exception
+import std/[options, streams, os, parseutils, strutils, sequtils, enumerate, strformat]
 
 ## 
 ## Triangle Mesh: A class representing a mesh of many triangles.
@@ -107,6 +107,8 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
 
     var line: string
     let strm = newFileStream(objFile, fmRead)
+    if strm.isNil:
+        raise newException(FileNotFoundError, fmt"File not found {objFile}")
     while not strm.atEnd():
         line = strm.readLine()
         let spaceIndex = skipUntil(line,' ',0)
