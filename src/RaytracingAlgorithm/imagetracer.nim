@@ -51,7 +51,6 @@ proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false,
         
     for row in 0 ..< self.image.height:
         for col in 0 ..< self.image.width:
-            var pixel_dist :float32 = Inf
             if useAntiAliasing:
                 var cumcolor = Color.black()
                 if antiAliasingRays > 0:
@@ -61,18 +60,15 @@ proc fireAllRays*(self: var ImageTracer, f: proc, useAntiAliasing: bool = false,
                                 u_pixel = (inter_pixel_col.float32 + pcg.random_float()) / antiAliasingRays.float32
                                 v_pixel = (inter_pixel_row.float32 + pcg.random_float()) / antiAliasingRays.float32
                             ray = self.fireRay(col=col, row=row, u_pixel=u_pixel, v_pixel=v_pixel)
-                            cum_color = cum_color + f(ray, pixel_dist)
+                            cum_color = cum_color + f(ray)
                     self.image.set_pixel(col, row, cum_color * (1.0 / (antiAliasingRays.float32 * antiAliasingRays.float32)))
-                    self.image.set_pixel_distance(col, row, pixel_dist)
                 else:
                     ray = self.fireRay(col, row)
-                    color = f(ray, pixel_dist)
+                    color = f(ray)
                     self.image.set_pixel(col, row, color)
-                    self.image.set_pixel_distance(col, row, pixel_dist)
             else:
                 ray = self.fireRay(col, row)
-                color = f(ray, pixel_dist)
+                color = f(ray)
                 self.image.set_pixel(col, row, color)
-                self.image.set_pixel_distance(col, row, pixel_dist)
     #let endTime = now() - start
     #mainStats.AddCall(procName, endTime, 0)
