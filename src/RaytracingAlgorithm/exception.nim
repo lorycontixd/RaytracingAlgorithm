@@ -20,7 +20,7 @@ type
         component*: string
     ShapeIDNotFoundError* =  ref object of InputError
         shape_id*: string
-
+    FileNotFoundError* = object of InputError
     SettingsError* = object of InputError
     
     PFMImageError* =  object of ImageError
