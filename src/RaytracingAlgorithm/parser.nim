@@ -540,6 +540,7 @@ proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
         ExpectSymbol(input_file, ')')
         return newPhongBRDF(pigment, shininess, diffuseCoefficient, specularCoefficient)
     elif brdf_keyword == KeywordType.COOKTORRANCE:
+        ExpectSymbol(input_file,',')
         let diffuseCoefficient = ExpectNumber(input_file, scene)
         ExpectSymbol(input_file,',')
         let specularCoefficient = ExpectNumber(input_file, scene)
