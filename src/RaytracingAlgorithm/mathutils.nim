@@ -67,6 +67,16 @@ func LerpUnclamped*(a,b,t: float32): float32=
 
 func LerpAngle*(a,b,t: float32): float32 = discard
 
+func Reflect*(dir: Vector3, normal: Normal): Vector3 {.inline.}=
+    let vec_normal = normal.convert(Vector3)
+    return dir - vec_normal * (Dot(vec_normal, dir) * 2.0)
+
+func Refract*(dir: Vector3, normal: Normal, refractionRatio: float32, cosI, cosT: float32): Vector3=
+    let
+        outDirPerpendicular = (dir - normal.convert(Vector3) * cosI) * refractionRatio
+        outDirParallel = normal.convert(Vector3).neg() * cosT
+    return outDirPerpendicular + outDirParallel
+
 func SmoothStep*(fromValue, toValue: float32, t: var float32): float32=
     ## Interpolates between min and max with smoothing at the limits
     t = Clamp01(t)
