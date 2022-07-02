@@ -1,4 +1,4 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg, animator
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg, animator, postprocessing
 import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
 
 ## ------------- PARSER ---------------
@@ -20,6 +20,10 @@ type
         savedLocation*: SourceLocation
         savedToken*: Option[Token]
         tabulations*: int
+
+    PostProcessingEffectEnum* = enum
+        TONEMAPPING = "TONEMAPPING"
+        GAUSSIANBLUR = "GAUSSIANBLUR"
 
     KeywordType* = enum
         NEW,
@@ -77,6 +81,7 @@ type
         ANTIALIASING,
         STATS,
         ANIMATION,
+        POSTPROCESSING
         # ANIMATIONS
         ANIMATE
 
@@ -130,6 +135,7 @@ proc newInvalidTokenKeywordsError*(token: Token): InvalidTokenKeywordsError =
 # --------------------------------------------------------------
 
 converter toKeywordType(s: string): KeywordType = parseEnum[KeywordType](s.toUpperAscii())
+converter toPostProcessingEffect(s: string): PostProcessingEffectEnum = parseEnum[PostProcessingEffectEnum](s)
 ## Enumeration for all the possible keywords recognized by the lexer
 
 proc newSourceLocation*(filename: string, row: int = 1, col: int = 1): SourceLocation=
@@ -275,6 +281,36 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
         raise TestError.newException("ciao")
     return Token(kind: tkNumber, location: tokenLocation, numberVal: value)
 
+
+proc PeekToken*(self: var InputStream): Token=
+    ## Peeks a token from a stream (it is unread immediately)
+    ## Parameters
+    ##      self(InputStream): stream
+    ## Returns
+    ##      (Token): read token
+    let SYMBOLS = "()[],*<>="
+    self.SkipWhitespacesAndComments()
+    var c: Option[char] = self.ReadChar()
+    if not (c.isSome) or c.get() == '\x00':
+        # no more character in the file, return the StopToken
+        result = Token(kind: tkStop, location: self.location, stopVal: "")
+    var tokenLocation: SourceLocation
+    tokenLocation.shallowCopy(self.location)
+     # check what kind of token begins with 'c' character
+    var x: char = c.get()
+    if x in SYMBOLS:
+        result = Token(kind: tkSymbol, location: tokenLocation, symbolVal: x)
+    elif x == '"':
+        result = self.ParseStringToken(tokenLocation)
+    elif Digits.contains(x) or {'+','-','.'}.contains(x):
+        result = self.ParseFloatToken(x, tokenLocation)
+    elif x.isAlphaNumeric() or x == '_':
+        result = self.ParseKeywordOrIdentifierToken(x, tokenLocation)
+    else:
+        echo "Char is not valid: ",x
+        raise TestError.newException("errore in lettura char")
+    self.UnreadChar(c.get())
+
 proc ReadToken*(self: var InputStream): Token=
     ## Reads a token from a stream
     ## Parameters
@@ -329,6 +365,14 @@ proc ExpectSymbol*(file: var InputStream, symbol: char)=
         raise newInvalidTokenKindError(TokenKind.tkSymbol, token)
     if token.symbolVal != symbol:
         raise newInvalidTokenSymbolError(symbol, token)
+
+proc ExpectSymbols*(file: var InputStream, symbols: openArray[char]): char=
+    let token = file.ReadToken()
+    if token.kind != TokenKind.tkSymbol:
+        raise newInvalidTokenKindError(TokenKind.tkSymbol, token)
+    if not (token.symbolVal in symbols):
+        raise newInvalidTokenSymbolError(token.symbolVal, token)
+    return token.symbolVal
 
 proc ExpectKeywords*(file: var InputStream, keywords: seq[KeywordType]): KeywordType=
     ## Reads a token from 'input-file' and check that it is one of KEYWORDTYPE
@@ -479,17 +523,15 @@ proc ParseBrdf*(input_file: var InputStream, scene: Scene): BRDF=
     let brdf_keyword = ExpectKeywords(input_file, @[KeywordType.DIFFUSE, KeywordType.SPECULAR, KeywordType.PHONG, KeywordType.COOKTORRANCE])
     ExpectSymbol(input_file, '(')
     let pigment = ParsePigment(input_file, scene)
-    ExpectSymbol(input_file, ',')
     if brdf_keyword == KeywordType.DIFFUSE:
         # pigment, reflectance
-        let reflectance = ExpectNumber(input_file, scene)
         ExpectSymbol(input_file, ')')
-        return newDiffuseBRDF(pigment, reflectance)
+        return newDiffuseBRDF(pigment)
     elif brdf_keyword == KeywordType.SPECULAR:
-        let thresholdangle = ExpectNumber(input_file, scene)
         ExpectSymbol(input_file, ')')
-        return newSpecularBRDF(pigment, thresholdangle)
+        return newSpecularBRDF(pigment)
     elif brdf_keyword == KeywordType.PHONG:
+        ExpectSymbol(input_file, ',')
         let shininess = ExpectNumber(input_file, scene)
         ExpectSymbol(input_file,',')
         let diffuseCoefficient = ExpectNumber(input_file, scene)
@@ -697,13 +739,46 @@ proc ParseMesh(input_file: var InputStream, scene: Scene): TriangleMesh=
         raise TestError.newException(fmt"unknown material {material_name}")
     return newTriangleMeshOBJ(transformation, filenameOBJ, scene.materials[material_name])
 
+
+proc ParsePostProcessingEffects*(input_file: var InputStream, scene: var Scene): seq[PostProcessingEffect] {.inline.}=
+    var res = newSeq[PostProcessingEffect]()
+    while true:
+        let effect = ExpectIdentifier(input_file).toUpperAscii()
+        ExpectSymbol(input_file, '(')
+        case toPostProcessingEffect(effect):
+            of PostProcessingEffectEnum.TONEMAPPING:
+                let tonemappingFactor = ExpectNumber(input_file, scene)
+                # expect either , or )
+                let sym = ExpectSymbols(input_file, @[',',')'])
+                if sym == ')':
+                    var toneMapping: ToneMapping = newToneMapping(tonemappingFactor)
+                    result.add(toneMapping)
+                elif sym == ',':
+                    let luminosity = ExpectNumber(input_file, scene)
+                    ExpectSymbol(input_file,')')
+                    var toneMapping: ToneMapping = newToneMapping(tonemappingFactor, some(luminosity))
+                    res.add(toneMapping)
+                
+            of PostProcessingEffectEnum.GAUSSIANBLUR:
+                let radius = ExpectNumber(input_file, scene).int
+                ExpectSymbol(input_file,')')
+                var gaussianBlur: GaussianBlur = newGaussianBlur(radius)
+                res.add(gaussianBlur)
+        let next_kw = input_file.ReadToken()
+        if (next_kw.kind != tkSymbol) or (next_kw.symbolVal != ','):
+            # Pretend you never read this token and put it back!
+            input_file.UnreadChar(next_kw.symbolVal)
+            break
+    return res 
+
+
 proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
     ## Interpretates tokens of input-file and returns the corresponding setting for the scene
     ## ex: Antialiasing: On/off
     ## Parameters
     ##      input_file (InputStream): stream
     ##      scene (Scene)
-    let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS, KeywordType.ANIMATION, KeywordType.WIDTH, KeywordType.HEIGHT])
+    let settingID = ExpectKeywords(input_file, @[KeywordType.LOGGER, KeywordType.ANTIALIASING, KeywordType.STATS, KeywordType.ANIMATION, KeywordType.WIDTH, KeywordType.HEIGHT, KeywordType.POSTPROCESSING])
     ExpectSymbol(input_file,'=')
     if settingID == KeywordType.LOGGER:
         let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
@@ -832,7 +907,24 @@ proc ParseSettings*(input_file: var InputStream, scene: var Scene): auto=
             raise newException(InputError, fmt"[{input_file.location}] Invalid value for HEIGHT setting")
         scene.settings.height = value
         scene.settings.hasDefinedHeight = true
-
+    elif settingID == KeywordType.POSTPROCESSING:
+        let secondKeyword = ExpectKeywords(input_file, @[KeywordType.ON, KeywordType.OFF, KeywordType.NEW])
+        if secondKeyword == KeywordType.OFF:
+            scene.settings.usePostProcessing = false
+        elif secondKeyword == KeywordType.ON:
+            
+            scene.settings.usePostProcessing = true
+            scene.settings.postProcessingEffects = @[
+                newToneMapping(1.0),
+                newGaussianBlur(4)
+            ]
+        elif secondKeyword == KeywordType.NEW:
+            let an = ExpectKeywords(input_file, @[KeywordType.POSTPROCESSING])
+            scene.settings.usePostProcessing = true
+            ExpectSymbol(input_file, '(')
+            var effects = ParsePostProcessingEffects(input_file, scene)
+            ExpectSymbol(input_file, ')')
+            scene.settings.postProcessingEffects = effects
 
 
 proc ParseCamera*(input_file: var InputStream, scene: Scene): Camera=
@@ -974,7 +1066,7 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
             scene.materials[name] = mat
         elif what.keywordVal == KeywordType.RENDERER:
             if not scene.renderer.isNil:
-                    raise TestError.newException(fmt"[] Cannot define more than one renderer")
+                raise TestError.newException(fmt"[] Cannot define more than one renderer")
             scene.renderer = ParseRenderer(input_file, scene)
         elif what.keywordVal == KeywordType.LIGHT:
             let pointLight = ParsePointlight(input_file, scene)

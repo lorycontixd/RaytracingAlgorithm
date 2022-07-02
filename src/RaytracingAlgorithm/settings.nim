@@ -1,4 +1,4 @@
-import logger, stats
+import logger, stats, postprocessing
 
 type
     Settings* = object
@@ -6,6 +6,7 @@ type
         useAntiAliasing*: bool
         useLogger*: bool
         useParallel*: bool
+        usePostProcessing*: bool
         
         antiAliasingRays*: int
         loggers*: seq[File]
@@ -19,6 +20,10 @@ type
         height*: int
         hasDefinedWidth*: bool
         hasDefinedHeight*: bool
+
+        postProcessingEffects*: seq[PostProcessingEffect]
+
+        
 
 
 func newSettings*(): Settings=

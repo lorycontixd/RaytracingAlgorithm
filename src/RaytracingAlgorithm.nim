@@ -194,7 +194,7 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
 
     var finalWidth: int = (if scene.settings.hasDefinedWidth: scene.settings.width else: width)
     var finalHeight: int = (if scene.settings.hasDefinedHeight: scene.settings.height else: height)
-
+    echo "final size: ",finalWidth, " - ",finalHeight
     ### Save image!!
     if scene.settings.isAnimated:
         var animation: Animation = newAnimation(scene)
@@ -204,10 +204,13 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
         img.set_size(finalWidth, finalHeight)
         imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
         var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
+
+        if scene.settings.usePostProcessing:
+            for effect in scene.settings.postProcessingEffects:
+                effect.eval(imagetracer.image)
+
         imagetracer.image.write_pfm(strmWrite)
         if png_output:
-            var tonemapping: ToneMapping = newToneMapping(1.0)
-            tonemapping.eval(imagetracer.image)
             imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
     #let endTime = cpuTime() - start
     mainStats.closeStats()
