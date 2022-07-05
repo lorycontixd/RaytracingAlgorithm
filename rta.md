@@ -2,7 +2,6 @@
   
 
 # Raytracing Algorithm DSL
-
   
 
 The RaytracingAlgorithm package includes a language to define a 3D scene from a text file. In the following document we present a little documentation and some examples for the usage.
@@ -249,11 +248,7 @@ The onoff renderer is the simplest renderer of all. It dyes the pixel of a color
 
 The flat renderer adds more colours by assigning materials to different shapes. Like the on-off renderer, it assigns the colour to the pixel based on the shape that the ray from that pixel has hit, but it still does not include ray bouncing, capturing only the colour on the first hit.
 
-  
-
 **Syntax:** renderer( flat, background_color)
-
-  
 
 ##### Examples
 - renderer( flat, <0,0,0>)
