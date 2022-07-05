@@ -1,5 +1,5 @@
 import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils, triangles, mathutils, color, animator
-import std/[math, options, strutils, times, strformat, sequtils]
+import std/[math, options, strutils, times, strformat, sequtils, algorithm]
 
 
 type
@@ -15,10 +15,8 @@ type
         radius*: float32
     
     Plane* = ref object of Shape # 3D infinite plane parallel to the x and y axis and passing through the origin
-
-    Cylinder* = ref object of Shape
-        radius*: float32
-        height*: float32
+    
+    Cube* = ref object of Shape
 
     Triangle* = ref object of Shape
         vertices*: array[3, Point]
@@ -47,9 +45,8 @@ proc newPlane*(id: string = "PLANE_0", transform: Transformation = newTransforma
     ## constructor for Plane
     result = Plane(id: id, transform: transform, material: material, origin: ExtractTranslation(transform.m).convert(Point), animator: newAnimator(id, transform))
 
-proc newCylinder*(id: string = "CYLINDER_0", transform: Transformation, material: Material = newMaterial()): Cylinder=
-    ## constructor for cylinder
-    result = Cylinder(id: id, transform: transform, material: material, aabb: newAABB(newPoint(), newPoint()))
+proc newCube*(id: string = "CUBE_0", transform: Transformation = newTransformation(), material: Material = newMaterial()): Cube=
+    result = Cube(id: id, transform: transform, material: material, origin: ExtractTranslation(transform.m).convert(Point), animator: newAnimator(id, transform))
 
 proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTransformation(), vertices: array[3, Point], mat: Material): Triangle=
     let o = newPoint(
@@ -90,23 +87,59 @@ proc sphereNormal(p: Point, dir: Vector3): Normal=
     else:
         return n.neg()
 
+proc cubeNormal(point:Point, ray_dir:Vector3): Normal=
+    var normal: Normal
+    if point.x == 0 or point.x == 1:
+        normal = newNormal(1.0, 0.0, 0.0)
+    elif point.y == 0 or point.y == 1:
+        normal = newNormal(0.0, 1.0, 0.0)
+    elif point.z == 0 or point.z == 1:
+        normal = newNormal(0.0, 0.0, 1.0)
+    else :
+        normal = newNormal(9,9,9)
+    
+    if result * ray_dir >= 0.0:
+        normal = normal * -1.0
+    return normal
+
 proc sphereWorldToLocal(p: Point, radius: float32): Vector2=
     let
-        u = arctan2(p.y, p.z) / (2.0 * PI)   #p.x not p.z ??
-        v = arccos(p.z / radius) ## divided by radius ??
-    if u >= 0.0:
-        result = newVector2(u,v)
-    else:
-        result = newVector2(u+1.0, v)
-
-proc cylinderWorldToLocal(p: Point): Vector2 =
-    let
-        u = arctan2(p.y, p.z) / (2.0 * PI)   #p.x not p.z ??
+        u = arctan2(p.y, p.x) / (2.0 * PI)   #p.x not p.z ??
         v = arccos(p.z) / PI ## divided by radius ??
     if u >= 0.0:
         result = newVector2(u,v)
     else:
         result = newVector2(u+1.0, v)
+
+proc cubeWorldToLocal(point: var Point): Vector2=
+    var
+        u,v: float32
+        omx: float32 = 1.0 - point.x # one minus x
+    if (point.z > 0.0) and (point.z < 1.0):
+        v = Lerp(1.0/3.0, 2.0/3.0, point.z)
+    elif (point.z.IsEqual(0.0)):
+        v = Lerp(1.0/3.0, 0.0, point.x)
+    elif (point.z.IsEqual(1.0)):
+        v = Lerp(2.0/3.0, 1.0, point.x)
+    else:
+        raise ValueError.newException("Cube z point is either < 0 or > 1")
+
+    
+    if point.y.IsEqual(0.0):
+        u = Lerp(0.0, 1.0/4.0, omx)
+    elif point.y.IsEqual(1.0):
+        u = Lerp(0.5, 3.0/4.0, point.x)
+    elif point.y < 1.0 and point.y > 0.0:
+        if point.x.IsEqual(0.0):
+            u = Lerp(1.0/4.0, 0.5, point.y)
+        elif point.x.IsEqual(1.0):
+            u = Lerp(3.0/4.0, 1.0, omx)
+        else:
+            if point.z > 0 and point.z < 1.0:
+                raise ValueError.newException("Point in the middle of the cube.")
+    else:
+        raise ValueError.newException("Cube y point is either < 0 or > 1")    
+    return newVector2(u,1.0 - v)
 
 ###### --------------------------------------------- Methods --------------------------------------------
 
@@ -226,116 +259,51 @@ method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit]
         self.material,
     ))
 
-
-method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayHit] {.injectProcName.}=
-    ## Checks if a ray intersects the cylinder
-    ## Parameters
-    ##      self (Cylinder)
-    ##      r (Ray)
-    ## Returns   
-    ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
-    #let start = now()
-    var hit: RayHit = newRayHit()
-    var
-        firsthit_t: float32
-        inversed_ray: Ray = ray.Transform(self.transform.Inverse())
-        origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
-
-    #if not s.aabb.RayIntersect(inversed_ray):
-    #    return none(RayHit)
-
-    var
-        a = pow(inversed_ray.dir.x,2.0) 
-        b = 2.0 * (inversed_ray.dir.x * origin_vec.x + inversed_ray.dir.y * origin_vec.y)
-        c = pow(origin_vec.x, 2.0) + pow(origin_vec.y, 2.0) - 1 # - radius ^ 2
-        delta = b * b - 4.0 * a * c
-
-    if delta <= 0.0:
-        return none(RayHit)
-
+method rayIntersect*(self: Cube, ray: Ray, debug: bool = false): Option[RayHit] =
     let
-        sqrt_delta = sqrt(delta)
-        tmin = (- b - sqrt_delta) / (2.0 * a)
-        tmax = (- b + sqrt_delta) / (2.0 * a)
-
-    if (tmin > inversed_ray.tmin and tmin < inversed_ray.tmax):
-        firsthit_t = tmin
-    elif (tmax > inversed_ray.tmin and tmax < inversed_ray.tmax):
-        firsthit_t = tmax
-    else:
-        return none(RayHit)
-
-    let hitpoint = inversed_ray[firsthit_t]
-    hit.world_point = self.transform * hitpoint
-    hit.t = firsthit_t
-    #hit.normal = self.transform * sphereNormal(hitpoint, inversed_ray.dir) 
-    hit.surface_point = cylinderWorldToLocal(hitpoint)
-    hit.ray = ray
-    hit.material = self.material
-    #hit.hitshape = s
-    #let endTime = now() - start
-    #mainStats.AddCall(procName, endTime, 2)
-    return some(hit)
-
-#[
-method rayIntersect*(self: MeshTriangle, ray: Ray, debug: bool = false): Option[RayHit] = 
-    ## Moller-Trumbore Algorithm
-    var
-        invray: Ray = ray.Transform(self.transform.Inverse()) ## Inversed ray
-        #invray = ray
-        vertex0: Vector3 = self.mesh.vertexPositions[self.vertices[0]].convert(Vector3)
-        vertex1: Vector3 = self.mesh.vertexPositions[self.vertices[1]].convert(Vector3)
-        vertex2: Vector3 = self.mesh.vertexPositions[self.vertices[2]].convert(Vector3)
-        edge1, edge2, h, s, q: Vector3
-        a, f, u, v: float32
+        inverse_ray= ray.Transform(self.transform.Inverse())
+        origin_vec = inverse_ray.origin.convert(Vector3)
     
-    edge1 = vertex1 - vertex0
-    edge2 = vertex2 - vertex0
-    h = invray.dir.Cross(edge2)
-    a = edge1.Dot(h)
-    if a.IsEqual(0.0): # Ray is parallel to triangle
-        return none(RayHit)
-    f = 1.0 / a
-    s = invray.origin.convert(Vector3) - vertex0
-    u = f * s.Dot(h)
-    if (u < 0.0 or u > 1.0):
-        return none(RayHit)
-    q = s.Cross(edge1)
-    v = f * invray.dir.Dot(q)
-    if (v <= 0.0 or u + v > 1.0):
-        return none(RayHit)
-    #echo "intersectUVs: ",u, " - ",v
-    let uvs = self.GetUV()
     var
-        minu: float32 = min(uvs[0].u, min(uvs[1].u, uvs[2].u))
-        minv: float32 = min(uvs[0].v, min(uvs[1].v, uvs[2].v))
-        maxu: float32 = max(uvs[0].u, max(uvs[1].u, uvs[2].u))
-        maxv: float32 = max(uvs[0].v, max(uvs[1].v, uvs[2].v))
-        #minu: float32 = minIndex(self.mesh.)
-    var t: float32 = f * edge2.Dot(q)
+        tx = @[- inverse_ray.origin.x / inverse_ray.dir.x , (1.0 - inverse_ray.origin.x) / inverse_ray.dir.x]
+        ty = @[- inverse_ray.origin.y / inverse_ray.dir.y , (1.0 - inverse_ray.origin.y) / inverse_ray.dir.y]
+    sort( tx, system.cmp[float32] )
+    sort( ty, system.cmp[float32] )
+
     var
-        invu: float32 = u
-        invv: float32 = 1.0 - v
-    var res: Vector2 = newVector2(
-        Lerp(minu, maxu, invu),
-        Lerp(minv, maxv, invv)
-    )
-    #echo "res: ",res
-    if t > 0.0:
-        #echo "uv: ",u," - ",v
-        var hit: RayHit = newRayHit(
-            invray.origin + t * invray.dir,
-            edge1.Cross(edge2).convert(Normal),
-            newVector2(0.9, 0.1),
-            #res,
-            t,
-            invray,
-            self.mesh.material
-        )
-        return some(hit)
+        t_min: float32 = tx[0]
+        t_max: float32 = tx[1]
+        ty_min: float32 = ty[0]
+        ty_max: float32 = ty[1]
+
+    if (t_min > t_ymax) or (t_ymin > t_max):
+        return none(RayHit)
+
+    t_min = max(t_min, t_ymin)
+    t_max = min(t_max, t_ymax)
+
+    var tz = @[- inverse_ray.origin.z / inverse_ray.dir.z , (1.0 - inverse_ray.origin.z) / inverse_ray.dir.z]
+    sort(tz)
+    var
+        tz_min: float32 = tz[0]
+        tz_max: float32 = tz[1]
+
+    if (t_min > t_zmax) or (t_zmin > t_max):
+        return none(RayHit)
+
+    t_min = max(t_min, t_zmin)
+    t_max = min(t_max, t_zmax)
+        
+    var hit_point: Point
+    if (inverse_ray.tmin <= t_min and t_min <= inverse_ray.tmax):
+        hit_point = at(inverse_ray, t_min)
+        return some(newRayHit(self.transform * hit_point, self.transform * cubeNormal(hit_point, inverse_ray.dir), cubeWorldToLocal(hit_point), t_min, ray, self.material))
+    elif (inverse_ray.tmin <= t_max and t_max <= inverse_ray.tmax):
+        hit_point = at(inverse_ray, t_max)
+        return some(newRayHit(self.transform * hit_point, self.transform * cubeNormal(hit_point, inverse_ray.dir), cubeWorldToLocal(hit_point), t_max, ray, self.material))
     else:
         return none(RayHit)
-]#
+
 
 method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] =
     ## Checks if a ray intersects the triangle
