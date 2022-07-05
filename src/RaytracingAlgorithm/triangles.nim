@@ -23,6 +23,9 @@ type
 
 ## Constructors
 
+proc newTriangleMesh*(): TriangleMesh=
+    return TriangleMesh()
+
 
 proc newTriangleMesh*(
         transform: Transformation,

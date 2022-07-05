@@ -21,6 +21,9 @@ type
         height*: float32
 
     Triangle* = ref object of Shape
+        vertices*: array[3, Point]
+
+    MeshTriangle* = ref object of Shape
         mesh*: TriangleMesh
         vertices*: array[3, int]
         normalIndices*: Option[array[3, int]]
@@ -48,7 +51,15 @@ proc newCylinder*(id: string = "CYLINDER_0", transform: Transformation, material
     ## constructor for cylinder
     result = Cylinder(id: id, transform: transform, material: material, aabb: newAABB(newPoint(), newPoint()))
 
-proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTransformation(), mesh: TriangleMesh, triNumber: int = 0, material: Material = newMaterial()): Triangle=
+proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTransformation(), vertices: array[3, Point], mat: Material): Triangle=
+    let o = newPoint(
+        (vertices[0].x + vertices[1].x + vertices[2].x) / 3.0,
+        (vertices[0].y + vertices[1].y + vertices[2].y) / 3.0,
+        (vertices[0].z + vertices[1].z + vertices[2].z) / 3.0,
+    )
+    result = Triangle(id: id, transform: transform, material: mat, vertices: vertices, origin: o)
+
+proc newMeshTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTransformation(), mesh: TriangleMesh, triNumber: int = 0, material: Material = newMaterial()): MeshTriangle=
     ## constructor for triangle
     var
         v: array[3, int] = [mesh.vertexIndices[3 * triNumber], mesh.vertexIndices[3 * triNumber + 1], mesh.vertexIndices[3 * triNumber + 2]]
@@ -58,12 +69,12 @@ proc newTriangle*(id: string = "TRIANGLE_0", transform: Transformation = newTran
     if mesh.textureIndices.isSome:
         vt = some([mesh.textureIndices.get()[3 * triNumber ], mesh.textureIndices.get()[3 * triNumber + 1], mesh.textureIndices.get()[3 * triNumber + 2]])
     var aabb: AABB = Union( newAABB(transform * mesh.vertexPositions[v[0]], transform * mesh.vertexPositions[v[1]]), mesh.vertexPositions[v[2]])
-    result = Triangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb, animator: newAnimator(id, transform))
+    result = MeshTriangle(id: id, transform: transform, origin: ExtractTranslation(transform.m).convert(Point), material: material, mesh: mesh, vertices: v, normalIndices: vn, textureIndices: vt, aabb: aabb, animator: newAnimator(id, transform))
 
-proc CreateTriangleMesh*(mesh: TriangleMesh): seq[Triangle] {.inline.}=
+proc CreateTriangleMesh*(mesh: TriangleMesh): seq[MeshTriangle] {.inline.}=
     ## Creates a mesh of triangles
     for i in  0..mesh.nTriangles-1:
-        result.add( newTriangle(id=fmt"TRIANGLE_{i}",transform=mesh.transform, mesh=mesh, triNumber=i, material= mesh.material))
+        result.add( newMeshTriangle(id=fmt"TRIANGLE_{i}",transform=mesh.transform, mesh=mesh, triNumber=i, material= mesh.material))
 
 # -------------------------------------- Private methods ------------------------------------
 proc sphereNormal(p: Point, dir: Vector3): Normal= 
@@ -100,10 +111,10 @@ proc cylinderWorldToLocal(p: Point): Vector2 =
 ###### --------------------------------------------- Methods --------------------------------------------
 
 #### Triangles
-proc GetUV(self: Triangle): seq[Vector2]=
+proc GetUV(self: MeshTriangle): seq[Vector2]=
     ## Returns (u,v) coordinates of the triangle's vertexes
     ## Parameters
-    ##      self (Triangle)
+    ##      self (MeshTriangle)
     ## Returns
     ##      (seq[Vector2])
     if (self.mesh.uvs.isSome):
@@ -117,10 +128,10 @@ proc GetUV(self: Triangle): seq[Vector2]=
     else:
         return @[newVector2(0.0, 0.0), newVector2(1.0, 0.0), newVector2(1.0, 1.0)]
 
-proc Area*(self: Triangle): float32=
+proc Area*(self: MeshTriangle): float32=
     ## Returns the area of a triangle
     ## Parameters
-    ##      self (Triangle)
+    ##      self (MeshTriangle)
     ## Returns
     ##      (float32)
     let
@@ -267,7 +278,7 @@ method rayIntersect*(self: Cylinder, ray: Ray, debug: bool = false): Option[RayH
     return some(hit)
 
 #[
-method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] = 
+method rayIntersect*(self: MeshTriangle, ray: Ray, debug: bool = false): Option[RayHit] = 
     ## Moller-Trumbore Algorithm
     var
         invray: Ray = ray.Transform(self.transform.Inverse()) ## Inversed ray
@@ -329,7 +340,79 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
 method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] =
     ## Checks if a ray intersects the triangle
     ## Parameters
-    ##      self (Triangle)
+    ##      self (MeshTriangle)
+    ##      r (Ray)
+    ## Returns   
+    ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
+    var hit: RayHit = newRayHit()
+    var
+        firsthit_t: float32
+        inversed_ray: Ray = ray.Transform(self.transform.Inverse())
+        origin_vec: Vector3 = inversed_ray.origin.convert(Vector3)
+        a: Point = self.vertices[0]
+        b: Point = self.vertices[1]
+        c: Point = self.vertices[2]
+    let det = newMatrix(@[
+        @[(b.x - a.x).float32, c.x - a.x, inversed_ray.dir.x, 0.0],
+        @[(b.y - a.y).float32, c.y - a.y, inversed_ray.dir.y, 0.0],
+        @[(b.z - a.z).float32, c.z - a.z, inversed_ray.dir.z, 0.0],
+        @[0.0'f32, 0.0, 0.0, 1.0]
+    ]).Determinant()
+    if det == 0.0:
+        # Ray is parallel to triangle's plane
+        return none(RayHit)
+
+    var
+        dBeta: float32 = newMatrix(@[
+            @[origin_vec.x - a.x, c.x - a.x, inversed_ray.dir.x, 0.0],
+            @[origin_vec.y - a.y, c.y - a.y, inversed_ray.dir.y, 0.0],
+            @[origin_vec.z - a.z, c.z - a.z, inversed_ray.dir.z, 0.0],
+            @[0.0'f32, 0.0, 0.0, 1.0]
+        ]).Determinant()
+
+        dGamma: float32 = newMatrix(@[
+            @[b.x - a.x, origin_vec.x - a.x, inversed_ray.dir.x, 0.0],
+            @[b.y - a.y, origin_vec.y - a.y, inversed_ray.dir.y, 0.0],
+            @[b.z - a.z, origin_vec.z - a.z, inversed_ray.dir.z, 0.0],
+            @[0.0'f32, 0.0, 0.0, 1.0]
+        ]).Determinant()
+        
+        dT: float32 = newMatrix(@[
+            @[b.x - a.x, c.x - a.x, origin_vec.x - a.x, 0.0],
+            @[b.y - a.y, c.y - a.y, origin_vec.y - a.y, 0.0],
+            @[b.z - a.z, c.z - a.z, origin_vec.z - a.z, 0.0],
+            @[0.0'f32, 0.0, 0.0, 1.0]
+        ]).Determinant()
+
+    let
+        beta = dBeta / det
+        gamma = dGamma / det
+        t = -dT / det
+    if t < inversed_ray.tmin or t > inversed_ray.tmax:
+        return none(RayHit)
+    if beta < 0 or beta > 1:
+        return none(RayHit)
+    if gamma < 0 or gamma > 1:
+        return none(RayHit)
+    let w = 1 - beta - gamma
+
+    hit.world_point = newPoint(
+        beta * a.x + gamma * b.x + w * c.x,
+        beta * a.y + gamma * b.y + w * c.y,
+        beta * a.z + gamma * b.z + w * c.z
+    )
+    hit.normal = (b-a).convert(Vector3).Cross((c-a).convert(Vector3)).convert(Normal)
+    hit.surface_point = newVector2(beta, gamma)
+    hit.t = t
+    hit.ray = inversed_ray
+    hit.material = self.material
+    return some(hit)
+    
+
+method rayIntersect*(self: MeshTriangle, ray: Ray, debug: bool = false): Option[RayHit] =
+    ## Checks if a ray intersects the triangle
+    ## Parameters
+    ##      self (MeshTriangle)
     ##      r (Ray)
     ## Returns   
     ##     (Option[RayHit]): a `RayHit` if an intersection is found or `None` (else)
@@ -341,7 +424,6 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
         a: Point = self.mesh.vertexPositions[self.vertices[0]]
         b: Point = self.mesh.vertexPositions[self.vertices[1]]
         c: Point = self.mesh.vertexPositions[self.vertices[2]]
-
     if not (self.mesh.aabb.RayIntersect(inversed_ray)):
         return none(RayHit)
     
