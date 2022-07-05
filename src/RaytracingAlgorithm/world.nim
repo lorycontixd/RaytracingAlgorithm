@@ -84,7 +84,6 @@ proc rayIntersect*(self: World, r:Ray): Option[RayHit] {.inline, injectProcName.
     
     for shape in self.shapes:
         intersection = shape.rayIntersect(r, false)
-
         if intersection == none(RayHit):
             continue
         

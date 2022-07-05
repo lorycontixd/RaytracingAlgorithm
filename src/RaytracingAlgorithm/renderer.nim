@@ -133,7 +133,6 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe, injectProcN
         let hitrecord = renderer.world.rayIntersect(ray)
         if hitrecord == none(RayHit):
             return renderer.backgroundColor
-        
         let hit = hitrecord.get()
         var hit_color: Color = hit.material.brdf.pigment.getColor(hit.GetSurfacePoint())
         let

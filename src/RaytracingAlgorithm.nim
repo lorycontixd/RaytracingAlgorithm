@@ -113,7 +113,7 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
 
             var
                 key_mesh: TriangleMesh = newTriangleMeshOBJ(newTransformation(), "../media/objs/key/key.obj")
-                key_triangles: seq[Triangle] = CreateTriangleMesh(key_mesh)
+                key_triangles: seq[MeshTriangle] = CreateTriangleMesh(key_mesh)
                 key_mat_img = newHdrImage()
                 strm: FileStream = newFileStream("../media/objs/key/keyB_tx.pfm", fmRead)
             key_mat_img.read_pfm(strm)
@@ -176,6 +176,8 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
     var finalWidth: int = (if scene.settings.hasDefinedWidth: scene.settings.width else: width)
     var finalHeight: int = (if scene.settings.hasDefinedHeight: scene.settings.height else: height)
     
+  
+
     var
         img: HdrImage = newHdrImage(finalWidth, finalHeight)
         imagetracer: ImageTracer = newImageTracer(img, scene.camera)
@@ -206,7 +208,6 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
     else:
         imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
         var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
-
         if scene.settings.usePostProcessing:
             for effect in scene.settings.postProcessingEffects:
                 effect.eval(imagetracer.image)
@@ -267,5 +268,3 @@ when isMainModule:
             "output_filename" : "PNG file name in output"
         }]
     )
-
-    
