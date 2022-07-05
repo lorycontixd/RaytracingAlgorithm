@@ -11,6 +11,7 @@ bin           = @["RaytracingAlgorithm"]
 requires "nim >= 1.6.4"
 requires "SimplePNG"
 requires "cligen"
+requires "stacks"
 
 task mytest, "Run the packages tests!":
     exec "nim cpp -r tests/test_camera.nim"
