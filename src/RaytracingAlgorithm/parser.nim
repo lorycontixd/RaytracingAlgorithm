@@ -1,6 +1,6 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg, animator, postprocessing
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg, animator, postprocessing, aabb
 import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
-
+import stacks
 ## ------------- PARSER ---------------
 ## used to analyze a sequnce of tokens in order to understand the syntactic and semantic strucuture
 ## 
@@ -18,7 +18,7 @@ type
         location*: SourceLocation
         savedChar*: Option[char]
         savedLocation*: SourceLocation
-        savedToken*: Option[Token]
+        savedTokens*: Stack[Token]
         tabulations*: int
 
     PostProcessingEffectEnum* = enum
@@ -155,7 +155,7 @@ proc newInputStream*(strm: Stream, location: SourceLocation, tabulations: int = 
     ##      tabulations(int): number of whitespaces to be considered as a tab _ Default value : 4
     ## Returns
     ##      (InputStream)
-    return InputStream(stream: strm, location: location, tabulations: tabulations)
+    return InputStream(stream: strm, location: location, tabulations: tabulations, savedTokens: newStack[Token]())
     
 
 proc UpdatePosition(self: var InputStream, c: Option[char])=
@@ -317,6 +317,10 @@ proc ReadToken*(self: var InputStream): Token=
     ##      self(InputStream): stream
     ## Returns
     ##      (Token): read token
+    if not self.savedTokens.isEmpty:
+        let res = self.savedTokens.pop()
+        echo "Fetched saved token: ",$$res
+        return res
     let SYMBOLS = "()[],*<>="
     self.SkipWhitespacesAndComments()
     var c: Option[char] = self.ReadChar()
@@ -346,8 +350,7 @@ proc UnreadToken*(self: var InputStream, token: Token): void=
     ##      token (Token): token to be 'unread'
     ## Returns
     ##      no returns, just 'unreads'
-    assert not self.savedToken.isSome
-    self.savedToken = some(token)
+    self.savedTokens.push(token)
 
 
 
@@ -727,8 +730,85 @@ proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
     ExpectSymbol(input_file, ')')
     return newPlane(transform=transformation, material=scene.materials[material_name])
 
-proc ParseMeshDefined(input_file: var InputStream, scene: Scene): TriangleMesh=
+proc ParseTriangleForMesh(input_file: var InputStream, scene: Scene, parentMesh: var TriangleMesh): auto=
+    ##
     ExpectSymbol(input_file, '(')
+    let v1 = ParseVector(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let v2 = ParseVector(input_file, scene)
+    ExpectSymbol(input_file, ',')
+    let v3 = ParseVector(input_file, scene)
+    ExpectSymbol(input_file, ')')
+    let vertices = @[
+        v1.convert(Point),
+        v2.convert(Point),
+        v3.convert(Point)
+    ]
+    for vertex in vertices:
+        var vertexIndex: int
+        if not (vertex in parentMesh.vertexPositions):
+            vertexIndex = parentMesh.vertexPositions.len()
+            parentMesh.vertexPositions.add(vertex)
+        else:
+            vertexIndex = parentMesh.vertexIndices[parentMesh.vertexPositions.find(vertex)]
+        parentMesh.vertexIndices.add(vertexIndex)
+        parentMesh.nVertices += 1
+    parentMesh.nTriangles += 1
+
+    assert parentMesh.nVertices == 3 * parentMesh.nTriangles
+
+
+
+proc ParseMeshDefined(input_file: var InputStream, scene: Scene): TriangleMesh=
+    var mesh: TriangleMesh = newTriangleMesh()
+
+    ExpectSymbol(input_file, '(')
+    let material_name = ExpectIdentifier(input_file)
+    if not scene.materials.hasKey(material_name):
+        # We raise the exception here because input_file is pointing to the end of the wrong identifier
+        raise TestError.newException(fmt"unknown material {material_name}")
+    let mat = scene.materials[material_name]
+    mesh.material = mat
+    ExpectSymbol(input_file, ',')
+    let meshTransform = ParseTransformation(input_file, scene)
+    mesh.transform = meshTransform
+
+    ExpectSymbol(input_file, ',')
+    ExpectSymbol(input_file, '[')
+    while true:
+        let triangleId = ExpectIdentifier(input_file)
+        ParseTriangleForMesh(input_file, scene, mesh)
+        let next_kw = input_file.ReadToken()
+        if (next_kw.kind != tkSymbol) or (next_kw.symbolVal != ','):
+            # Pretend you never read this token and put it back!
+            input_file.UnreadChar(next_kw.symbolVal)
+            break
+    ExpectSymbol(input_file, ']')
+    ExpectSymbol(input_file,')')
+    var
+        minX, maxX: float32 = mesh.vertexPositions[0].x
+        minY, maxY: float32 = mesh.vertexPositions[0].y
+        minZ, maxZ: float32 = mesh.vertexPositions[0].z
+    for vertex in mesh.vertexPositions:
+        if vertex.x < minX:
+            minX = vertex.x
+        if vertex.x > maxX:
+            maxX = vertex.x
+        if vertex.y < minY:
+            minY = vertex.y
+        if vertex.y > maxY:
+            maxY = vertex.y
+        if vertex.z < minZ:
+            minZ = vertex.z
+        if vertex.z > maxZ:
+            maxZ = vertex.z
+    var aabb: AABB = newAABB(
+        newPoint(minX, minY, minZ),
+        newPoint(maxX, maxY, maxZ)
+    )
+    mesh.aabb = aabb
+    return mesh
+
 
 proc ParseMeshOBJ(input_file: var InputStream, scene: Scene): TriangleMesh=
     ExpectSymbol(input_file, '(')
@@ -1056,9 +1136,20 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
         elif what.keywordVal == KeywordType.PLANE:
             scene.world.Add(ParsePlane(input_file, scene))
         elif what.keywordVal == KeywordType.MESH:
-            var mesh_triangles: seq[Triangle] = CreateTriangleMesh(ParseMesh(input_file, scene))
-            for mesh_triangle in mesh_triangles:
-                scene.world.Add(mesh_triangle)
+            let bracket_sym = input_file.ReadToken() #bracket
+            let next_kw = input_file.ReadToken() # either " (obj) or material ident. (defined)
+            if (next_kw.kind == tkSymbol) and (next_kw.symbolVal == '"'):
+                input_file.UnreadToken(next_kw)
+                input_file.UnreadToken(bracket_sym)
+                var mesh_triangles: seq[MeshTriangle] = CreateTriangleMesh(ParseMeshOBJ(input_file, scene))
+                for mesh_triangle in mesh_triangles:
+                    scene.world.Add( mesh_triangle )
+            elif (next_kw.kind == tkIdentifier):
+                input_file.UnreadToken(next_kw)
+                input_file.UnreadToken(bracket_sym)
+                var mesh_triangles: seq[MeshTriangle] = CreateTriangleMesh(ParseMeshDefined(input_file, scene))
+                for mesh_triangle in mesh_triangles:
+                    scene.world.Add(mesh_triangle)
         elif what.keywordVal == KeywordType.CAMERA:
             if not scene.camera.isNil:
                 raise TestError.newException(fmt"[] Cannot define more than one camera")
