@@ -196,8 +196,6 @@ func newAnimation*(scene: Scene): Animation=
 proc SetTransforms*(self: var Animation, t: var float32): void=
     for shape in self.scene.world.shapes:
         shape.transform = shape.animator.Play(t)
-        echo "Id: ",shape.id
-        echo "Transform: ",shape.transform,"\n"
 
 proc Play*(self: var Animation): void=
     if self.scene.settings.animDuration <= 0:
@@ -221,7 +219,6 @@ proc Play*(self: var Animation): void=
         cursorUp 1
         eraseLine()
     stdout.resetAttributes()
-    echo self.frames.len()
 
 proc Save*(self: var Animation, dontDeleteFrames: bool = false): void=
     info("Found ",len(self.frames)," frames to save")

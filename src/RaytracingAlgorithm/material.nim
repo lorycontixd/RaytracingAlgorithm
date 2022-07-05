@@ -149,7 +149,7 @@ method getColor*(self: ImagePigment, vec: Vector2): Color=
     var col = int(vec.u * float32(self.image.width))
     var row = int(vec.v * float32(self.image.height))
 
-    if col >= self.image.width: 
+    if col >= self.image.width:
         col = -1 + self.image.width 
 
     if row >= self.image.height:
