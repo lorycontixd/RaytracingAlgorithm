@@ -32,6 +32,7 @@ type
         # SHAPES
         PLANE,
         SPHERE,
+        CUBE,
         MESH,
         # BRDF
         DIFFUSE,
@@ -723,12 +724,31 @@ proc ParsePlane(input_file: var InputStream, scene: Scene):Plane=
     let material_name = ExpectIdentifier(input_file)
     if not (scene.materials.hasKey(material_name)):
         # We raise the exception here because input_file is pointing to the end of the wrong identifier
-        raise TestError.newException(fmt"unknown material {material_name}")
+        raise TestError.newException(fmt"Unknown material {material_name}")
 
     ExpectSymbol(input_file, ',')
     var transformation: Transformation = ParseTransformation(input_file, scene)
     ExpectSymbol(input_file, ')')
     return newPlane(transform=transformation, material=scene.materials[material_name])
+
+proc ParseCube(input_file: var InputStream, scene: Scene): Cube=
+    ###Interpretates tokens of input-file and returns the corresponding cube
+    ## Parameters
+    ##      input_file (InputStream): stream
+    ##      scene (Scene)
+    ## Returns
+    ##      (Cube)
+    let name = ExpectIdentifier(input_file)
+    ExpectSymbol(input_file, '(')
+    let matname = ExpectIdentifier(input_file)
+    if not (scene.materials.hasKey(matname)):
+        # We raise the exception here because input_file is pointing to the end of the wrong identifier
+        raise TestError.newException(fmt"Unknown material {matname}")
+    ExpectSymbol(input_file, ',')
+    var transform: Transformation = ParseTransformation(input_file, scene)
+    ExpectSymbol(input_file, ')')
+    return newCube(id=name, transform=transform, material=scene.materials[matname])
+
 
 proc ParseTriangleForMesh(input_file: var InputStream, scene: Scene, parentMesh: var TriangleMesh): auto=
     ##
@@ -1135,6 +1155,8 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
             scene.world.Add(ParseSphere(input_file, scene))
         elif what.keywordVal == KeywordType.PLANE:
             scene.world.Add(ParsePlane(input_file, scene))
+        elif what.keywordVal == KeywordType.CUBE:
+            scene.world.Add(ParseCube(input_file, scene))
         elif what.keywordVal == KeywordType.MESH:
             let bracket_sym = input_file.ReadToken() #bracket
             let next_kw = input_file.ReadToken() # either " (obj) or material ident. (defined)
