@@ -1,51 +1,55 @@
-float skyscale(100.0)
-float skyrotation(90.0)
+set width = 900
+set height = 600
 
 material skymaterial(
-    diffuse(uniform(<0.46, 0.62, 0.94>), 1.0),
-    uniform(<0.46, 0.62, 0.94>)
+    diffuse(uniform(<1,1,1>)),
+    uniform(<0.04, 0.04, 0.07>)
 )
 
-material grass(
-    diffuse(uniform(<0.05, 0.5, 0.05>), 1.0),
-    image("../media/images/grass_texture.pfm")
+material starmat(
+    diffuse(uniform(<1,1,1>)),
+    uniform(<1,1,1>)
 )
 
-material spec(
-    specular(uniform(<0.0, 0.1, 0.5>), 1.0),
-    uniform(<0.0, 0.1, 0.5>)
+material jupmat(
+    diffuse(uniform(<0,0,0>)),
+    image("../media/images/jupiter/jupiter.pfm")
 )
 
-material phongmat(
-    phong(uniform(<1, 1, 1>), 0.1, 0.9, 0.1),
-    uniform(<0.9, 0.2, 0.1>)
+material earthmat(
+    diffuse(uniform(<0,0,0>)),
+    image("../media/images/earth_texture.pfm")
 )
 
-material cooktorrancemat(
-    cooktorrance(uniform(<0,0,0>), 0.1, 0.9, 0.05, ggx),
-    uniform(<1.0, 1.0, 1.0>)
+
+#### stars
+sphere star1(starmat, translation([300, 150, 85]))
+sphere star1(starmat, translation([399, -155, -103]))
+sphere star1(starmat, translation([390, 90, -402]))
+sphere star1(starmat, translation([389, -402, -83]))
+sphere star1(starmat, translation([415, -332, 88]))
+sphere star1(starmat, translation([400, 301, 324]))
+
+sphere background(skymaterial, scale([500,500,500]))
+
+sphere jupiter(jupmat, translation([4, -3, 2.5]))
+sphere earth(earthmat, translation([-2.1, 1.6, 1.1]))
+
+camera(perspective, translation([-5, 0, 2]), 1.0, 1.0)
+renderer(pathtracer, <0,0,0>, 3,3,3)
+
+set animation = new animation(4,2)
+animate (earth,
+    [0, rotationz(0) * translation([0,0,1.5])],
+    [2, rotationz(90) * translation([0,0,1.5])],
+    [4, rotationz(180) * translation([0,0,1.5])]
 )
 
-material diff(
-    diffuse(uniform(<1.0, 1.0, 1.0>), 0.9),
-    # uniform(<1.0, 1.0, 1.0>)
-    image("../media/images/texture_earth.pfm")
+animate (jupiter,
+    [0, rotationz(0) * translation([1, -4, 2.5])],
+    [2, rotationz(45) * translation([1, -4, 2.5])],
+    [4, rotationz(90) * translation([1, -4, 2.5])]
 )
 
-#light([0, 0, 40], <1.0, 1.0, 0.3>, 39.2)
-light([-2.5, 1, 10], <1.0, 1.0, 1.0>, 10.0)
-light([2.5, 0, 10], <1.0, 1.0, 1.0>, 10.0)
-# light([-3.8, 1.3, 4.9], <0.9, 1.0, 1.0>, 4.2)
-
-# light([2, 2, 2], <1.0, 0.0, 0.0>, 2.1)
-# light([-2, -2, 2], <0.0, 0.0, 1.0>, 2.1)
-# sphere (skymaterial, translation([0, 0, 0]) * scale([30, 30, 30]))
-# plane (skymaterial, translation([0, 0, 150]) * rotation_y(skyrotation))
-
-plane (grass, identity)
-sphere (spec, translation([0,0,1]))
-sphere (phongmat, translation([1, -2, 2]))
-sphere (diff, translation([-2.1, 1.6, 1.2]))
-camera(perspective,  translation([-4, 0, 2]), 1.0, 1.0)
-#renderer(pointlight, <0.46, 0.62, 0.94>, <0.1, 0.1, 0.1>)
-renderer(pathtracer, <0.46, 0.62, 0.94>, 7, 4, 6)
+set antialiasing = new antialiasing(1)
+set postprocessing = new postprocessing(gaussianblur(1), tonemapping(0.6))
