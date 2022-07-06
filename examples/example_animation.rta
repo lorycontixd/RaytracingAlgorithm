@@ -1,0 +1,55 @@
+set width = 1920
+set height = 1080
+
+material skymaterial(
+    diffuse(uniform(<1,1,1>)),
+    uniform(<0.04, 0.04, 0.07>)
+)
+
+material starmat(
+    diffuse(uniform(<1,1,1>)),
+    uniform(<1,1,1>)
+)
+
+material jupmat(
+    diffuse(uniform(<0,0,0>)),
+    image("../media/images/jupiter/jupiter.pfm")
+)
+
+material earthmat(
+    diffuse(uniform(<0,0,0>)),
+    image("../media/images/earth_texture.pfm")
+)
+
+
+#### stars
+sphere star1(starmat, translation([300, 150, 85]))
+sphere star1(starmat, translation([399, -155, -103]))
+sphere star1(starmat, translation([390, 90, -402]))
+sphere star1(starmat, translation([389, -402, -83]))
+sphere star1(starmat, translation([415, -332, 88]))
+sphere star1(starmat, translation([400, 301, 324]))
+
+sphere background(skymaterial, scale([500,500,500]))
+
+sphere jupiter(jupmat, translation([4, -3, 2.5]))
+sphere earth(earthmat, translation([-2.1, 1.6, 1.1]))
+
+camera(perspective, translation([-5, 0, 2]), 1.0, 1.0)
+renderer(pathtracer, <0,0,0>, 3,3,3)
+
+set animation = new animation(4,2)
+animate (earth,
+    [0, rotationz(0) * translation([0,0,1.5])],
+    [2, rotationz(90) * translation([0,0,1.5])],
+    [4, rotationz(180) * translation([0,0,1.5])]
+)
+
+animate (jupiter,
+    [0, rotationz(0) * translation([1, -4, 2.5])],
+    [2, rotationz(45) * translation([1, -4, 2.5])],
+    [4, rotationz(90) * translation([1, -4, 2.5])]
+)
+
+set antialiasing = new antialiasing(1)
+set postprocessing = new postprocessing(gaussianblur(1), tonemapping(0.6))

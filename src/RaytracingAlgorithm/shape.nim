@@ -105,7 +105,7 @@ proc cubeNormal(point:Point, ray_dir:Vector3): Normal=
 proc sphereWorldToLocal(p: Point, radius: float32): Vector2=
     let
         u = arctan2(p.y, p.x) / (2.0 * PI)   #p.x not p.z ??
-        v = arccos(p.z) / PI ## divided by radius ??
+        v = arccos(p.z / radius) / PI ## divided by radius ??
     if u >= 0.0:
         result = newVector2(u,v)
     else:
@@ -134,9 +134,6 @@ proc cubeWorldToLocal(point: var Point): Vector2=
             u = Lerp(1.0/4.0, 0.5, point.y)
         elif point.x.IsEqual(1.0):
             u = Lerp(3.0/4.0, 1.0, omx)
-        else:
-            if point.z > 0 and point.z < 1.0:
-                raise ValueError.newException("Point in the middle of the cube.")
     else:
         raise ValueError.newException("Cube y point is either < 0 or > 1")    
     return newVector2(u,1.0 - v)

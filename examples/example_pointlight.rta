@@ -1,55 +1,37 @@
 set width = 900
 set height = 600
 
+material groundcheck(
+    diffuse(checkered(<0,0,0>, <1,1,1>, 2)),
+    uniform(<0,0,0>)
+)
+
 material skymaterial(
-    diffuse(uniform(<1,1,1>)),
-    uniform(<0.04, 0.04, 0.07>)
+    diffuse(uniform(<0.46, 0.62, 0.94>)),
+    uniform(<0.46, 0.62, 0.94>)
 )
 
-material starmat(
-    diffuse(uniform(<1,1,1>)),
-    uniform(<1,1,1>)
+material spec(
+    specular(uniform(<0.0, 0.1, 0.5>)),
+    uniform(<0.0, 0.1, 0.5>)
 )
 
-material jupmat(
-    diffuse(uniform(<0,0,0>)),
-    image("../media/images/jupiter/jupiter.pfm")
-)
-
-material earthmat(
-    diffuse(uniform(<0,0,0>)),
-    image("../media/images/earth_texture.pfm")
+material diff(
+    diffuse(uniform(<1.0, 1.0, 1.0>)),
+    # uniform(<1.0, 1.0, 1.0>)
+    image("../media/images/texture_earth.pfm")
 )
 
 
-#### stars
-sphere star1(starmat, translation([300, 150, 85]))
-sphere star1(starmat, translation([399, -155, -103]))
-sphere star1(starmat, translation([390, 90, -402]))
-sphere star1(starmat, translation([389, -402, -83]))
-sphere star1(starmat, translation([415, -332, 88]))
-sphere star1(starmat, translation([400, 301, 324]))
+light([0,0, 30], <1.0, 1.0, 1.0>, 41.0)
+light([-10, 0, 1], <1,1,1>, 22)
+plane (groundcheck, identity)
+sphere s1(spec, translation([-1,-1,1]))
 
-sphere background(skymaterial, scale([500,500,500]))
+camera(perspective, translation([-4, 0, 2]), 1.0, 1.0)
+renderer(pointlight, <0.46, 0.62, 0.94>, <0.1, 0.1, 0.1>)
 
-sphere jupiter(jupmat, translation([4, -3, 2.5]))
-sphere earth(earthmat, translation([-2.1, 1.6, 1.1]))
+set width = 1920
+set height = 1080
 
-camera(perspective, translation([-5, 0, 2]), 1.0, 1.0)
-renderer(pathtracer, <0,0,0>, 3,3,3)
-
-set animation = new animation(4,2)
-animate (earth,
-    [0, rotationz(0) * translation([0,0,1.5])],
-    [2, rotationz(90) * translation([0,0,1.5])],
-    [4, rotationz(180) * translation([0,0,1.5])]
-)
-
-animate (jupiter,
-    [0, rotationz(0) * translation([1, -4, 2.5])],
-    [2, rotationz(45) * translation([1, -4, 2.5])],
-    [4, rotationz(90) * translation([1, -4, 2.5])]
-)
-
-set antialiasing = new antialiasing(1)
-set postprocessing = new postprocessing(gaussianblur(1), tonemapping(0.6))
+set postprocessing = new postprocessing( tonemapping(2.0) )
