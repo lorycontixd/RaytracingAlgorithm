@@ -93,6 +93,14 @@ proc `+`*(c1,c2: Color): Color {.inline.}=
     ##      (Color): a color equal to c1+c2
     return Color(r: c1.r+c2.r, g: c1.g+c2.g, b: c1.b+c2.b)
 
+proc `-`*(c1,c2: Color): Color {.inline.}=
+    ## Subtraction of two colors
+    ## Parameters
+    ##      c1, c2 (Color): colors to be subtracted
+    ## Returns
+    ##      (Color): a color equal to c1-c2
+    return Color(r: c1.r-c2.r, g: c1.g-c2.g, b: c1.b-c2.b)
+
 proc `*`*(c1,c2: Color): Color {.inline.}=
     ## Product of two colors
     ## Parameters
