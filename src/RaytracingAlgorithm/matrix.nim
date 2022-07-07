@@ -485,6 +485,12 @@ proc ToRotation*(q: var Quaternion): Matrix {.inline.}=
 
 ## --------------------------------------------------
 
+proc `+`*(this, other: Matrix): Matrix=
+    result = Zeros()
+    for i in 0 .. 3:
+        for j in 0 .. 3:
+            result[i,j] = this[i,j] + other[i,j]
+
 proc `*`*(this, other: Matrix): Matrix=
     ## Matrix4 - Matrix4 product
     ## Parameters
