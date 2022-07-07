@@ -1,12 +1,22 @@
 
-import std/[strformat, os, math]
+discard """
+  action: "run"
+  exitcode: 0
+  output: "Testing cameras"
+  batchable: true
+  joinable: true
+  valgrind: false
+  cmd: "nim cpp -r -d:release $file"
+"""
+
 import "../src/RaytracingAlgorithm/camera.nim"
 import "../src/RaytracingAlgorithm/ray.nim"
 import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/transformation.nim"
-import "../src/RaytracingAlgorithm/imagetracer.nim"
 import "../src/RaytracingAlgorithm/hdrimage.nim"
 import "../src/RaytracingAlgorithm/utils.nim"
+
+echo "Testing cameras"
 
 proc test_transform*()=
     var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))
@@ -17,20 +27,9 @@ proc test_transform*()=
     var transform: Transformation = rotation * translation
     # apply transformation
     var transformed = ray.Transform(transform)
-
+    
     assert transformed.origin.isClose(newPoint(11.0, -15.0, 13.0))
-    assert transformed.dir.isClose(newVector3(16,-16,16))
-
-proc test_transform2*()=
-    var ray : Ray = newRay(newPoint(1.0, 2.0, 3.0), newVector3(6.0, 5.0, 4.0))
-    # define single transformations
-    var translation: Transformation = Transformation.translation(newVector3(10.0, 11.0, 12.0))
-    var scale: Transformation = Transformation.scale(newVector3(2.0, 2.0, 2.0))
-    # combine transformations
-    var transform: Transformation = scale*translation
-
-    # apply transformation
-    var transformed = ray.Transform(transform)
+    assert transformed.dir.isClose(newVector3(6, -4, 5))
 
 
 proc test_orthogonal_camera*()=
@@ -63,7 +62,6 @@ proc test_orthogonal_camera_transform*()=
     assert ray.at(1.0).is_close(newPoint(0.0, -2.0, 0.0))
 
 
-
 proc test_perspective_camera*()=
     var cam : PerspectiveCamera = newPerspectiveCamera(2.0, 1.0)
     var
@@ -84,17 +82,8 @@ proc test_perspective_camera*()=
     assert ray4.at(1.0).isClose(newPoint(0.0, -2.0, 1.0))
     
     
-
-
-#[proc test_ray*()=
-    var img: HdrImage = newHdrImage(200,100)
-    var tracer: ImageTracer = newImageTracer(img)
-    #tracer.fireAllRays(baseColor)]#
-
-
-#test_transform()
-#test_orthogonal_camera()
+test_transform()
+test_orthogonal_camera()
 test_orthogonal_camera_transform()
 test_perspective_camera()
-#test_ray()
 

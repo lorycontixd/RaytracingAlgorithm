@@ -33,10 +33,6 @@ proc test_image_coverage(self: var ImageTracer): void =
         for col in countup(0, self.image.width-1):
             assert self.image.get_pixel(col, row) == newColor(0.0, 0.0, 0.0)
 
-test_orientation(tracer)
-test_uv_sub_mapping(tracer)
-test_image_coverage(tracer)
-
 proc test_image_tracer*()=
     var
         img: HdrImage = newHdrImage(4,2)
@@ -65,5 +61,8 @@ proc test_image_tracer*()=
     # Fire a ray against bottom-right corner of the screen
     assert bottom_right_ray.at(1.0).is_close(newPoint(0.0, -2.0, -1.0))
 
+test_orientation(tracer)
+test_uv_sub_mapping(tracer)
+test_image_coverage(tracer)
 test_image_tracer()
 

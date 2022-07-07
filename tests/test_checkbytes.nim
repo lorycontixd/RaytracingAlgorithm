@@ -4,7 +4,6 @@ import "../src/RaytracingAlgorithm/utils.nim"
 import "../src/RaytracingAlgorithm/logger.nim"
 import std/[streams, random, sequtils]
 
-#var strmWrite = newFileStream("colored_image1.pfm", fmWrite)
 var hdrImageWrite = newHdrImage(4, 4, hdrimage.Endianness.littleEndian)
 var k: int = 0
 for i in 0..hdrImageWrite.width-1:
