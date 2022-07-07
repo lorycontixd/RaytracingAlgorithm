@@ -88,9 +88,9 @@ proc `*`*(t: Transformation, other: Normal): Normal=
     ## Results:
     ##       Normal
     result = newNormal(
-        t.m[0,0] * other.x + t.m[0,1] * other.y + t.m[0,2] * other.z + t.m[0,3],
-        t.m[1,0] * other.x + t.m[1,1] * other.y + t.m[1,2] * other.z + t.m[1,3],
-        t.m[2,0] * other.x + t.m[2,1] * other.y + t.m[2,2] * other.z + t.m[2,3]
+        t.inverse[0,0] * other.x + t.inverse[1,0] * other.y + t.inverse[2,0] * other.z,
+        t.inverse[0,1] * other.x + t.inverse[1,1] * other.y + t.inverse[2,1] * other.z,
+        t.inverse[0,2] * other.x + t.inverse[1,2] * other.y + t.inverse[2,2] * other.z
     )
 
 proc `*`*(self, other: Transformation): Transformation= 

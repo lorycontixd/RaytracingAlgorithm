@@ -74,7 +74,7 @@ proc test_parse_image_size=
     assert HdrImage.parse_img_size("100 100") == (100,100)
     assert HdrImage.parse_img_size("1920 1080") == (1920,1080)
     try:
-        assert HdrImage.parse_img_size("800 600") == (600,800)
+        assert HdrImage.parse_img_size("800 600") == (800,600)
     except AssertionDefect:
         echo "Failed image size parsing"
 
@@ -82,7 +82,6 @@ proc test_parse_image_size=
 proc test_parse_endianess=
     assert HdrImage.parse_endianess("-1.0") == hdrimage.Endianness.littleEndian
     assert HdrImage.parse_endianess("1.0") == hdrimage.Endianness.bigEndian
-
 
 ################  RUN  ####################
 test_creation()

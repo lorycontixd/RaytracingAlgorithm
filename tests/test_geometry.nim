@@ -25,7 +25,9 @@ proc test_geometry=
     assert a-b == newVector3(4.0, 16.0, 0.0)
     assert a*b == -59.0
     assert b*a == a*b
+    assert a.Cross(b) == newVector3(32.0, -8.0, -24.0)
     assert a.norm() == 7.0
+    assert pow(a.norm(), 2)  == 49
 
     var c = newPoint(1.0, 1.0, 2.0)
 
@@ -36,8 +38,25 @@ proc test_geometry=
     assert b[2] == 2.0
     assert c[1] == 1.0
 
+    assert a == a
+    assert a != b
+    assert a.isClose(a)
+    assert a.isNotClose(b)
+
+    assert neg(a) == newVector3(-3.0, -6.0, -2.0)
+
+
     assert $a == "Vector3(3.0,6.0,2.0)"
     assert $c == "Point(1.0,1.0,2.0)"
+
+    var 
+        d = newPoint(1.0, 2.0, 3.0)
+        e = newPoint(4.0, 6.0, 8.0)
+
+    assert d == d
+    assert d != e
+    assert d.isClose(d)
+    assert d.isNotClose(e)
 
 
 proc test_rotation(): void=
