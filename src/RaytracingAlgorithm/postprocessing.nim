@@ -35,7 +35,7 @@ method eval*(self: PostProcessingEffect, input_ig: var HdrImage): auto {.base.}=
 func newGaussianBlur*(radius: int): GaussianBlur=
     return GaussianBlur(kernelRadius: radius, kernelWidth: 2 * radius + 1, sigma: radius.float32 / 2.0)
 
-func gaussian(x,y: float32, sigma: float32): float32=
+func gaussian*(x,y: float32, sigma: float32): float32=
     let norm = 1.0 / (2 * PI * sigma * sigma)
     let expNominator = - (x*x + y*y)
     let expDenominator = 2 * sigma * sigma
@@ -58,7 +58,7 @@ func GetKernel*(self: GaussianBlur): seq[seq[float32]]=
         for j in -self.kernelRadius..self.kernelRadius:
             result[i+self.kernelRadius][j+self.kernelRadius] = result[i+self.kernelRadius][j+self.kernelRadius] / sum
 
-func SeparateKernel1D(kernel: seq[seq[float32]], axis: int): seq[float32]=
+func SeparateKernel1D*(kernel: seq[seq[float32]], axis: int): seq[float32]=
     assert axis == 0 or axis == 1
     result = newSeq[float32](kernel.len())
     if axis == 0:
@@ -70,7 +70,7 @@ func SeparateKernel1D(kernel: seq[seq[float32]], axis: int): seq[float32]=
             for j, elem in kernel[i]:
                 result[j] = result[j] + kernel[i][j]
 
-func SumKernel(kernel: seq[seq[float32]]): float32=
+func SumKernel*(kernel: seq[seq[float32]]): float32=
     result = 0
     for row in kernel:
         for j in row:
