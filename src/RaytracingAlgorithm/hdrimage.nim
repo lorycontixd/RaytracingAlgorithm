@@ -69,7 +69,7 @@ proc newHdrImage*(other:HdrImage): HdrImage {.inline.} =
     ##      (HdrImage): an image equal to 'other' HdrImage
     result = HdrImage(width:other.width, height:other.height, pixels:other.pixels, distanceHits: other.distanceHits, endianness:other.endianness)
 
-proc parse_endianess*(self: HdrImage, line:string): string = # Remove public on release
+proc parse_endianess*(_: typedesc[HdrImage], line:string): string = # Remove public on release
     ## Assign endianness 
     ## Parameters: 
     ##      self (HdrImage)
@@ -88,7 +88,7 @@ proc parse_endianess*(self: HdrImage, line:string): string = # Remove public on 
     else:
         raise newException(ValueError, "Invalid endianness specification")
 
-proc parse_img_size*(self: HdrImage, line:string): (int,int) = # Remove public on release
+proc parse_img_size*(_: typedesc[HdrImage], line:string): (int,int) = # Remove public on release
     ## Assign values to 'width' and 'height'
     ## Parameters: 
     ##      self (HdrImage)
@@ -258,13 +258,13 @@ proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
         raise PFMImageError.newException("Invalid Magic code for PFM image")
     # Image size
     let sizeline = stream.readLine() # Reads second line for image size
-    var img_size: (int,int) = self.parse_img_size(sizeline)
+    var img_size: (int,int) = HdrImage.parse_img_size(sizeline)
     self.width = img_size[0]
     self.height = img_size[1]
     self.pixels = newSeq[Color](self.width*self.height) # Resets pixels to new size read from file
     # Endianness
     let endianline = stream.readLine() # Reads third line for endianness
-    self.endianness = self.parse_endianess(endianline)
+    self.endianness = HdrImage.parse_endianess(endianline)
     
     # Fill pixel data from file bytes
     var
