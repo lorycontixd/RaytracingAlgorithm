@@ -12,5 +12,8 @@ src/frames
 # ignore unused hidden files
 .DS_Store
 .vscode/
+# test executables
+tests/*
+!tests/*.nim
 # large files
 media/skyboxes/hazy_afternoon.pfm
