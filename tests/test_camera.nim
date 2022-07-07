@@ -46,7 +46,7 @@ proc test_orthogonal_camera*()=
     assert IsEqual(0.0, ray1.dir.Cross(ray4.dir).squareNorm())
 
 
-    # Verify that the ray hitting the corners have the right coordinates
+    # Verify that the rays hitting the corners have the right coordinates
     assert ray1.at(1.0).isClose(newPoint(0.0, 2.0, -1.0))
     assert ray2.at(1.0).isClose(newPoint(0.0, -2.0, -1.0))
     assert ray3.at(1.0).isClose(newPoint(0.0, 2.0, 1.0))
@@ -75,15 +75,25 @@ proc test_perspective_camera*()=
     assert ray1.origin.isClose(ray3.origin)
     assert ray1.origin.isClose(ray4.origin)
 
-    # Verify that the ray hitting the corners have the right coordinates
+    # Verify that the rays hitting the corners have the right coordinates
     assert ray1.at(1.0).isClose(newPoint(0.0, 2.0, -1.0))
     assert ray2.at(1.0).isClose(newPoint(0.0, -2.0, -1.0))
     assert ray3.at(1.0).isClose(newPoint(0.0, 2.0, 1.0))
     assert ray4.at(1.0).isClose(newPoint(0.0, -2.0, 1.0))
+
+proc test_perspective_camera_transform*()=
+    
+    var transformation: Transformation = Transformation.translation(Vector3.down() * 2.0) * Transformation.rotationZ(90.0)
+    var cam : PerspectiveCamera = newPerspectiveCamera(1.0, 1.0, transformation)
+    var ray = cam.fireRay(0.5, 0.5)
+
+    assert ray.at(1.0).is_close(newPoint(0.0, -2.0, 0.0))
+
     
     
 test_transform()
 test_orthogonal_camera()
 test_orthogonal_camera_transform()
 test_perspective_camera()
+test_perspective_camera_transform()
 
