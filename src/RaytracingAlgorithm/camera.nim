@@ -57,7 +57,7 @@ proc newPerspectiveCamera*(aspectratio: float32, distance: float32=1.0, transfor
 
 # NB: we use (x,y,z) for spatial coordinates and (u,v) for pixels' coordinates
 #
-#             (1, 0)                          (1,1)
+#             (0, 1)                          (1,1)
 #               +------------------------------+
 #               |                              |
 #               |                              |
@@ -81,7 +81,7 @@ method fireRay*(self: OrthogonalCamera, u,v: float32): Ray {.inline.} =
     ##      (Ray)
     var origin: Point = newPoint(-1.0, (1.0 - 2.0 * u) * self.aspectRatio, 2.0*v-1)
     var direction: Vector3 = Vector3.right()
-    var ray: Ray = newRay(origin, direction, 0.1)
+    var ray: Ray = newRay(origin, direction, 1.0)
     result = ray.Transform(self.transform)
 
 method fireRay*(self: PerspectiveCamera, u,v: float32): Ray {.inline.} =

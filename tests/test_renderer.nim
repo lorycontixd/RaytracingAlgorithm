@@ -29,7 +29,7 @@ proc test_onoff_renderer2(): void=
         )
 
     var image: HdrImage = newHdrImage(3,3)
-    var camera: Camera = newOrthogonalCamera(2.0, Transformation.translation(0.0,0.0,0.0))
+    var camera: Camera = newOrthogonalCamera(1.0, Transformation.translation(0.0,0.0,0.0))
     var tracer: ImageTracer = newImageTracer(image, camera)
     var world2 : World = newWorld()
 
@@ -41,6 +41,7 @@ proc test_onoff_renderer2(): void=
     assert image.get_pixel(1,0) == Color.black
     assert image.get_pixel(2,0) == Color.black
     assert image.get_pixel(0,1) == Color.black
+    echo image.get_pixel(1,1)
     #assert image.get_pixel(1,1) == Color.white
     assert image.get_pixel(0,2) == Color.black
     assert image.get_pixel(1,2) == Color.black
@@ -68,6 +69,7 @@ proc test_flat_renderer(): void=
     assert image.get_pixel(1,0) == Color.black
     assert image.get_pixel(2,0) == Color.black
     assert image.get_pixel(0,1) == Color.black
+    echo image.get_pixel(1,1)
     #assert image.get_pixel(1,1) == sphere_color
     assert image.get_pixel(2,1) == Color.black
     assert image.get_pixel(0,2) == Color.black
