@@ -1,5 +1,5 @@
-set width = 1920
-set height = 1080
+set width = 2560
+set height = 1440
 
 material skymaterial(
     diffuse(uniform(<1,1,1>)),
@@ -10,6 +10,7 @@ material starmat(
     diffuse(uniform(<1,1,1>)),
     uniform(<1,1,1>)
 )
+
 
 material jupmat(
     diffuse(uniform(<0,0,0>)),
@@ -23,22 +24,14 @@ material earthmat(
 
 
 #### stars
-sphere star1(starmat, translation([300, 150, 85]))
-sphere star1(starmat, translation([399, -155, -103]))
-sphere star1(starmat, translation([390, 90, -402]))
-sphere star1(starmat, translation([389, -402, -83]))
-sphere star1(starmat, translation([415, -332, 88]))
-sphere star1(starmat, translation([400, 301, 324]))
-
-sphere background(skymaterial, scale([500,500,500]))
 
 sphere jupiter(jupmat, translation([4, -3, 2.5]))
 sphere earth(earthmat, translation([-2.1, 1.6, 1.1]))
 
-camera(perspective, translation([-5, 0, 2]), 1.0, 1.0)
-renderer(pathtracer, <0,0,0>, 3,3,3)
+camera(perspective, translation([-5, 0, 1]), 1.0, 1.0)
+renderer(pathtracer, <0.3, 0.3, 0.94>, 2,3,2)
 
-set animation = new animation(4,2)
+set animation = new animation(5, 60)
 animate (earth,
     [0, rotationz(0) * translation([0,0,1.5])],
     [2, rotationz(90) * translation([0,0,1.5])],

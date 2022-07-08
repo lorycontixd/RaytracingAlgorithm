@@ -1,28 +1,36 @@
+set width = 1920
+set height = 1080
 float ang_degrees(150)
 
 material sky_material(
-        diffuse(uniform(<0.0, 0.0, 0.0>), 1.0),
-        uniform(<0.7, 0.5, 1>)
+        diffuse(uniform(<0.0, 0.0, 0.0>)),
+        uniform(<0.45, 0.91, 1>)
 )
 
-#### new lines ###############
 material ground_material(
         diffuse(checkered(<0.3, 0.5, 0.1>,
-                        <0.1, 0.2, 0.5>, 4), 1.0),
+                        <0.1, 0.2, 0.5>, 4)),
         uniform(<0, 0, 0>)
 )
-##############################
 
 material sphere_material(
-        specular(uniform(<0.5, 0.5, 0.5>), 0.0018),
+        specular(uniform(<0.5, 0.5, 0.5>)),
         uniform(<0, 0, 0>)
 )
 
-plane (sky_material, translation([0, 0, 100])* rotation_y(ang_degrees))
-#### ###############
-plane (ground_material, identity)
-sphere(sphere_material, translation([0, 0, 1]))
-##############################
+material ctmaterial(
+        phong(uniform(<0.7, 0, 0.7>), 3000, 0.2, 0.8),
+        uniform(<0.1, 0, 0.1>)
+)
 
-renderer(pathtracer, <0.0, 0.0, 0.0>, 9, 4, 2)
+sphere sky (sky_material, scale([50,50,50]))
+
+plane (ground_material, identity)
+sphere s(sphere_material, translation([0, 0, 1]))
+sphere cts(ctmaterial, translation([-1, -2.7, 1]))
+
+renderer(pathtracer, <0,0,0>, 6, 6, 3)
 camera(perspective, rotation_z(30)* translation([-4, 0, 1]), 1.0, 1.0)
+
+set antialiasing = new antialiasing(1)
+set postprocessing = new postprocessing( tonemapping(1.1), gaussianblur(1))
