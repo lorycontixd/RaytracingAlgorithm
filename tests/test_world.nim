@@ -7,7 +7,7 @@ import "../src/RaytracingAlgorithm/rayhit.nim"
 import "../src/RaytracingAlgorithm/utils.nim"
 import std/[options]
 
-echo "testing world"
+echo "Testing world"
 
 proc test_rayIntersect =
    

@@ -29,7 +29,7 @@ proc test_furnace =
         var world : World =newWorld()
         let 
             emitted_radiance = pcg.random_float()
-            reflectance = pcg.random_float()
+            reflectance = pcg.random_float()*0.9 #pick a reflectance that's not too close to 1
         var enclosure_material : Material = newMaterial(newDiffuseBRDF(newUniformPigment(newColor(1.0, 1.0, 1.0)*reflectance)),
          newUniformPigment(newColor(1.0, 1.0, 1.0)*emitted_radiance))
 
@@ -50,4 +50,4 @@ proc test_furnace =
 
 
 test_random()
-#test_furnace()
+test_furnace()
