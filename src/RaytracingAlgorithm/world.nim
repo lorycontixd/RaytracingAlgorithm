@@ -103,8 +103,10 @@ func IsPointVisible*(self: World, point: Point, observer_position: Point): bool 
     ## Returns
     ##      bool
     let 
-        dir = (point - observer_position).normalize().convert(Vector3)
-        ray = newRay(observer_position, dir, 1e-2, Inf)
+        #dir = (point - observer_position).normalize().convert(Vector3)
+        direction = (point - observer_position).convert(Vector3)
+        dir_norm = direction.norm()
+        ray = newRay(observer_position, direction, 1e-2/dir_norm, 1.0)
     for shape in self.shapes:
         if shape.rayIntersect(ray).isSome:
             return false
