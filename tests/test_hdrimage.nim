@@ -74,7 +74,7 @@ proc test_parse_image_size=
     assert HdrImage.parse_img_size("100 100") == (100,100)
     assert HdrImage.parse_img_size("1920 1080") == (1920,1080)
     try:
-        assert HdrImage.parse_img_size("800 600") == (800,600)
+        assert HdrImage.parse_img_size("801 601") == (800,600)
     except AssertionDefect:
         echo "Failed image size parsing"
 

@@ -37,15 +37,14 @@ proc test_onoff_renderer2(): void=
     var renderer : Renderer = newOnOffRenderer(world2, Color.black, Color.white)
     tracer.fireAllRays(renderer.Get())
 
-    assert image.get_pixel(0,0) == Color.black
-    assert image.get_pixel(1,0) == Color.black
-    assert image.get_pixel(2,0) == Color.black
-    assert image.get_pixel(0,1) == Color.black
-    #assert image.get_pixel(1,1) == Color.white
-    assert image.get_pixel(0,2) == Color.black
-    assert image.get_pixel(1,2) == Color.black
-    assert image.get_pixel(2,2) == Color.black
-
+    assert tracer.image.get_pixel(0,0) == Color.black
+    assert tracer.image.get_pixel(1,0) == Color.black
+    assert tracer.image.get_pixel(2,0) == Color.black
+    assert tracer.image.get_pixel(0,1) == Color.black
+    assert tracer.image.get_pixel(1,1) == Color.white
+    assert tracer.image.get_pixel(0,2) == Color.black
+    assert tracer.image.get_pixel(1,2) == Color.black
+    assert tracer.image.get_pixel(2,2) == Color.black
 
 
 proc test_flat_renderer(): void=
@@ -64,15 +63,15 @@ proc test_flat_renderer(): void=
     var renderer : Renderer = newFlatRenderer(world2, Color.black)
     tracer.fireAllRays(renderer.Get())
 
-    assert image.get_pixel(0,0) == Color.black
-    assert image.get_pixel(1,0) == Color.black
-    assert image.get_pixel(2,0) == Color.black
-    assert image.get_pixel(0,1) == Color.black
-    #assert image.get_pixel(1,1) == sphere_color
-    assert image.get_pixel(2,1) == Color.black
-    assert image.get_pixel(0,2) == Color.black
-    assert image.get_pixel(1,2) == Color.black
-    assert image.get_pixel(2,2) == Color.black
+    assert tracer.image.get_pixel(0,0) == Color.black
+    assert tracer.image.get_pixel(1,0) == Color.black
+    assert tracer.image.get_pixel(2,0) == Color.black
+    assert tracer.image.get_pixel(0,1) == Color.black
+    assert tracer.image.get_pixel(1,1) == sphere_color
+    assert tracer.image.get_pixel(2,1) == Color.black
+    assert tracer.image.get_pixel(0,2) == Color.black
+    assert tracer.image.get_pixel(1,2) == Color.black
+    assert tracer.image.get_pixel(2,2) == Color.black
 
 proc test_pointlight_renderer(): void = discard
 
