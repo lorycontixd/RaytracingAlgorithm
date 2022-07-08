@@ -103,9 +103,12 @@ proc cubeNormal(point:Point, ray_dir:Vector3): Normal=
     return normal
 
 proc sphereWorldToLocal(p: Point, radius: float32): Vector2=
+    var v_temp: float32 = p.z / radius
     let
         u = arctan2(p.y, p.x) / (2.0 * PI)   #p.x not p.z ??
-        v = arccos(p.z / radius) / PI ## divided by radius ??
+        v = arccos(Clamp(v_temp, -1, 1)) / PI ## divided by radius ??
+    if v.classify == fcNan:
+        echo "error point: ",p," and error radius: ",radius
     if u >= 0.0:
         result = newVector2(u,v)
     else:
