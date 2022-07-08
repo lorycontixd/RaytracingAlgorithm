@@ -262,7 +262,7 @@ Point-light renderer makes use of bright, small objects like a lamp, the sun, et
 **Syntax:** renderer( pointlight, background_color, ambient_color)
 
 ##### Examples
-- renderer( pointlight, <0,0,0>, 0.3, 0.4, 1.0> )
+- renderer( pointlight, <0,0,0>, <0.3, 0.4, 1.0> )
 - renderer(pointlight, <0.46, 0.62, 0.94>, <0.1, 0.1, 0.1>)
 
 
