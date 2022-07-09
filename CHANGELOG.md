@@ -2,7 +2,30 @@
 All notable changes to this project will be documented in this file.
 
 
-## [Unreleased]
+## [2.0.0] - 09-07-2022
+Big changes were made since the last release which makes some of the old code incompatible with the new version.
+
+### Added
+- RaytracingAlgorithm modules
+    - postprocessing.nim: A collection (small for now) of postprocessing effects to improve the quality of a rendered image.
+- Documentation
+    - RaytracingAlgorithm language documentation added ![here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md).
+    - First tutorial documentation added ![here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md).
+
+### Incompatible changes
+- Removed the possibility of calling the stats module as it drastically slows down the program. (Will be reinserted on parallelization)
+- Added postprocessing effects inside .rta language.
+- HdrImage parsing functions are made static
+
+### Other changes
+- Drastically improved tests
+- Added more textures 
+- Separated triangles into mesh triangles & triangles
+    - MeshTriangles: Only store the parent mesh and the indices of the relative vertices/normals/texture points of the mesh
+    - Triangles: Don't take part of a mesh. Has no parent mesh and stores the vertices/normals/texture points directly, instead of indices.
+- Fixed minor bugs
+    - Animation was working incorrectly due to wrong definition of interpolation function (just commented out for now)
+    - Fixed some wrong exception messages in parser.nim
 
 ## [1.0.0] - 21-06-2022
 Unfortunately, the package versions were not updated for a long time, so this one will have a lot of changes.
