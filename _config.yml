@@ -4,4 +4,4 @@ theme: jekyll-theme-cayman
 
 title: RaytracingAlgorithm
 locale: en_UK
-logo: logo.jpeg
+logo: "images/logo.jpeg"
