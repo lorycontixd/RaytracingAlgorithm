@@ -10,8 +10,8 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
 - [Nim](https://nim-lang.org/) (nim >= 1.6.4)
 - [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```
-- [Cligen]
-- [NimCUDA]
+- [Cligen](https://github.com/c-blake/cligen)
+- [Stacks](https://github.com/rustomax/nim-stacks)
 
 ## Installation
 
@@ -22,6 +22,10 @@ The package can be installed in multiple ways
 ```
 git@github.com:lorycontixd/RaytracingAlgorithm.git
 ```
+3. Then you can enter the directory with the command
+```
+cd RaytracingAlgorithm
+```
 
 ### Downloading the latest release
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/lorycontixd/RaytracingAlgorithm?color=green&label=Repo%20size&style=plastic)
@@ -29,37 +33,84 @@ git@github.com:lorycontixd/RaytracingAlgorithm.git
 
 1. From terminal, download the latest version of the package from the GitHub repository of the package:
 ```
-wget command goes here
+wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.zip
 ```
+
+or
+
+```
+wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.tar.gz
+```
+
+where x,y,z are the numbers of the version you want to download.
+
 2. Extract the file in the directory where the package should be located
 ```
-tar command goes here
+unzip vx.y.z.zip
 ```
-3. Run the package
+
+or 
+
+```
+tar -xvf vx.y.z.tar.gz
+```
+3. Enter the directory and run the main file:
+
+```
+cd RaytracingAlgorithm-x.y.z
+```
+
+
+##### Example
+To download version 2.1.0 of RaytracingAlgorithm:
+```
+wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/v2.1.1.tar.gz
+tar v2.1.0.tar.gz
+cd RaytracingAlgorithm-2.1.0/
+```
 
 ###
 We are planning to publish the RaytracingAlgorithm package to nimble in order to make it easier to download, but this feature will be released in a future version.
 
 
 ## Usage
-### Renderer
+### Ask for help
+If you are unsure of how to use RaytracingAlgorithm, you can first read the documentation or print the help screen, by typing:
+```
+nim cpp -d:release src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out --help
+```
+
+You can also view a help message for each command that the package offers you, by placing the flag --help after the command:
+
+```
+nim cpp -d:release src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out <command> --help
+```
+
+### Render image
+RaytracingAlgorithm lets you render a photo-realistic image representing a text-defined 3D scene using raytracing. This is done thanks to the ```render``` command.
+
+> ⚠️ Make sure you are in the parent directory!
+
+> ⚠️ Parameters enclosed in square brackets [] are optional and have an encoded default value.
+
 From terminal, type:
 ```
-nim cpp -d:relaese RaytracingAlgorithm.nim && ./RaytracingAlgorithm.out render --filename=FILE_NAME --width=WIDTH --height=HEIGHT --output_filename=OUTPUT_FILENAME --png_output=BOOL
+nim cpp -d:release src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out render --filename=FILE_NAME [--width=WIDTH] [--height=HEIGHT] [--output_filename=OUTPUT_FILENAME] [--png_output=BOOL]
 ```
 where:
 - ```FILE_NAME``` is the name of the input file with the description of the scene to be parsed;
-- ```WIDTH``` and ```HEIGHT``` are respectively the screen width and height in pixels, set by default to 800 and 600;
+- ```WIDTH``` and ```HEIGHT``` are respectively the screen width and height in pixels, set by default to 800 and 600 (also definable in the scene file);
 - ```OUTPUT_FILENAME``` is the name of the name of the output file with the rendered image; it is set by default to 'output';
 - ```BOOL``` is **True** if you want the image also in a PNG format, **False** else, set to False by default.
 
 In this way, you're generating by default an image in PFM format. 
 
 ### From PFM to LDR
-You would like to convert PFM images to LDR format, and you can do it as follows.
+RaytracingAlgorithm also lets you convert a HDR image (.pfm format) into a LDR image (.png format), with the help of filters such as tone mapping.
+
 From terminal, type:
 ```
-nim cpp -d:relaese RaytracingAlgorithm.nim && ./RaytracingAlgorithm.out pfm2png --factor=FACTOR --gamma=GAMMA --input_filename=INPUT_FILENAME --output_filename=OUTPUT_FILENAME
+nim cpp -d:relaese RaytracingAlgorithm.nim && ./RaytracingAlgorithm.out pfm2png --input_filename=INPUT_FILENAME --output_filename=OUTPUT_FILENAME [--factor=FACTOR] [--gamma=GAMMA] 
 ```
 
 where:
@@ -70,12 +121,11 @@ where:
 
 
 ## Scene files
-We implemented a new straightforward language in order to create images from an input file. You can follow step by step this tutorial to generate a simple image. For more details about the language, consult the language documentation here ### add link.
+We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step tutorials to generate your first image. For more details about the language, consult the language documentation [here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md)
 
-### How to create a simple image (tutorial)
+- [First Tutorial](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md): Create two spheres inside a scene with different materials.
+- [Second Tutorial]()
 
-## History
-See the file changelog (### mettere link)
 
 
 ## Contributing
