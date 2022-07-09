@@ -1,6 +1,6 @@
 # Second tutorial
 In this tutorial, you will learn to produce your first animation using RaytracingAlgorithm. We will be rendering a video clip of two planets rotating around each other.
-[Here]() you can see the outcome of the animation, named planets.
+[Here](https://user-images.githubusercontent.com/56968043/178108489-cb7f1639-6ea7-427a-85e1-04f617a2e8be.mp4) you can see the outcome of the animation.
 
 > Make sure you find yourself inside the root folder.
 > Run the script with the following command: nim cpp -d:release ./src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out render --filename=<YOUR_FILE>
