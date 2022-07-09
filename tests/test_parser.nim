@@ -3,7 +3,57 @@ import "../src/RaytracingAlgorithm/scene.nim"
 import "../src/RaytracingAlgorithm/material.nim"
 import "../src/RaytracingAlgorithm/color.nim"
 import "../src/RaytracingAlgorithm/geometry.nim"
+import "../src/RaytracingAlgorithm/camera.nim"
+import "../src/RaytracingAlgorithm/shape.nim"
+import "../src/RaytracingAlgorithm/transformation.nim"
+
 import std/[streams, options, marshal, tables]
+
+#-------- useful functions
+method get_parameters_test(pig : Pigment): seq[Color] {.base.} =
+    quit "to override"
+
+method get_parameters_test(pig : UniformPigment): seq[Color] =
+    result.add(pig.color)
+
+method get_parameters_test(pig : CheckeredPigment): seq[Color] =
+    result.add(pig.color1)
+    result.add(pig.color2)
+
+method get_num_step_test(pig: Pigment): int {.base.}=
+    quit "to override"
+
+method get_num_step_test(pig: CheckeredPigment): int =
+    return pig.numberOfSteps
+
+method get_cam_distance_test(cam: Camera): float {.base.} =
+    quit "to override"  
+
+method get_cam_distance_test(cam: PerspectiveCamera): float =
+    return cam.distance
+
+proc assert_isKeyword(token: Token, keyword: KeywordType)=
+    #echo "token: ",$$token
+    assert token.kind == Tokenkind.tkKeyword
+    assert token.keywordVal == keyword
+
+proc assert_isIdentifier(token: Token, identifier: string)=
+    assert token.kind == Tokenkind.tkIdentifier
+    assert token.identifierVal == identifier
+
+proc assert_isSymbol(token: Token, symbol: char)=
+    assert token.kind == TokenKind.tkSymbol 
+    assert token.symbolVal == symbol
+
+proc assert_isNumber(token: Token, number: float32)=
+    assert token.kind == Tokenkind.tkNumber
+    assert token.numberVal == number
+
+proc assert_isString(token: Token, s: string)=
+    assert token.kind == Tokenkind.tkString
+    assert token.stringVal == s
+
+# -------- test functions
 
 
 proc test_inputstream()=
@@ -41,26 +91,6 @@ proc test_inputstream()=
     assert stream.location.colNum == 3
     assert stream.savedChar == none(char)
 
-proc assert_isKeyword(token: Token, keyword: KeywordType)=
-    echo "token: ",$$token
-    assert token.kind == Tokenkind.tkKeyword
-    assert token.keywordVal == keyword
-
-proc assert_isIdentifier(token: Token, identifier: string)=
-    assert token.kind == Tokenkind.tkIdentifier
-    assert token.identifierVal == identifier
-
-proc assert_isSymbol(token: Token, symbol: char)=
-    assert token.kind == TokenKind.tkSymbol 
-    assert token.symbolVal == symbol
-
-proc assert_isNumber(token: Token, number: float32)=
-    assert token.kind == Tokenkind.tkNumber
-    assert token.numberVal == number
-
-proc assert_isString(token: Token, s: string)=
-    assert token.kind == Tokenkind.tkString
-    assert token.stringVal == s
 
 
 proc test_lexer()=
@@ -135,9 +165,41 @@ proc test_parser()=
 
     assert sky_material.brdf of DiffuseBRDF
     assert sky_material.brdf.pigment of UniformPigment
-    assert sky_material.brdf.pigment.getColor(newVector2(0.0,0.0)) == newColor(0.0,0.0,0.0)
+    assert sky_material.brdf.pigment.get_parameters_test[0] == newColor(0.0,0.0,0.0)
+
+    assert ground_material.brdf of DiffuseBRDF
+    assert ground_material.brdf.pigment of CheckeredPigment
+    assert ground_material.brdf.pigment.get_parameters_test[0] == newColor(0.3, 0.5, 0.1)
+    assert ground_material.brdf.pigment.get_parameters_test[1] == newColor(0.1, 0.2, 0.5)
+    assert ground_material.brdf.pigment.get_num_step_test == 4
+
+    assert sphere_material.brdf of SpecularBRDF
+    assert sphere_material.brdf.pigment of UniformPigment
+    assert sphere_material.brdf.pigment.get_parameters_test[0] == newColor(0.5, 0.5, 0.5)
+
+    assert sky_material.emitted_radiance of UniformPigment
+    assert sky_material.emitted_radiance.get_parameters_test[0] == newColor(0.7,0.5,1.0)
+    assert ground_material.emitted_radiance of UniformPigment
+    assert ground_material.emitted_radiance.get_parameters_test[0] == newColor(0.0,0.0,0.0)
+    assert sphere_material.emitted_radiance of UniformPigment
+    assert sphere_material.emitted_radiance.get_parameters_test[0] == newColor(0.0,0.0,0.0)
+
+    # Check that the shapes are ok
+    assert len(scene.world.shapes) == 3
+    assert scene.world.shapes[0] of shape.Plane
+    assert scene.world.shapes[0].transform == Transformation.translation(newVector3(0.0,0.0,100.0)) * Transformation.rotationY(150.0)
+    assert scene.world.shapes[1] of shape.Plane
+    assert scene.world.shapes[1].transform == Transformation.translation(newVector3(0.0,0.0,0.0))
+    assert scene.world.shapes[2] of shape.Sphere
+    assert scene.world.shapes[2].transform == Transformation.translation(newVector3(0.0,0.0,1.0)) 
+
+    # Check that the camera is ok
+    assert scene.camera.camType is PerspectiveCamera
+    assert scene.camera.transform ==  Transformation.rotationZ(30.0) * Transformation.translation(newVector3(-4.0,0.0,1.0))
+    assert scene.camera.aspectRatio == 1
+    assert scene.camera.get_cam_distance_test == 2
 
 
 test_inputstream()
 test_lexer()
-#test_parser()
+test_parser()
