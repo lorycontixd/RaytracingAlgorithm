@@ -21,7 +21,7 @@ The package can be installed in multiple ways
 1. Enter the terminal and navigate to the directory you want the package to be installed in.
 2. Clone the repository with the command
 ```
-git@github.com:lorycontixd/RaytracingAlgorithm.git
+git clone git@github.com:lorycontixd/RaytracingAlgorithm.git
 ```
 3. Then you can enter the directory with the command
 ```
