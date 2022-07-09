@@ -1,5 +1,9 @@
 import "../src/RaytracingAlgorithm/parser.nim"
-import std/[streams, options, marshal]
+import "../src/RaytracingAlgorithm/scene.nim"
+import "../src/RaytracingAlgorithm/material.nim"
+import "../src/RaytracingAlgorithm/color.nim"
+import "../src/RaytracingAlgorithm/geometry.nim"
+import std/[streams, options, marshal, tables]
 
 
 proc test_inputstream()=
@@ -80,8 +84,60 @@ proc test_lexer()=
     assert_isSymbol(stream.ReadToken(), ')')
 
 
+proc test_parser()=
+    var strm: StringStream = newStringStream("""
+        float clock(150)
+    
+        material sky_material(
+            diffuse(uniform(<0, 0, 0>)),
+            uniform(<0.7, 0.5, 1>)
+        )
+    
+        # Here is a comment
+    
+        material ground_material(
+            diffuse(checkered(<0.3, 0.5, 0.1>,
+                              <0.1, 0.2, 0.5>, 4)),
+            uniform(<0, 0, 0>)
+        )
+    
+        material sphere_material(
+            specular(uniform(<0.5, 0.5, 0.5>)),
+            uniform(<0, 0, 0>)
+        )
+    
+        plane (sky_material, translation([0, 0, 100]) * rotation_y(clock))
+        plane (ground_material, identity)
+    
+        sphere(sphere_material, translation([0, 0, 1]))
+    
+        camera(perspective, rotation_z(30) * translation([-4, 0, 1]), 1.0, 2.0)
+        """)
+        
+    var stream: InputStream = newInputStream(strm, newSourceLocation(""))
+    var scene : Scene = ParseScene(stream)
 
+    # Check that the float variables are ok
+    assert len(scene.float_variables) == 1
+    assert scene.float_variables.hasKey("clock")
+    assert scene.float_variables["clock"] == 150.0
+
+    # Check that the materials are ok
+    assert len(scene.materials) == 3
+    assert scene.materials.hasKey("sphere_material")
+    assert scene.materials.hasKey("sky_material")
+    assert scene.materials.hasKey("ground_material")
+
+    let
+        sphere_material = scene.materials["sphere_material"]
+        sky_material = scene.materials["sky_material"]
+        ground_material = scene.materials["ground_material"]
+
+    assert sky_material.brdf of DiffuseBRDF
+    assert sky_material.brdf.pigment of UniformPigment
+    assert sky_material.brdf.pigment.getColor(newVector2(0.0,0.0)) == newColor(0.0,0.0,0.0)
 
 
 test_inputstream()
 test_lexer()
+#test_parser()
