@@ -70,11 +70,13 @@ These settings can be applied by adding the following lines:
 set width = 1920
 set height = 1080
 
+set antialiasing = new antialiasing(4)
 set postprocessing = new postprocessing(
 	tonemapping(1.1),
 	gaussianblur(1)
 )
 ```
+> ⚠️ A value of 4 for the antialiasing drastically increases the computational time needed for the simulation. You are invited to try a value of 1 before and then move onto 4.
 
 ### Final thoughts
 Et voilà, our first image has been produced. 
