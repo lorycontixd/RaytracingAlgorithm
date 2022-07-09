@@ -9,8 +9,8 @@ Big changes were made since the last release which makes some of the old code in
 - RaytracingAlgorithm modules
     - postprocessing.nim: A collection (small for now) of postprocessing effects to improve the quality of a rendered image.
 - Documentation
-    - RaytracingAlgorithm language documentation added ![here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md).
-    - First tutorial documentation added ![here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md).
+    - RaytracingAlgorithm language documentation added [here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md).
+    - First tutorial documentation added [here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md).
 
 ### Incompatible changes
 - Removed the possibility of calling the stats module as it drastically slows down the program. (Will be reinserted on parallelization)
