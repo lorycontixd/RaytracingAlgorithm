@@ -31,6 +31,10 @@ Big changes were made since the last release which makes some of the old code in
     - Animation was working incorrectly due to wrong definition of interpolation function (just commented out for now)
     - Fixed some wrong exception messages in parser.nim
 
+### Next planned steps
+- Add a texture manager class
+- Animate camera as object & animate other shape properties (outside transform)
+
 ## [1.0.0] - 21-06-2022
 Unfortunately, the package versions were not updated for a long time, so this one will have a lot of changes.
 ### Added
