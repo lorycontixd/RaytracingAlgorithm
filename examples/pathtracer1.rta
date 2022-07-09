@@ -1,0 +1,45 @@
+material sky_material(
+        diffuse(uniform(<1,0,0>), 1.0),
+        uniform(<0,0,0>)
+)
+
+
+material ct1(
+        cooktorrance(uniform(<1.0, 0.4, 1.0>), 0.1, 0.9, 0.1, ggx),
+        uniform(<0, 0, 0>)
+)
+
+material ct2(
+        cooktorrance(uniform(<1, 0.4, 0>), 0.9, 0.1, 0.5, ggx),
+        uniform(<0, 0, 0>)
+)
+
+material spec1(
+        specular(uniform(<0.3, 1.0, 0>), 0.0017),
+        uniform(<0,0,0>)
+)
+
+material totalspec(
+        specular(uniform(<1,1,1>), 1),
+        uniform(<1,1,1>)
+)
+
+material ground_material(
+        diffuse(checkered(<0.3, 0.5, 0.1>,
+                        <0.1, 0.2, 0.5>, 4), 1.0),
+        uniform(<0, 0, 0>)
+)
+
+#sphere totalspecsphere(totalspec, translation([2, 0, 3]))
+sphere ctsphere1(ct1, translation([2, 2, 1]))
+sphere ctsphere2(ct2, translation([2, -2, 1]))
+sphere specsph(spec1, translation([2, 0, 1]))
+plane (ground_material, identity)
+
+camera (perspective, translation([-2,0,1]), 1.0, 1.0)
+renderer(pathtracer, <0.5, 0.8, 1>, 4,4,3)
+set antialiasing = new antialiasing(4)
+
+set postprocessing = new postprocessing(gaussianblur(1))
+set width = 1000
+set height = 800
