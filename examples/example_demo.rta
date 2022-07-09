@@ -1,6 +1,5 @@
 set width = 1920
 set height = 1080
-float ang_degrees(150)
 
 material sky_material(
         diffuse(uniform(<0.0, 0.0, 0.0>)),
@@ -24,7 +23,6 @@ material ctmaterial(
 )
 
 sphere sky (sky_material, scale([50,50,50]))
-
 plane (ground_material, identity)
 sphere s(sphere_material, translation([0, 0, 1]))
 sphere cts(ctmaterial, translation([-1, -2.7, 1]))
