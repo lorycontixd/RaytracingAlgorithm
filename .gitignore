@@ -13,7 +13,7 @@ src/frames
 .DS_Store
 .vscode/
 # test executables
-tests/*
-!tests/*.nim
+#tests/*
+#!tests/*.nim
 # large files
 media/skyboxes/hazy_afternoon.pfm
