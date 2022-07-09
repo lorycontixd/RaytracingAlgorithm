@@ -135,17 +135,17 @@ We implemented a new straightforward language in order to create images from an 
 RaytracingAlgorithm still has a long way to go before it reaches the amount of functionalities that it deserves. There are known bugs which are waiting to be fixed and ideas waiting to be implemented.
 
 ### Ideas
-- [] Animation on camera with keyframes
-- [] Animation on object parameters (for now only transform is animated)
-- [] KD-Tree implementation for ray scattering optimization
-- [] Cuda support
-- [] CSG shapes
-- [] Texture manager class
-- [] Area lights
-- [] More postprocessing effects
-    - [] Ambient occlusion
-    - [] Depth of field
-    - [] Bloom
+- [ ] Animation on camera with keyframes
+- [ ] Animation on object parameters (for now only transform is animated)
+- [ ] KD-Tree implementation for ray scattering optimization
+- [ ] Cuda support
+- [ ] CSG shapes
+- [ ] Texture manager class
+- [ ] Area lights
+- [ ] More postprocessing effects
+    - [ ] Ambient occlusion
+    - [ ] Depth of field
+    - [ ] Bloom
 
 ### Known bugs
 - Triangles + Meshes not working at all.
