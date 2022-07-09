@@ -28,6 +28,7 @@ material ground_material(
 sphere sky (sky_material, scale([50,50,50])) 		# Background
 plane (ground_material, identity) 					# Ground
 ```
+
 Also remember that no scene can work without the definition of an observer inside the scene, and a rendering method.
 In this example, we will define a perspective camera that is able to see both sphere, and render the image using the path-tracer, which is the most advanced algorithm implemented in RaytracingAlgorithm. To define these two tools you can simply add these lines to your previous code:
 ```
