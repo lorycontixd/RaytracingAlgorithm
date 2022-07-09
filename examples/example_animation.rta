@@ -34,14 +34,14 @@ renderer(pathtracer, <0.3, 0.3, 0.94>, 2,3,2)
 set animation = new animation(5, 60)
 animate (earth,
     [0, rotationz(0) * translation([0,0,1.5])],
-    [2, rotationz(90) * translation([0,0,1.5])],
-    [4, rotationz(180) * translation([0,0,1.5])]
+    [2.5, rotationz(90) * translation([0,0,1.5])],
+    [5, rotationz(180) * translation([0,0,1.5])]
 )
 
 animate (jupiter,
     [0, rotationz(0) * translation([1, -4, 2.5])],
-    [2, rotationz(45) * translation([1, -4, 2.5])],
-    [4, rotationz(90) * translation([1, -4, 2.5])]
+    [2.5, rotationz(45) * translation([1, -4, 2.5])],
+    [5, rotationz(90) * translation([1, -4, 2.5])]
 )
 
 set antialiasing = new antialiasing(1)
