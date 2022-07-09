@@ -1,3 +1,8 @@
+[Home](https://lorycontixd.github.io/RaytracingAlgorithm)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[Results](https://lorycontixd.github.io/RaytracingAlgorithm/media)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+[API Reference](https://lorycontixd.github.io/RaytracingAlgorithm/apireference)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+
 # RaytracingAlgorithm
 
 RaytracingAlgorithm is a Nim package which takes care of rendering photorealistic images starting from a 3D scene described from an input text file.
