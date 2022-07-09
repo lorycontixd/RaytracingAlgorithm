@@ -146,6 +146,8 @@ RaytracingAlgorithm still has a long way to go before it reaches the amount of f
     - [ ] Ambient occlusion
     - [ ] Depth of field
     - [ ] Bloom
+- [ ] Format outputs (e.g create output directory)
+- [ ] Improve compiling options (e.g. rename the long command with something shorter and more intuitive)
 
 ### Known bugs
 - Triangles + Meshes not working at all.
