@@ -15,3 +15,6 @@ If this is the first time you use this library, this is the right place for you
 
 ## Api Reference
 For more details on the package, please read the [API Reference](https://lorycontixd.github.io/RaytracingAlgorithm/apireference)
+
+## Results
+You can check out a list of images and videos created using RaytracingAlgorithm [here](https://lorycontixd.github.io/RaytracingAlgorithm/media)
