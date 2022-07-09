@@ -17,4 +17,4 @@ task tests, "Run the packages tests!":
     exec "testament pattern \"tests/*.nim\" "
 
 task compile, "Compile the main script":
-    exec "nim cpp -d:release src/RaytracingAlgorithm.nim"
+    exec "nim cpp -d:release ./src/RaytracingAlgorithm.nim"
