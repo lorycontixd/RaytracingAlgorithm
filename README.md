@@ -9,9 +9,10 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 ## Requirements
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
 - [Nim](https://nim-lang.org/) (nim >= 1.6.4)
-- [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```
-- [Cligen](https://github.com/c-blake/cligen)
-- [Stacks](https://github.com/rustomax/nim-stacks)
+- [Testament](https://nim-lang.org/docs/testament.html): Support for unittesting. Should be already installed with Nim.
+- [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```.
+- [Cligen](https://github.com/c-blake/cligen): Support for command-line argument parsing and help message formatting. Installable through the Nimble package manager with ```nimble install cligen```.
+- [Stacks](https://github.com/rustomax/nim-stacks): Pure Nim stack implementation using sequences. Installable through the Nimble package manager with ```nimble install stacks```.
 
 ## Installation
 
@@ -74,6 +75,10 @@ We are planning to publish the RaytracingAlgorithm package to nimble in order to
 
 
 ## Usage
+After downloading the package you can start using it!
+
+> ⚠️ Make sure you are in the parent directory!!
+
 ### Ask for help
 If you are unsure of how to use RaytracingAlgorithm, you can first read the documentation or print the help screen, by typing:
 ```
@@ -89,8 +94,6 @@ nim cpp -d:release src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out 
 ### Render image
 RaytracingAlgorithm lets you render a photo-realistic image representing a text-defined 3D scene using raytracing. This is done thanks to the ```render``` command.
 
-> ⚠️ Make sure you are in the parent directory!
-
 > ⚠️ Parameters enclosed in square brackets [] are optional and have an encoded default value.
 
 From terminal, type:
@@ -105,7 +108,7 @@ where:
 
 In this way, you're generating by default an image in PFM format. 
 
-### From PFM to LDR
+### From PFM to PNG
 RaytracingAlgorithm also lets you convert a HDR image (.pfm format) into a LDR image (.png format), with the help of filters such as tone mapping.
 
 From terminal, type:
@@ -121,12 +124,33 @@ where:
 
 
 ## Scene files
-We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step tutorials to generate your first image. For more details about the language, consult the language documentation [here](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md)
+We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step tutorials to generate your first image.
+
+- [API Reference](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md)
 
 - [First Tutorial](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md): Create two spheres inside a scene with different materials.
-- [Second Tutorial]()
+- [Second Tutorial](): Create your first animation.
 
+## Future works
+RaytracingAlgorithm still has a long way to go before it reaches the amount of functionalities that it deserves. There are known bugs which are waiting to be fixed and ideas waiting to be implemented.
 
+### Ideas
+- [] Animation on camera with keyframes
+- [] Animation on object parameters (for now only transform is animated)
+- [] KD-Tree implementation for ray scattering optimization
+- [] Cuda support
+- [] CSG shapes
+- [] Texture manager class
+- [] Area lights
+- [] More postprocessing effects
+    - [] Ambient occlusion
+    - [] Depth of field
+    - [] Bloom
+
+### Known bugs
+- Triangles + Meshes not working at all.
+- Stats module commented (waiting for parallelization).
+- 
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
