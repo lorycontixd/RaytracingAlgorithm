@@ -1,7 +1,23 @@
----
-layout: default
----
 
+<div class="wrapper">
+	<div class="nav-bar-area">
+		<div class="menu">
+			<div id="text">Menu</div>
+			<div id="image"><img src="http://www.rcunlocks.com/IMG_0468.PNG" /></div>
+		</div>
+		<div class="nav-bar">
+			<ul>
+				<li>Home</li>
+				<li>About Us</li>
+				<li>Products</li>
+				<li>Services</li>
+				<li>Careers</li>
+				<li>Contact US</li>
+			  </ul>	
+		
+		</div>
+	</div>
+</div>
 
 # RaytracingAlgorithm package
 RaytracingAlgorithm is a raytracer written mostly in Nim to generate photo-realistic images defined by a scene, which is a collection of 3D objects and environment rules.
