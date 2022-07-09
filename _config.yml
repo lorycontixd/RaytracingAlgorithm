@@ -4,4 +4,4 @@ theme: jekyll-theme-cayman
 
 title: RaytracingAlgorithm
 locale: en_UK
-logo: # filename of a logo image that has been placed into your images directory
+logo: logo.jpeg
