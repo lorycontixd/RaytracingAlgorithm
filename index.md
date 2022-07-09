@@ -19,6 +19,13 @@ RaytracingAlgorithm requires the following packages to be installed in order to 
 - [Cligen](https://github.com/c-blake/cligen): Support for command-line argument parsing and help message formatting. Installable through the Nimble package manager with ```nimble install cligen```.
 - [Stacks](https://github.com/rustomax/nim-stacks): Pure Nim stack implementation using sequences. Installable through the Nimble package manager with ```nimble install stacks```.
 
+## Features
+- Generate photo-realistic images of your choice
+- Possible parallel CPU execution (CUDA in future)
+- Easy-to-use language to define a scene
+- Optimized for speed and memory
+- Render pre-defined demo images in an instance
+
 ## Installation
 
 The package can be installed in multiple ways
