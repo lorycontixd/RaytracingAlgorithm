@@ -1,7 +1,8 @@
 # First Tutorial
 This document will help you build your first photo-realistic rendered image using the RaytracingAlgorithm package.
 The outcome will be this image:
-	![Final Image](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/media/documentation/tutorial1/finalimage.png)
+
+![Final Image](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/media/documentation/tutorial1/finalimage.png)
 
 
 > Make sure you find yourself inside the root folder.
