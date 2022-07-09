@@ -1,37 +1,23 @@
-set width = 900
-set height = 600
+float camerarot(40)
 
-material groundcheck(
-    diffuse(checkered(<0,0,0>, <1,1,1>, 2)),
-    uniform(<0,0,0>)
-)
+material diffusemat(         diffuse( uniform( <0.3, 0.5, 0.9> ) ), uniform(<0,0,0> )       )
+material specularmat(        specular( uniform( <0.5, 0.5, 0.5>)), uniform(<0.05, 0.05, 0.05> )      )
+material phongmat(           diffuse( uniform( <0.7, 0, 0.7>)) , uniform(<0,0,0>)     )
+material cooktorrancemat(    cooktorrance(uniform(<0.3, 0.6, 0.3>), 0.6, 0.4, 0.3, ggx), uniform(<0,0,0>))
+material ground_material(    diffuse( checkered( <0.3, 0.5, 0.1>,<0.1, 0.2, 0.5>, 4 ) ), uniform(<0, 0, 0>)      )
 
-material skymaterial(
-    diffuse(uniform(<0.46, 0.62, 0.94>)),
-    uniform(<0.46, 0.62, 0.94>)
-)
+plane(ground_material, identity)
+sphere diffsphere  (diffusemat, translation([4, 4, 1]))
+sphere specsphere  (specularmat, translation([4, -4, 1]))
+sphere phongsphere (phongmat, translation([-4, 4, 1]))
+sphere cooktorrancesphere (cooktorrancemat, translation([-4, -4, 1]))
 
-material spec(
-    specular(uniform(<0.0, 0.1, 0.5>)),
-    uniform(<0.0, 0.1, 0.5>)
-)
+light([10, 10, 10], <1,0,0>, 18)
+light([10, -10, 10], <0,1,0>, 18)
+light([-10, 10, 10], <0,0,1>, 18)
+light([-10, -10, 10], <1,1,1>, 18)
 
-material diff(
-    diffuse(uniform(<1.0, 1.0, 1.0>)),
-    # uniform(<1.0, 1.0, 1.0>)
-    image("../media/images/texture_earth.pfm")
-)
+camera(perspective, rotationy(camerarot) * translation([-14, 0, 7]), 1,1)
+renderer(pointlight, <0,0,0>, <0.2, 0.2, 0.2>)
 
-
-light([0,0, 30], <1.0, 1.0, 1.0>, 41.0)
-light([-10, 0, 1], <1,1,1>, 22)
-plane (groundcheck, identity)
-sphere s1(spec, translation([-1,-1,1]))
-
-camera(perspective, translation([-4, 0, 2]), 1.0, 1.0)
-renderer(pointlight, <0.46, 0.62, 0.94>, <0.1, 0.1, 0.1>)
-
-set width = 1920
-set height = 1080
-
-set postprocessing = new postprocessing( tonemapping(2.0) )
+set postprocessing = new postprocessing(gaussianblur(1))

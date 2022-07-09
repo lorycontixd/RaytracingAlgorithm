@@ -218,23 +218,23 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
     #let endTime = cpuTime() - start
     mainStats.closeStats()
 
-proc pfm2png(factor: float32 = 0.7, gamma:float32 = 1.0, input_filename: string, output_filename:string){.inline.} =
-    if not input_filename.endsWith(".pfm"):
-        raise InvalidFormatError.newException(fmt"Invalid input file for conversion: {input_filename}. Must be PFM file.")
-    if not output_filename.endsWith(".png"):
-        raise InvalidFormatError.newException(fmt"Invalid output file for conversion: {output_filename}. Must be PNG file.")
+proc pfm2png(inputfile: string, outputfile:string, factor: float32 = 0.7, gamma:float32 = 1.0){.inline.} =
+    if not inputfile.endsWith(".pfm"):
+        raise InvalidFormatError.newException(fmt"Invalid input file for conversion: {inputfile}. Must be PFM file.")
+    if not outputfile.endsWith(".png"):
+        raise InvalidFormatError.newException(fmt"Invalid output file for conversion: {outputfile}. Must be PNG file.")
     var image : HdrImage = newHdrImage()
-    var fileStream: FileStream = newFileStream(input_filename, fmRead)
+    var fileStream: FileStream = newFileStream(inputfile, fmRead)
     image.read_pfm(fileStream)
-    debug("File" ,input_filename, "has been read from disk")
-    info("Created HdrImage from inputfile ", input_filename, " for pfm2png conversion")
+    debug("File" ,inputfile, "has been read from disk")
+    info("Created HdrImage from inputfile ", inputfile, " for pfm2png conversion")
 
     let luminosity = image.average_luminosity()
     var tonemapping: ToneMapping = newToneMapping(1.0)
     tonemapping.eval(image)
 
-    image.write_png(output_filename)
-    debug("File", output_filename, "has been written to disk")
+    image.write_png(outputfile)
+    debug("File", outputfile, "has been written to disk")
 
 
 
@@ -264,7 +264,7 @@ when isMainModule:
         [pfm2png, help = {
             "factor" : "Multiplicative factor",
             "gamma" : "Exponent for gamma-correction",
-            "input_filename" : "PFM file name in input  ",
-            "output_filename" : "PNG file name in output"
+            "inputfile" : "PFM file name in input  ",
+            "outputfile" : "PNG file name in output"
         }]
     )

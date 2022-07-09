@@ -223,7 +223,6 @@ method ScatterRay*(
 
 
 
-
 ## Phong BRDF
 method eval*(self: PhongBRDF, normal: Normal, in_dir, out_dir: Vector3, uv: Vector2): Color =
     let newIncomingDir = in_dir.normalize()

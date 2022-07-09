@@ -13,8 +13,8 @@ requires "SimplePNG"
 requires "cligen"
 requires "stacks"
 
-task mytest, "Run the packages tests!":
-    exec "nim cpp -r tests/test_camera.nim"
+task tests, "Run the packages tests!":
+    exec "testament pattern \"tests/*.nim\" "
 
-task main, "Run a script":
-    exec "nim cpp -r -d:release src/RaytracingAlgorithm.nim"
+task compile, "Compile the main script":
+    exec "nim cpp -d:release ./src/RaytracingAlgorithm.nim"

@@ -19,6 +19,13 @@ proc seqToArray32*(s: seq[byte]): array[4, byte] {.inline.} =
         x[i] = s[i]
     return x
 
+proc bufferToArray32*(s: seq[byte]): array[12, byte]{.inline.}=
+    assert len(s)==12
+    var x: array[12, byte]
+    for i in 0..len(s)-1:
+        x[i] = s[i]
+    return x
+
 proc IsEqual*(x,y: float32, epsilon:float32=1e-5): bool {.inline.}=
     ## Function to verify if two floats are approximately equal
     ## 
@@ -51,6 +58,11 @@ proc charSeqToByte*(s: seq[char]): seq[byte] {.inline.}=
     #echo "- ",s
     for i in 0..size(s)-1:
         result[i] = cast[byte](s[i])
+
+proc byteSeqToChar*(s: seq[byte]): seq[char] {.inline.}=
+    result = newSeq[char](size(s))
+    for i in 0..size(s)-1:
+        result[i] = cast[char](s[i])
 
 proc clampFloat*(x: float32): float32=
     return x/(1+x)

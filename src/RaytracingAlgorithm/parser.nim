@@ -279,7 +279,7 @@ proc ParseFloatToken(self: var InputStream, firstChar: char, tokenLocation: Sour
     try:
         value = parseFloat(token)
     except:
-        raise TestError.newException("ciao")
+        raise ValueError.newException(fmt"Could not parse float: {token}")
     return Token(kind: tkNumber, location: tokenLocation, numberVal: value)
 
 
