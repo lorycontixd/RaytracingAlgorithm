@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 09-07-2022
+This patch only changed the pfm2png command, whose parameters were renamed:
+- input_filename -> inputfile
+- output_filename -> outputfile
 
 ## [2.0.0] - 09-07-2022
 Big changes were made since the last release which makes some of the old code incompatible with the new version.
