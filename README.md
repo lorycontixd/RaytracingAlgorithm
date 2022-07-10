@@ -148,7 +148,8 @@ RaytracingAlgorithm still has a long way to go before it reaches the amount of f
     - [ ] Bloom
 - [ ] Format outputs (e.g create output directory)
 - [ ] Improve compiling options (e.g. rename the long command with something shorter and more intuitive)
-- [ ] Improve logger messages
+- [x] Improve logger messages
+- [ ] Implement refractive BRDF
 
 ### Known bugs
 - Triangles + Meshes not working at all.
