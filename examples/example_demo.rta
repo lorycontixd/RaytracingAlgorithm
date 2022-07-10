@@ -27,7 +27,7 @@ plane (ground_material, identity)
 sphere s(sphere_material, translation([0, 0, 1]))
 sphere cts(ctmaterial, translation([-1, -2.7, 1]))
 
-renderer(pathtracer, <0,0,0>, 6, 6, 3)
+renderer(pathtracer, <0,0,0>, 3, 8, 4)
 camera(perspective, rotation_z(30)* translation([-4, 0, 1]), 1.0, 1.0)
 
 set antialiasing = new antialiasing(1)

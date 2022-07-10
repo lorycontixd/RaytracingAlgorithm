@@ -1,4 +1,4 @@
-import hdrimage, matrix, color, utils, exception
+import hdrimage, matrix, color, utils, exception, logger
 import std/[math, enumerate, options]
 
 
@@ -89,6 +89,7 @@ method eval*(self: GaussianBlur, input_img: var HdrImage): auto=
     ##          input_img (HdrImage): the image to be blurred
     ##          output_img (HdrImage): image to store result
     ##
+    debug("Applying gaussian blur to image with radius ", self.kernelRadius)
     var output_img: HdrImage = newHdrImage(input_img.width, input_img.height)
     let kernel = GetKernel(self)
     for x in self.kernelRadius..<input_img.width-self.kernelRadius:
@@ -150,6 +151,7 @@ proc clamp_image*(self: ToneMapping, image: var HdrImage)=
 method eval*(self: ToneMapping, input_img: var HdrImage): auto=
     ## Calculates tone mapping correction according to Shirley & Morley's algorithm.
     ##
+    debug("Applying tonemapping to image with tonemapping factor of ", self.factor)
     self.normalize_image(input_img)
     self.clamp_image(input_img)
 

@@ -160,7 +160,7 @@ method Get*(renderer: PathTracer): (proc(ray: Ray): Color) {.gcsafe, injectProcN
                 )
                 let newRadiance = renderer.Get()(newRay)
                 cum_radiance = cum_radiance + hit_color * newRadiance
-                #renderer.raysShot  = renderer.raysShot + 1
+                renderer.raysShot  = renderer.raysShot + 1
         #let endTime = now() - start
         #mainStats.AddCall(procName, endTime, 1)
         return emitted_radiance + cum_radiance * (1.0 / float32(renderer.numRays))
