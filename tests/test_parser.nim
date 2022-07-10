@@ -109,7 +109,7 @@ proc test_parser()=
         plane (sky_material, translation([0, 0, 100]) * rotation_y(clock))
         plane (ground_material, identity)
     
-        sphere(sphere_material, translation([0, 0, 1]))
+        sphere s(sphere_material, translation([0, 0, 1]))
     
         camera(perspective, rotation_z(30) * translation([-4, 0, 1]), 1.0, 2.0)
         """)
