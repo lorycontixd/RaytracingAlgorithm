@@ -19,7 +19,7 @@ The currently supported data types are:
 - floating point numbers (float)
 - boolean (bool)
 - string (string)
-- 
+
 > ⚠️Since boolean values are used exclusively for settings, the values are **on** or **off**.
 
 #### Examples
@@ -46,6 +46,8 @@ Colours are declared using angular brackets, and each component separated by a c
 
 ## Pigments
 A pigment does not allow identifiers and has to be inserted directly as an argument, so it can be defined with the following syntax:
+
+**Syntax:** type name(color)</center>
 
 ### Uniform
 Represent a uniform pigment, made of only one colour, and hides a reflectance factor which is always 1.
@@ -130,9 +132,13 @@ Clearly there has to be two coefficients which dictate the strength of the diffu
 ##### Examples
 - phong(uniform(<1,0,0>), 20, 0.9, 0.1)
 - phong(gradient(<1,0,0,>, <0,0,1>, 0.5, 0.5), 1000, 0.1, 0.9)
-- 
-### Cook Torrance BRDF
 
+### Cook Torrance BRDF
+The Cook Torrance BRDF models the behaviour of light in two different ways making a distinction between diffuse reflection and specular reflection. The idea is that the material we are simulating reflects a certain amount of light in all directions (Diffuse) and another amount in a specular way (like a mirror). Cook-Torrance is a microfacet model, which means that it approximates surfaces as a collection of small individual faces called microfacets, and it takes into account the attenuation of the light due to microfacets shadowing each other, by computing the probability that at a given point, the microfacets are occluded by each other.
+
+**Syntax:** cooktorrance(pigment, diffuseCoefficient, specularCoefficient, roughness, albedo, metallic, ndf_var)
+
+> ⚠️ The sum of the diffuse and specular coefficients must not be greater than 1.
   
 
   
@@ -186,16 +192,16 @@ A plane is defined by the ```plane``` keyword, and accepts an identifier just li
 
 ### Triangle
 
-A triangle is a very important shape because it allows the definition of meshes, which also allows anything to be renerer. Since almost every object can be approximated using triangles, we may need a lot of triangles to create more complex shapes, therefore the defintion of this shape must be as efficient as possible
+A triangle is a very important shape because it allows the definition of meshes, which also allows anything to be rendered. Since almost every object can be approximated using triangles, we may need a lot of triangles to create more complex shapes, therefore the defintion of this shape must be as efficient as possible
 > ⚠️ The construction of triangles from text file is still under construction so it will not work.
 
-**Syntax**: triangle( v1, v2, v3, material) ,where v1,v2,v3 are the vertex positions (vectors)
+**Syntax**: triangle( v1, v2, v3, material) ,where _v1_, _v2_, _v3_ are the vertex positions (vectors).
 
   
 
 ### Meshes
 
-A triangle mesh can be defined in multiple way. If you have an Wavefront .obj file, you can simply pass the filename with the object transformation. If you want to define a triangle mesh manually, you can do so by calling the ```mesh``` keyword and define the triangles one by one.
+A triangle mesh can be defined in multiple way. If you have a _Wavefront .obj_ file, you can simply pass the filename with the object transformation. If you want to define a triangle mesh manually, you can do so by calling the ```mesh``` keyword and define the triangles one by one.
   
 
 **Syntax (.obj):** mesh( filename, transform, material )
@@ -289,11 +295,11 @@ The renderer takes as arguments:
 
 ## Camera
 
-In order to rendere a scene, it is obviously necessary to have an object that represents a camera in the scene. The camera has a world transform, which is mostly needed for its position and its rotation, it has a distance to the screen of pixels and it can be of two different types: orthogonal camera and perspective camera.
+In order to render a scene, it is obviously necessary to have an object that represents a camera in the scene. The camera has a _world transform_, which is mostly needed for its position and its rotation, it has a _distance_ to the screen of pixels and it can be of two different types: _orthogonal_ camera and _perspective_ camera.
 
 The camera type determines how the rays are generated through the screen, and essentially:
 
-- Orthogonal: Preserves parallelism (rays shots through each pixel are parallel)
+- Orthogonal: Preserves parallelism (rays shot through each pixel are parallel)
 
 - Perspective: More distant objects appear smaller on the screen.
 
@@ -309,15 +315,16 @@ The camera type determines how the rays are generated through the screen, and es
 - camera( perspective, rotation_z(30)* translation([0,0,1]), 2.0, 2.0 )
 
 ## Settings
+
 RaytracingAlgorithm implements various settings to modify the image to the user's will. The settings are defined by the keyword ```set``` and most of them can be declared in different ways: 
 - Setting turned off: ``` set setting = off```
 - Setting turned on and using default parameters: ``` set setting = on```
-- Setting turned on and using custom parameters: ``` set setting = new setting( *args )
+- Setting turned on and using custom parameters: ``` set setting = new setting( *args )```
 
 Settings are defined in order of definition in the file, and some settings must come after others.
 
 ### Width and height
-The width and height are the only setting that do not follow the rules described above, and are the only setting that can be defined both in the scene file and from command line. The scene file definition has the priority over the command-line definition, so if both are defined, the scene file values are taken. If neither are defined, the default values for width and height are 800 and 600 respectively.
+The width and height are the only settings that do not follow the rules described above, and are the only settings that can be defined both in the scene file and from command line. The scene file definition has the priority over the command-line definition, so if both are defined, the scene file values are taken. If none of them is defined, the default values for width and height are 800 and 600 respectively.
 
 **Syntax**:
 - set width = value
@@ -328,7 +335,7 @@ The width and height are the only setting that do not follow the rules described
 - set height = 1080
 
 ### Logger
-The logger is a useful tool for displaying useful messages during the rendering of a scene. The logger settings asks for a pipeline for logging messages to be redirected to. This can either be the name of a file, or a console pipeline such as stdout or stderr. The default values for an activated logger is to output the messages to a file called 'main.log'. 
+The logger is a useful tool for displaying useful messages during the rendering of a scene. The logger settings ask for a pipeline for logging messages to be redirected to. This can either be the name of a file, or a console pipeline such as stdout or stderr. The default values is an activated logger is to output the messages to a file called 'main.log'. 
 
 **Syntax**: set logger = new logger( pipeline )
 
@@ -371,7 +378,7 @@ The animation setting requires as parameters the duration of the animation (in s
 PostProcessing are a set of effects to be applied only once the image has already been rendered, to make it look nicer, more realistic, or sometimes to correct some problems such as to reduce image noise. As of today, the only postprocessing effects that RaytracingAlgorithm offers are:
 - *Tone Mapping:* Maps RGB colours to sRGB colours to approximate high-dynamic range images in a more limited dynamic range environment.
 - *Gaussian Blur*: Gaussian blur is a method of blurring an image which can be used either to intentionally give it a blur effect, or to reduce the noise of the image.
->⚠️ In the future the gaussian blur will be classified under a general blur effect with the ability of specifying the type of blur as parameter (gaussian, et
+>⚠️ In the future the gaussian blur will be classified under a general blur effect with the ability of specifying the type of blur as parameter (gaussian, etc.)
 
 The syntax is general for post processing effects, and cannot be separated into individual effects. This means that the post-processing effects setting asks for a list of effects, which cannot be pre-defined and passed as variables.
 
