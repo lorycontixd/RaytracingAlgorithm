@@ -1096,8 +1096,8 @@ proc BuildVariableTable*(definitions: seq[string]): Table[string, float32] =
     for declaration in definitions:
         let parts = declaration.split(":")
         if len(parts) != 2:
-            echo(fmt"error, the definition «{declaration}» does not follow the pattern NAME:VALUE")
-            raise TestError.newException("ciao")
+            #echo(fmt"error, the definition «{declaration}» does not follow the pattern NAME:VALUE")
+            raise TestError.newException(fmt"error, the definition «{declaration}» does not follow the pattern NAME:VALUE")
 
         var
             name: string = parts[0]
@@ -1144,7 +1144,7 @@ proc ParseScene*(input_file: var InputStream, variables: Table[string, float32] 
 
             if (variable_name in scene.float_variables) and not (variable_name in scene.overridden_variables):
                 #raise GrammarError(location=variable_loc, message=f"variable «{variable_name}» cannot be redefined")
-                raise TestError.newException("ciao")
+                raise TestError.newException(fmt"variable '{variable_name}' cannot be redefined")
 
             if not (scene.overridden_variables.contains(variable_name)):
                 # Only define the variable if it was not defined by the user *outside* the scene file
