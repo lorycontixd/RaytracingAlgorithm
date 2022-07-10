@@ -240,7 +240,7 @@ proc fill_gradient*(self: var HdrImage)=
 
 
 
-proc read_pfm*(self: var HdrImage, stream: FileStream) {.inline.} =
+proc read_pfm*(self: var HdrImage, stream: Stream) {.inline.} =
     ##
     ##    Read PFM: Reads PFM file defined by stream and stores it in the current HdrImage object.
     ##    
