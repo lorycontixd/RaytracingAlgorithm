@@ -17,6 +17,7 @@ import std/[streams, sequtils]
 import "../src/RaytracingAlgorithm/hdrimage.nim"
 import "../src/RaytracingAlgorithm/color.nim"
 import "../src/RaytracingAlgorithm/utils.nim"
+import "../src/RaytracingAlgorithm/geometry.nim"
 
 echo "Testing HdrImage"
 
@@ -83,7 +84,6 @@ proc test_parse_endianess=
     assert HdrImage.parse_endianess("-1.0") == hdrimage.Endianness.littleEndian
     assert HdrImage.parse_endianess("1.0") == hdrimage.Endianness.bigEndian
 
-
 proc test_readpfm()=
     var img_test = newHdrImage(3,2)
     const le_ref_bytes = [byte 0x50, 0x46, 0x0a, 0x33, 0x20, 0x32, 0x0a, 0x2d, 0x31, 0x2e, 0x30, 0x0a,
@@ -104,34 +104,36 @@ proc test_readpfm()=
     # testing little endianness
     
     var
-        str = toString(le_ref_bytes)
-        stream = newStringStream(str)
-        img = readPfmImage(stream)
+        img = newHdrImage()
+        str = bytesToString(le_ref_bytes)
+        strm = newStringStream(str)
+    img.read_pfm(strm)
     
     assert img.width == 3
     assert img.height == 2
-    assert img.getPixel(0, 0).isClose(newColor(1.0e1, 2.0e1, 3.0e1))
-    assert img.getPixel(1, 0).isClose(newColor(4.0e1, 5.0e1, 6.0e1))
-    assert img.getPixel(2, 0).isClose(newColor(7.0e1, 8.0e1, 9.0e1))
-    assert img.getPixel(0, 1).isClose(newColor(1.0e2, 2.0e2, 3.0e2))
-    assert img.getPixel(1, 1).isClose(newColor(4.0e2, 5.0e2, 6.0e2))
-    assert img.getPixel(2, 1).isClose(newColor(7.0e2, 8.0e2, 9.0e2))
+    assert img.getPixel(0, 0) == newColor(1.0e1, 2.0e1, 3.0e1)
+    assert img.getPixel(1, 0) == newColor(4.0e1, 5.0e1, 6.0e1)
+    assert img.getPixel(2, 0) == newColor(7.0e1, 8.0e1, 9.0e1)
+    assert img.getPixel(0, 1) == newColor(1.0e2, 2.0e2, 3.0e2)
+    assert img.getPixel(1, 1) == newColor(4.0e2, 5.0e2, 6.0e2)
+    assert img.getPixel(2, 1) == newColor(7.0e2, 8.0e2, 9.0e2)
   
     # testing big endianness
 
     var
-        str1 = toString(be_ref_bytes)
+        img1 = newHdrImage()
+        str1 = bytesToString(be_ref_bytes)
         stream1 = newStringStream(str1)
-        img1 = readPfmImage(stream1)
+    img1.read_pfm(stream1)
     
     assert img1.width == 3
     assert img1.height == 2
-    assert img1.getPixel(0, 0).isClose(newColor(1.0e1, 2.0e1, 3.0e1))
-    assert img1.getPixel(1, 0).isClose(newColor(4.0e1, 5.0e1, 6.0e1))
-    assert img1.getPixel(2, 0).isClose(newColor(7.0e1, 8.0e1, 9.0e1))
-    assert img1.getPixel(0, 1).isClose(newColor(1.0e2, 2.0e2, 3.0e2))
-    assert img1.getPixel(1, 1).isClose(newColor(4.0e2, 5.0e2, 6.0e2))
-    assert img1.getPixel(2, 1).isClose(newColor(7.0e2, 8.0e2, 9.0e2))
+    assert img1.getPixel(0, 0) == newColor(1.0e1, 2.0e1, 3.0e1)
+    assert img1.getPixel(1, 0) == newColor(4.0e1, 5.0e1, 6.0e1)
+    assert img1.getPixel(2, 0) == newColor(7.0e1, 8.0e1, 9.0e1)
+    assert img1.getPixel(0, 1) == newColor(1.0e2, 2.0e2, 3.0e2)
+    assert img1.getPixel(1, 1) == newColor(4.0e2, 5.0e2, 6.0e2)
+    assert img1.getPixel(2, 1) == newColor(7.0e2, 8.0e2, 9.0e2)
     
 
 ################  RUN  ####################

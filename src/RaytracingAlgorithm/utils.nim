@@ -26,7 +26,7 @@ proc bufferToArray32*(s: seq[byte]): array[12, byte]{.inline.}=
         x[i] = s[i]
     return x
 
-proc toString(bytes: openarray[byte]): string =
+proc bytesToString*(bytes: openarray[byte]): string =
     result = newString(bytes.len)
     copyMem(result[0].addr, bytes[0].unsafeAddr, bytes.len)
 
