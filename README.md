@@ -129,7 +129,7 @@ We implemented a new straightforward language in order to create images from an 
 - [API Reference](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md)
 
 - [First Tutorial](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md): Create two spheres inside a scene with different materials.
-- [Second Tutorial](): Create your first animation.
+- [Second Tutorial](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/secondtutorial.md): Create your first animation.
 
 ## Future works
 RaytracingAlgorithm still has a long way to go before it reaches the amount of functionalities that it deserves. There are known bugs which are waiting to be fixed and ideas waiting to be implemented.
