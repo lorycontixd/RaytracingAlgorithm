@@ -62,9 +62,9 @@ The resulting image would be the following:
 ![Step2 Image](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/media/documentation/tutorial1/step2.png)
 
 ### Step 3
-The image would theoretically we complete, as it looks the same as our target image. Or does it?
-What we can do last is apply some settings to make the image look nicer **after** the rendering, by applying some effects called post-processing effects.
-What we can also do is make the image look neater by increasing the image resolution. In this example, we will produce an image of resolution 1920x1080, which is standard for relatively modern monitors.
+The image would theoretically be complete, as it looks the same as our target image. Or does it?
+What we can do last is to add some settings to make the image look nicer **after** the rendering, by applying some effects called post-processing effects.
+What we can also do is making the image look neater by increasing the image resolution. In this example, we will produce an image of resolution 1920x1080, which is standard for relatively modern monitors.
 
 These settings can be applied by adding the following lines:
 ```
