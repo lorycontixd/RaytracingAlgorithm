@@ -6,6 +6,7 @@ import "../src/RaytracingAlgorithm/geometry.nim"
 import "../src/RaytracingAlgorithm/camera.nim"
 import "../src/RaytracingAlgorithm/shape.nim"
 import "../src/RaytracingAlgorithm/transformation.nim"
+import "../src/RaytracingAlgorithm/renderer.nim"
 
 import std/[streams, options, marshal, tables]
 
@@ -142,6 +143,7 @@ proc test_parser()=
         sphere s(sphere_material, translation([0, 0, 1]))
     
         camera(perspective, rotation_z(30) * translation([-4, 0, 1]), 1.0, 2.0)
+        renderer(pathtracer, <0,0,0>, 4,5,6)
         """)
         
     var stream: InputStream = newInputStream(strm, newSourceLocation(""))
@@ -194,10 +196,12 @@ proc test_parser()=
     assert scene.world.shapes[2].transform == Transformation.translation(newVector3(0.0,0.0,1.0)) 
 
     # Check that the camera is ok
-    assert scene.camera.camType is PerspectiveCamera
+    assert scene.camera of camera.PerspectiveCamera
     assert scene.camera.transform ==  Transformation.rotationZ(30.0) * Transformation.translation(newVector3(-4.0,0.0,1.0))
     assert scene.camera.aspectRatio == 1
     assert scene.camera.get_cam_distance_test == 2
+
+    assert scene.renderer of renderer.PathTracer
 
 
 test_inputstream()
