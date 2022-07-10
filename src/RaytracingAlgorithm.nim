@@ -7,7 +7,7 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
     case name:
         of "9-spheres": 
             let start = cpuTime()
-            info("Starting demo render of '9-spheres' scene")
+            info("Starting rendering of '9-spheres' demo scene")
             const
                 sphere_count: int = 10
                 radius: float32 = 0.1
@@ -44,7 +44,7 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             mainStats.Show()
 
         of "materials":
-            info("Starting demo render of 'materials' scene")
+            info("Starting rendering of 'materials' demo scene")
             let start = now()
             var cam: Camera = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
             var
@@ -52,11 +52,7 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
                 img: HdrImage = newHdrImage(width, height)
                 pcg: PCG = newPCG()
                 tracer:  ImageTracer = newImageTracer(img, cam)
-                #tracer: AntiAliasing = newAntiAliasing(img, cam, 500, pcg)
-
-                #render: Renderer = newPathTracer(w, Color.blue(), pcg, 2, 2, 2)
-                render: Renderer = newFlatRenderer(w, Color.black())
-                #render: Renderer = newPointlightRenderer(w, Color.black(), Color.blue())
+                render: Renderer = newPathTracer(w, Color.blue(), pcg, 5, 6, 4)
                 scale_tranform: Transformation = Transformation.scale(newVector3(0.1, 0.1, 0.1)) * Transformation.rotationY(-10.0)
 
             var
@@ -71,9 +67,9 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
 
                 sphere_material = newMaterial(
                     #newDiffuseBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)))
-                    #newPhongBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)) , 600.0, 0.1, 0.9 )
+                    newPhongBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)) , 2500.0, 0.4, 0.6 )
                     #newSpecularBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)))
-                    newCookTorranceBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)), ndf = CookTorranceNDF.GGX)
+                    #newCookTorranceBRDF(newUniformPigment(newColor(0.3, 0.4, 0.8)), ndf = CookTorranceNDF.GGX)
                 )
 
                 mirror_material = newMaterial(
@@ -83,19 +79,20 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             w.Add(newPlane("PLANE_0", Transformation.translation(0.0, 0.0, 0.0), ground_material))
             w.Add(newSphere("SPHERE_1", Transformation.translation(0.0, 0.0, 1.5), sphere_material))
             w.Add(newSphere("SPHERE_2", Transformation.translation(1.0, 2.5, 0.0), mirror_material)) 
-            tracer.fireAllRays(render.Get())
+            tracer.fireAllRays(render.Get(), true, 1)
             var strmWrite = newFileStream("output.pfm", fmWrite)
             
             tracer.image.write_pfm(strmWrite)
             var tonemapping: ToneMapping = newToneMapping(1.0)
+            var blur: GaussianBlur = newGaussianBlur(1)
             tonemapping.eval(tracer.image)
+            blur.eval(tracer.image)
             tracer.image.write_png("output.png", 1.0)
             let endTime = now() - start
-            mainStats.Show()
             echo $endTIme
 
         of "mesh":
-            info("Starting demo render of 'materials' scene")
+            info("Starting rendering of 'mesh' demo scene")
             let start = now()
             var cam: Camera = newPerspectiveCamera(width, height, transform=Transformation.translation(newVector3(-1.0, 0.0, 1.0)))
             var
@@ -103,7 +100,6 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
                 img: HdrImage = newHdrImage(width, height)
                 pcg: PCG = newPCG()
                 tracer:  ImageTracer = newImageTracer(img, cam)
-                #tracer: AntiAliasing = newAntiAliasing(img, cam, 500, pcg)
 
                 #render: Renderer = newPathTracer(w, Color.blue(), pcg, 2, 2, 2)
                 render: Renderer = newFlatRenderer(w, Color.black())
@@ -150,23 +146,24 @@ proc demo(name: string, width: int = 800, height: int = 600): auto =
             var tonemapping: ToneMapping = newToneMapping(1.0)
             tonemapping.eval(tracer.image)
             tracer.image.write_png("output.png", 1.0)
-            #let endTime = now() - start
+            let endTime = now() - start
             #mainStats.Show()
 
 
 
 proc render(filename: string, width: int = 800, height: int = 600, pcg_state: int = 42, output_filename = "output", png_output = true): auto =
-    #let start = cpuTime()
+    let start = now()
+    info(fmt"Starting rendering of scene from file {filename}")
     var strm: FileStream = newFileStream(filename, fmRead)
     if strm.isNil:
         echo getCurrentDir()
+        fatal(fmt"File {filename} does not exist.")
         raise TestError.newException(fmt"File {filename} does not exist.")
     
     var
         pcg: PCG = newPCG(cast[uint64](pcg_state))
         inputstrm: InputStream = newInputStream(strm, newSourceLocation(filename))
         scene: Scene = ParseScene(inputstrm)
-        
 
     if scene.settings.useLogger:
         for log in scene.settings.loggers:
@@ -182,7 +179,6 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
         imagetracer: ImageTracer = newImageTracer(img, scene.camera)
 
     useStats = scene.settings.useStats
-    info("Starting rendering scene from file: " & filename)
 
     if scene.parseTimeLogs.len() > 0:
         for lvl in scene.parseTimeLogs.keys:
@@ -206,18 +202,24 @@ proc render(filename: string, width: int = 800, height: int = 600, pcg_state: in
         animation.Save()
     else:
         imagetracer.fireAllRays(scene.renderer.Get(), scene.settings.useAntiAliasing, scene.settings.antiAliasingRays)
+        info(fmt"Shot a total of {scene.renderer.raysShot} rays")
         var strmWrite = newFileStream(fmt"{output_filename}.pfm", fmWrite)
         if scene.settings.usePostProcessing:
             for effect in scene.settings.postProcessingEffects:
                 effect.eval(imagetracer.image)
 
         imagetracer.image.write_pfm(strmWrite)
+        info("Image saved to ",output_filename,".pfm")
         if png_output:
+            info("Image saved to ",output_filename,".png")
             imagetracer.image.write_png(fmt"{output_filename}.png", 1.1)
-    #let endTime = cpuTime() - start
-    mainStats.closeStats()
+    let endTime = now() - start
+    info(fmt"Rendering completed in {$endTime}")
+    #mainStats.closeStats()
 
 proc pfm2png(inputfile: string, outputfile:string, factor: float32 = 0.7, gamma:float32 = 1.0){.inline.} =
+    logLevel = Level.debug
+    info(fmt"Starting conversion of file {inputfile} to {outputfile}")
     if not inputfile.endsWith(".pfm"):
         raise InvalidFormatError.newException(fmt"Invalid input file for conversion: {inputfile}. Must be PFM file.")
     if not outputfile.endsWith(".png"):
@@ -226,12 +228,14 @@ proc pfm2png(inputfile: string, outputfile:string, factor: float32 = 0.7, gamma:
     var fileStream: FileStream = newFileStream(inputfile, fmRead)
     image.read_pfm(fileStream)
     debug("File" ,inputfile, "has been read from disk")
-    info("Created HdrImage from inputfile ", inputfile, " for pfm2png conversion")
 
-    let luminosity = image.average_luminosity()
+    var luminosity: float32 = image.average_luminosity()
+    debug(fmt"Average luminosity of inputfile is {luminosity}")
     var tonemapping: ToneMapping = newToneMapping(1.0)
     tonemapping.eval(image)
 
+    luminosity = image.average_luminosity()
+    debug(fmt"Average luminosity of inputfile is {luminosity}")
     image.write_png(outputfile)
     debug("File", outputfile, "has been written to disk")
 
