@@ -43,7 +43,7 @@ or
 wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.tar.gz
 ```
 
-where x,y,z are the numbers of the version you want to download.
+where _x_, _y_, _z_ are the numbers of the version you want to download.
 
 2. Extract the file in the directory where the package should be located
 ```
@@ -103,7 +103,7 @@ nim cpp -d:release src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out 
 where:
 - ```FILE_NAME``` is the name of the input file with the description of the scene to be parsed;
 - ```WIDTH``` and ```HEIGHT``` are respectively the screen width and height in pixels, set by default to 800 and 600 (also definable in the scene file);
-- ```OUTPUT_FILENAME``` is the name of the name of the output file with the rendered image; it is set by default to 'output';
+- ```OUTPUT_FILENAME``` is the name of the name of the output file with the rendered image; it is set by default to '_output_';
 - ```BOOL``` is **True** if you want the image also in a PNG format, **False** else, set to False by default.
 
 In this way, you're generating by default an image in PFM format. 
@@ -124,7 +124,7 @@ where:
 
 
 ## Scene files
-We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step tutorials to generate your first image.
+We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step there tutorials to generate your first image.
 
 - [API Reference](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md)
 
@@ -153,7 +153,6 @@ RaytracingAlgorithm still has a long way to go before it reaches the amount of f
 ### Known bugs
 - Triangles + Meshes not working at all.
 - Stats module commented (waiting for parallelization).
-- 
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
