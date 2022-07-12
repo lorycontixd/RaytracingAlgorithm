@@ -1,5 +1,5 @@
-import hdrimage, camera, ray, color, pcg, utils, stats
-import std/[math, threadpool, times, sequtils]
+import hdrimage, camera, ray, color, pcg, utils
+import std/[times, sequtils]
 
 
 type 

@@ -1,5 +1,5 @@
-import geometry, exception, quaternion, stats, utils
-import std/[math, times]
+import geometry, exception, quaternion, utils
+import std/[math]
 
 type
     ##class for 4x4 matrix

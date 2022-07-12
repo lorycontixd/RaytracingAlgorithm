@@ -1,4 +1,4 @@
-import shape, rayhit, ray, exception, lights, geometry, utils, stats
+import shape, rayhit, ray, exception, lights, geometry, utils
 import std/[sugar, macros, typetraits, strutils, options, locks, times]
 
 type
@@ -20,14 +20,14 @@ func GetIndex*(self: World, s_id: string): int {.raises: [ShapeIDNotFoundError, 
             return i
     raise newShapeIDError(s_id)#ShapeIDNotFoundError.newException("ID not found in world shapes.")
 
-method Add*[T: Shape](self: var World, s: T): void {.base.}=
+func Add*(self: var World, s: Shape): void=
     ## Add a shape to the world scene.
     ##
     ## Parameters
     ##      s (Shape): Shape to be added
     self.shapes.add(s)
 
-method AddLight*[T: Light](self: var World, l: T): void {.base.}=
+method AddLight*(self: var World, l: Light): void {.base.}=
     ## Adds point lights to world
     self.pointLights.add(l)
 

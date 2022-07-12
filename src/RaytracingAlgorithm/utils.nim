@@ -1,4 +1,4 @@
-import std/[os, strutils, macros, parsecfg, times, terminal, parseutils, options]
+import std/[os, strutils, macros, parsecfg, times, terminal, options]
 
 let packageRootDir* = joinPath(parentDir(getCurrentDir()), "")
 

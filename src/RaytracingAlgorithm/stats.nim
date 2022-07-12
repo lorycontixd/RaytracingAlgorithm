@@ -1,4 +1,4 @@
-import std/[times, typetraits, strutils, options, locks, strformat, streams]
+import std/[times, typetraits, strutils, options, streams]
 type
     FunctionCallback* = object
         funcName*: string

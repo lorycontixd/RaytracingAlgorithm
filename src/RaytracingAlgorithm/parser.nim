@@ -1,5 +1,5 @@
-import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, stats, logger, pcg, animator, postprocessing, aabb
-import std/[os, streams, sequtils, sugar, strutils, options, typetraits, tables, strformat, sets, marshal]
+import exception, scene, geometry, material, color, hdrimage, transformation, shape, camera, world, triangles, renderer, pcg, lights, logger, pcg, animator, postprocessing, aabb
+import std/[os, streams, sequtils, strutils, options, typetraits, tables, strformat, sets, marshal]
 import stacks
 ## ------------- PARSER ---------------
 ## used to analyze a sequnce of tokens in order to understand the syntactic and semantic strucuture
