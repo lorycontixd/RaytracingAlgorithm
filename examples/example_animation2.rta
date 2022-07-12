@@ -1,0 +1,53 @@
+set width = 1000
+set height = 800
+
+
+material p1(
+    phong(checkered(<0,0,0>, <1,1,1>, 1), 3000, 0.2, 0.8),
+    gradient(<1,0,0>, <0,0,1>, 0.5 ,0.5)
+)
+
+material d1(
+    diffuse(uniform(<1, 0.5, 0>)),
+    uniform(<0,0,0>)
+)
+
+material ground_material(
+    diffuse(checkered(<1,1,1>, <0,0,0>, 4)),
+    uniform(<0,0,0>)
+)
+
+material background(
+    diffuse(uniform( <0.3, 0.3, 0.94>)),
+    uniform(<0,0,0>)
+)
+
+## lights
+    light([-4, 0, 4], <1,1,1>, 10)
+    light([4, 0, 4], <1,1,1>, 10)
+
+#sphere bg(background, scale([100,100,100]))
+sphere sp(p1, identity)
+sphere sd(d1, identity)
+plane(ground_material, identity)
+
+camera(perspective, translation([-4,0,2]), 1,1)
+renderer(pointlight,  <0.3, 0.3, 0.94>, <0.1, 0.1, 0.1>)
+
+set animation = new animation(6, 30)
+
+animate (sp,
+    [0, translation([0, 3, 2])],
+    [2, translation([0, 0, 1])],
+    [4, rotationx(90) * translation([0, 2, 1])],
+    [6, rotationx(90) * translation([0, 4, 1])]
+)
+
+animate(
+    sd,
+    [2, translation([0,-2, 1])],
+    [4, translation([0,-5, 1])],
+    [6, translation([0,-8, 1])]
+)
+
+set antialiasing = new antialiasing(1)
