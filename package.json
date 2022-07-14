@@ -1,0 +1,12 @@
+{
+    "name": "RaytracingAlgorithm",
+    "url": "https://github.com/lorycontixd/RaytracingAlgorithm",
+    "method": "git",
+    "tags": [
+      "library",
+      "raytracer"
+    ],
+    "description": "RaytracingAlgorithm is a  raytracer written in Nim to generate photo-realistic images from 3D scenes.",
+    "license": "GNU General Public License v3.0",
+    "web": "https://github.com/lorycontixd/RaytracingAlgorithm"
+  }
