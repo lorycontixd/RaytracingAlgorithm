@@ -1,5 +1,5 @@
-import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, ray, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene, postprocessing]
-import std/[segfaults, os, streams, times, options, tables, strutils, strformat, threadpool, marshal]
+import RaytracingAlgorithm/[hdrimage, animation, camera, color, geometry, utils, logger, shape, transformation, world, imagetracer, exception, renderer, pcg, material, stats, triangles, parser, scene, postprocessing]
+import std/[segfaults, os, streams, times, options, tables, strutils, strformat]
 import cligen
 
 proc demo(name: string, width: int = 800, height: int = 600): auto =

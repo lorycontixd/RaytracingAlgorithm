@@ -1,5 +1,5 @@
 import geometry, transformation, utils, material, aabb, exception
-import std/[options, streams, os, parseutils, strutils, sequtils, enumerate, strformat]
+import std/[options, streams, parseutils, strutils, enumerate, strformat]
 
 ## 
 ## Triangle Mesh: A class representing a mesh of many triangles.
@@ -121,7 +121,7 @@ proc newTriangleMeshOBJ*(transform: Transformation, objFile: string, material: M
         if not KEYWORDS.contains(key):
             continue
         
-        line.delete(0, spaceIndex)
+        line.delete(0..spaceIndex)
         var items: seq[string] = line.split(" ")
         if items.contains(""):
             items.delete(items.find(""))

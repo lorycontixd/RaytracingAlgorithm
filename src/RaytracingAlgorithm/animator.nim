@@ -1,5 +1,5 @@
 import transformation, matrix, geometry, quaternion, mathutils
-import std/[sequtils, tables, enumerate, algorithm, strformat, marshal]
+import std/[tables, enumerate, algorithm]
 
 type
     Keyframe* = object

@@ -4,11 +4,10 @@ import color
 import rayhit
 import pcg
 import geometry
-import stats
 from utils import injectProcName
 from ray import Ray
 from exception import NotImplementedError, AbstractMethodError
-import std/[options, math, times, typetraits]
+import std/[options, math]
 
 type
     Renderer* = ref object of RootObj # abstract class to solve rendering equation

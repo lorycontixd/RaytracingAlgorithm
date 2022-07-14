@@ -7,6 +7,11 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 ![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
 
 ## Requirements
+In order to install the required packages you must have Nimble installed and run the following command:
+```
+nimble build
+```
+
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
 - [Nim](https://nim-lang.org/) (nim >= 1.6.4)
 - [Testament](https://nim-lang.org/docs/testament.html): Support for unittesting. Should be already installed with Nim.

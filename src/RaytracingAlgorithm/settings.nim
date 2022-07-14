@@ -1,4 +1,4 @@
-import logger, stats, postprocessing
+import logger, postprocessing
 
 type
     Settings* = object

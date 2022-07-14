@@ -1,5 +1,5 @@
-import hdrimage, matrix, color, utils, exception, logger
-import std/[math, enumerate, options]
+import hdrimage, color, utils, exception, logger
+import std/[math, options]
 
 
 type

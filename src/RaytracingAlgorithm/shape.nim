@@ -1,5 +1,5 @@
-import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, stats, utils, triangles, mathutils, color, animator
-import std/[math, options, strutils, times, strformat, sequtils, algorithm]
+import geometry, transformation, rayhit, exception, ray, material, aabb, matrix, utils, triangles, mathutils, animator
+import std/[math, options, strformat, algorithm]
 
 
 type
@@ -259,7 +259,7 @@ method rayIntersect*(self: Plane, ray: Ray, debug: bool = false): Option[RayHit]
         self.material,
     ))
 
-method rayIntersect*(self: Cube, ray: Ray, debug: bool = false): Option[RayHit] =
+method rayIntersect*(self: Cube, ray: Ray, debug: bool = false): Option[RayHit] {.locks:0.}=
     let
         inverse_ray= ray.Transform(self.transform.Inverse())
         origin_vec = inverse_ray.origin.convert(Vector3)
@@ -305,7 +305,7 @@ method rayIntersect*(self: Cube, ray: Ray, debug: bool = false): Option[RayHit] 
         return none(RayHit)
 
 
-method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] =
+method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayHit] {.locks:0.}=
     ## Checks if a ray intersects the triangle
     ## Parameters
     ##      self (MeshTriangle)
@@ -377,7 +377,7 @@ method rayIntersect*(self: Triangle, ray: Ray, debug: bool = false): Option[RayH
     return some(hit)
     
 
-method rayIntersect*(self: MeshTriangle, ray: Ray, debug: bool = false): Option[RayHit] =
+method rayIntersect*(self: MeshTriangle, ray: Ray, debug: bool = false): Option[RayHit] {.locks:0.}=
     ## Checks if a ray intersects the triangle
     ## Parameters
     ##      self (MeshTriangle)
