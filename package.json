@@ -7,6 +7,6 @@
       "raytracer"
     ],
     "description": "RaytracingAlgorithm is a  raytracer written in Nim to generate photo-realistic images from 3D scenes.",
-    "license": "GNU General Public License v3.0",
+    "license": "gpl-3.0",
     "web": "https://github.com/lorycontixd/RaytracingAlgorithm"
   }
