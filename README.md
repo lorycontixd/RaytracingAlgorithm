@@ -76,7 +76,10 @@ cd RaytracingAlgorithm-2.1.0/
 ```
 
 ###
-We are planning to publish the RaytracingAlgorithm package to nimble in order to make it easier to download, but this feature will be released in a future version.
+The package can be installed using the Nimble package manager, simply by typing:
+```
+nimble install raytracingalgorithm
+```
 
 
 ## Usage
