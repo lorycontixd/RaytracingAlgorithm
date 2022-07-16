@@ -1,6 +1,6 @@
 # Package
 
-version       = "2.1.0"
+version       = "2.1.1"
 author        = "Lorenzo Conti, Diana Barindelli"
 description   = "RayTracing Algorith in Nim"
 license       = "GPL-3.0"
