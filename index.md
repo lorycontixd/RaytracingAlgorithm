@@ -11,80 +11,43 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 ![GitHub commit activity (weekly)](https://img.shields.io/github/commit-activity/w/lorycontixd/RaytracingAlgorithm)
 ![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
 
+## Installation
+RaytracingAlgorithm can be downloaded in multiple ways:
+- Using nimble:
+```
+nimble install RaytracingAlgorithm
+```
+- Directly from this repo:
+```
+nimble install https://github.com/lorycontixd/RaytracingAlgorithm
+```
+- Cloning the repo and building it locally:
+```
+git clone https://github.com/lorycontixd/RaytracingAlgorithm
+cd RaytracingAlgorithm
+nimble build
+```
+- Downloading the repo and building it locally
+```
+wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vX.Y.Z.zip
+unzip vX.Y.Z.zip
+cd RaytracingAlgorithm-X.Y.Z
+nimble build
+```
+where X.Y.Z is the semantic version you are looking for.
+
 ## Requirements
+In order to install the required packages you must have Nimble installed and run the following command:
+```
+nimble build
+```
+
 RaytracingAlgorithm requires the following packages to be installed in order to properly function:
 - [Nim](https://nim-lang.org/) (nim >= 1.6.4)
 - [Testament](https://nim-lang.org/docs/testament.html): Support for unittesting. Should be already installed with Nim.
 - [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```.
 - [Cligen](https://github.com/c-blake/cligen): Support for command-line argument parsing and help message formatting. Installable through the Nimble package manager with ```nimble install cligen```.
 - [Stacks](https://github.com/rustomax/nim-stacks): Pure Nim stack implementation using sequences. Installable through the Nimble package manager with ```nimble install stacks```.
-
-## Features
-- Generate photo-realistic images of your choice
-- Possible parallel CPU execution (CUDA in future)
-- Easy-to-use language to define a scene
-- Optimized for speed and memory
-- Render pre-defined demo images in an instance
-
-## Installation
-
-The package can be installed in multiple ways
-### Cloning the repository
-1. Enter the terminal and navigate to the directory you want the package to be installed in.
-2. Clone the repository with the command
-```
-git clone git@github.com:lorycontixd/RaytracingAlgorithm.git
-```
-3. Then you can enter the directory with the command
-```
-cd RaytracingAlgorithm
-```
-
-### Downloading the latest release
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/lorycontixd/RaytracingAlgorithm?color=green&label=Repo%20size&style=plastic)
-
-
-1. From terminal, download the latest version of the package from the GitHub repository of the package:
-```
-wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.zip
-```
-
-or
-
-```
-wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.tar.gz
-```
-
-where x,y,z are the numbers of the version you want to download.
-
-2. Extract the file in the directory where the package should be located
-```
-unzip vx.y.z.zip
-```
-
-or 
-
-```
-tar -xvf vx.y.z.tar.gz
-```
-3. Enter the directory and run the main file:
-
-```
-cd RaytracingAlgorithm-x.y.z
-```
-
-
-##### Example
-To download version 2.1.0 of RaytracingAlgorithm:
-```
-wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/v2.1.1.tar.gz
-tar v2.1.0.tar.gz
-cd RaytracingAlgorithm-2.1.0/
-```
-
-###
-We are planning to publish the RaytracingAlgorithm package to nimble in order to make it easier to download, but this feature will be released in a future version.
-
 
 ## Usage
 After downloading the package you can start using it!
@@ -115,7 +78,7 @@ nim cpp -d:release src/RaytracingAlgorithm.nim && ./src/RaytracingAlgorithm.out 
 where:
 - ```FILE_NAME``` is the name of the input file with the description of the scene to be parsed;
 - ```WIDTH``` and ```HEIGHT``` are respectively the screen width and height in pixels, set by default to 800 and 600 (also definable in the scene file);
-- ```OUTPUT_FILENAME``` is the name of the name of the output file with the rendered image; it is set by default to 'output';
+- ```OUTPUT_FILENAME``` is the name of the name of the output file with the rendered image; it is set by default to '_output_';
 - ```BOOL``` is **True** if you want the image also in a PNG format, **False** else, set to False by default.
 
 In this way, you're generating by default an image in PFM format. 
@@ -136,20 +99,36 @@ where:
 
 
 ## Scene files
-We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step tutorials to generate your first image.
+We implemented a new straightforward language in order to create images from an input file. You can follow step-by-step there tutorials to generate your first image.
 
 - [API Reference](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/rta.md)
 
 - [First Tutorial](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/firsttutorial.md): Create two spheres inside a scene with different materials.
-- [Second Tutorial](): Create your first animation.
+- [Second Tutorial](https://github.com/lorycontixd/RaytracingAlgorithm/blob/master/tutorials/secondtutorial.md): Create your first animation.
 
 ## Future works
 RaytracingAlgorithm still has a long way to go before it reaches the amount of functionalities that it deserves. There are known bugs which are waiting to be fixed and ideas waiting to be implemented.
 
+### Ideas
+- [ ] Animation on camera with keyframes
+- [ ] Animation on object parameters (for now only transform is animated)
+- [ ] KD-Tree implementation for ray scattering optimization
+- [ ] Cuda support
+- [ ] CSG shapes
+- [ ] Texture manager class
+- [ ] Area lights
+- [ ] More postprocessing effects
+    - [ ] Ambient occlusion
+    - [ ] Depth of field
+    - [ ] Bloom
+- [ ] Format outputs (e.g create output directory)
+- [ ] Improve compiling options (e.g. rename the long command with something shorter and more intuitive)
+- [x] Improve logger messages
+- [ ] Implement refractive BRDF
+
 ### Known bugs
 - Triangles + Meshes not working at all.
 - Stats module commented (waiting for parallelization).
-- 
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
