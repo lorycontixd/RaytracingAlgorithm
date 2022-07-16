@@ -19,67 +19,30 @@ RaytracingAlgorithm requires the following packages to be installed in order to 
 - [Cligen](https://github.com/c-blake/cligen): Support for command-line argument parsing and help message formatting. Installable through the Nimble package manager with ```nimble install cligen```.
 - [Stacks](https://github.com/rustomax/nim-stacks): Pure Nim stack implementation using sequences. Installable through the Nimble package manager with ```nimble install stacks```.
 
-## Installation
-
-The package can be installed in multiple ways
-### Cloning the repository
-1. Enter the terminal and navigate to the directory you want the package to be installed in.
-2. Clone the repository with the command
+# Installation
+RaytracingAlgorithm can be downloaded in multiple ways:
+- Using nimble:
 ```
-git clone git@github.com:lorycontixd/RaytracingAlgorithm.git
+nimble install RaytracingAlgorithm
 ```
-3. Then you can enter the directory with the command
+- Directly from this repo:
 ```
+nimble install https://github.com/lorycontixd/RaytracingAlgorithm
+```
+- Cloning the repo and building it locally:
+```
+git clone https://github.com/lorycontixd/RaytracingAlgorithm
 cd RaytracingAlgorithm
+nimble build
 ```
-
-### Downloading the latest release
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/lorycontixd/RaytracingAlgorithm?color=green&label=Repo%20size&style=plastic)
-
-
-1. From terminal, download the latest version of the package from the GitHub repository of the package:
+- Downloading the repo and building it locally
 ```
-wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.zip
+wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vX.Y.Z.zip
+unzip vX.Y.Z.zip
+cd RaytracingAlgorithm-X.Y.Z
+nimble build
 ```
-
-or
-
-```
-wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/vx.y.z.tar.gz
-```
-
-where _x_, _y_, _z_ are the numbers of the version you want to download.
-
-2. Extract the file in the directory where the package should be located
-```
-unzip vx.y.z.zip
-```
-
-or 
-
-```
-tar -xvf vx.y.z.tar.gz
-```
-3. Enter the directory and run the main file:
-
-```
-cd RaytracingAlgorithm-x.y.z
-```
-
-
-##### Example
-To download version 2.1.0 of RaytracingAlgorithm:
-```
-wget https://github.com/lorycontixd/RaytracingAlgorithm/archive/refs/tags/v2.1.1.tar.gz
-tar v2.1.0.tar.gz
-cd RaytracingAlgorithm-2.1.0/
-```
-
-###
-The package can be installed using the Nimble package manager, simply by typing:
-```
-nimble install raytracingalgorithm
-```
+where X.Y.Z is the semantic version you are looking for.
 
 
 ## Usage
