@@ -6,19 +6,6 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 ![GitHub commit activity (weekly)](https://img.shields.io/github/commit-activity/w/lorycontixd/RaytracingAlgorithm)
 ![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
 
-## Requirements
-In order to install the required packages you must have Nimble installed and run the following command:
-```
-nimble build
-```
-
-RaytracingAlgorithm requires the following packages to be installed in order to properly function:
-- [Nim](https://nim-lang.org/) (nim >= 1.6.4)
-- [Testament](https://nim-lang.org/docs/testament.html): Support for unittesting. Should be already installed with Nim.
-- [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```.
-- [Cligen](https://github.com/c-blake/cligen): Support for command-line argument parsing and help message formatting. Installable through the Nimble package manager with ```nimble install cligen```.
-- [Stacks](https://github.com/rustomax/nim-stacks): Pure Nim stack implementation using sequences. Installable through the Nimble package manager with ```nimble install stacks```.
-
 # Installation
 RaytracingAlgorithm can be downloaded in multiple ways:
 - Using nimble:
@@ -44,6 +31,18 @@ nimble build
 ```
 where X.Y.Z is the semantic version you are looking for.
 
+## Requirements
+In order to install the required packages you must have Nimble installed and run the following command:
+```
+nimble build
+```
+
+RaytracingAlgorithm requires the following packages to be installed in order to properly function:
+- [Nim](https://nim-lang.org/) (nim >= 1.6.4)
+- [Testament](https://nim-lang.org/docs/testament.html): Support for unittesting. Should be already installed with Nim.
+- [SimplePNG](https://github.com/jrenner/nim-simplepng): Package that handles the backend for PNG image creation. Installable through the Nimble package manager with ```nimble install simplepng```.
+- [Cligen](https://github.com/c-blake/cligen): Support for command-line argument parsing and help message formatting. Installable through the Nimble package manager with ```nimble install cligen```.
+- [Stacks](https://github.com/rustomax/nim-stacks): Pure Nim stack implementation using sequences. Installable through the Nimble package manager with ```nimble install stacks```.
 
 ## Usage
 After downloading the package you can start using it!
