@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 16-07-2022
+This patch is intended for minor adjustments on documentation and configuration files:
+### Changes
+- Improved readme installation guide
+- Updated nimble file dependencies and version number
+
 ## [2.1.0] - 09-07-2022
 This patch only changed the pfm2png command, whose parameters were renamed:
 ### Changes
