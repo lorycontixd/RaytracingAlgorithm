@@ -6,7 +6,7 @@ It is able to produce an image both in High-Dynamic Range (PFM, etc..) and Low-D
 ![GitHub commit activity (weekly)](https://img.shields.io/github/commit-activity/w/lorycontixd/RaytracingAlgorithm)
 ![GitHub release](https://img.shields.io/github/v/release/lorycontixd/RaytracingAlgorithm)
 
-# Installation
+## Installation
 RaytracingAlgorithm can be downloaded in multiple ways:
 - Using nimble:
 ```
